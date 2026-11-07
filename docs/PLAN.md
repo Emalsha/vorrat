@@ -104,15 +104,78 @@ and CSV import, offline service worker, optional household password, demo mode,
 English, German, French and Dutch, CI with a 64-bit ARM build.
 
 **Next.**
-1. More languages (Polish, Swedish, Italian, Spanish) and more country presets.
-2. Several households on one server: see [HOUSEHOLDS.md](HOUSEHOLDS.md).
-3. Accounts with Argon2id passwords and passkeys.
-4. Signed release builds and a one-command install, including a Raspberry Pi image.
-5. `cargo audit` and `cargo deny` in CI.
+1. **Household profile: people and pets** (see below).
+2. **Suggestions and quick-add from the profile** (see below).
+3. **Medicine and other essentials** (see below).
+4. **Official guidance in the project:** EU and national emergency-preparedness
+   advice, with sources, in `docs/` and as country presets.
+5. More languages (Polish, Swedish, Italian, Spanish) and more country presets.
+6. Several households on one server: see [HOUSEHOLDS.md](HOUSEHOLDS.md).
+7. Accounts with Argon2id passwords and passkeys.
+8. Signed release builds and a one-command install, including a Raspberry Pi image.
+9. `cargo audit` and `cargo deny` in CI.
 
 **Later.** Native app (as an API client), Home Assistant integration, shared
-neighbourhood or building stock, medication tracking with refills, water
-rotation reminders, power-cut mode (what to eat first when the freezer is off).
+neighbourhood or building stock, water rotation reminders.
+
+### Household profile, suggestions, medicine and essentials (planned)
+
+Today the plan knows one number: how many people. Real households differ: a
+baby needs nappies and formula, a dog needs food and water too, a grandparent
+needs their tablets. These three features make the plan fit the household.
+
+**1. Household profile: people and pets.**
+- *People:* a first name or nickname, an age group (baby under 2, child 2 to
+  12, teenager, adult, older adult), and optional needs: pregnant or
+  breastfeeding, diet (vegetarian, vegan, halal, kosher, gluten-free),
+  allergies, mobility or care needs, glasses or hearing aids.
+- *Pets:* kind (dog, cat, small animal, bird, other), a name, and size or
+  weight for dogs.
+- The household size used by the plan comes from the profile instead of a
+  single "people" number. Each target says how it scales: per adult, per
+  person of any age, per baby, per pet, or once per household.
+- Quantities scale only where a public source gives a number (for example the
+  BBK's per-person amounts). Where no source does (pet food, children's
+  portions), Vorrat asks the household to set the amount once and remembers it.
+  No invented numbers (AGENTS.md rule 7).
+
+**2. Suggestions and quick-add from the profile.**
+- Each profile entry switches on a short checklist of items that official
+  guides name for it. Examples: baby: nappies, formula or baby food, wipes,
+  a thermometer. Dog or cat: food, water, a lead or carrier, litter,
+  vaccination papers, a recent photo. Older adult: spare glasses, hearing-aid
+  batteries, a list of medicines. Diet: foods that fit it.
+- Suggestions appear on the plan page as "Suggested for your household". One
+  tap adds an item to the plan (with a target) or to the shopping list.
+  *Not needed* hides it for good. Every suggestion names its source.
+- The lists come from the guidance gathered in item 4. They live in plain text
+  files in the repository, like the translations, so people can review and
+  extend them.
+
+**3. Medicine and other essentials.**
+- *Medicine:* a new item kind with its strength and form (tablet, liquid,
+  inhaler), who it is for (a person or pet from the profile), the daily dose,
+  and an optional prescription renewal date. Vorrat shows how many days each
+  person's medicine lasts, counts it in "weakest essential lasts N days", and
+  reminds before it runs out or expires. Vorrat never suggests a medicine or a
+  dose: that comes from the household and their doctor. The page says so.
+- *First-aid kit:* a checklist from official guidance (plasters, bandages,
+  disinfectant, painkillers, thermometer, tweezers), each with expiry.
+- *Other essentials:* hygiene (soap, toilet paper, menstrual products, rubbish
+  bags), light and power (torch, batteries, power bank, battery or wind-up
+  radio), cooking without power (camping stove, fuel, matches), cash in small
+  notes, copies of documents, and warm clothes and blankets. These become plan
+  targets counted "once per household" or "per person", not per day.
+- Medicine and health needs are the most private data in Vorrat. They stay in
+  the household's own file, are never sent anywhere, and the export marks them
+  clearly.
+
+**What this needs.** New tables for people, pets and per-person medicine. That
+means schema v3 and a migration (AGENTS.md rule 1), which is a design decision
+for the maintainer before anyone builds it. Existing v2 databases upgrade
+automatically on first start; the household count becomes adults in the new
+profile. Build order: profile first, then medicine and essentials, then
+suggestions once the guidance lists exist.
 
 ## 8. Risks
 
