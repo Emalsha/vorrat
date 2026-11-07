@@ -1,0 +1,45 @@
+name: Bug report
+description: Something in Vorrat doesn't work as expected.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping. Please search existing issues first.
+        Don't paste your database, passwords, ntfy topic or other private data.
+        Diagnoses and proposed fixes are welcome here. We don't accept outside
+        pull requests, but we credit your analysis in the pull request that fixes it.
+  - type: input
+    id: version
+    attributes:
+      label: Vorrat version
+      description: Shown at the bottom of Settings.
+      placeholder: "0.1.0, Docker"
+    validations:
+      required: true
+  - type: input
+    id: setup
+    attributes:
+      label: How you run it
+      description: Docker, binary, demo; the browser and phone or computer you use.
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: What happened?
+      description: What you saw, and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The page and the buttons or form you used.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else
+      description: Optional screenshots, redacted log lines, the code you suspect or a patch snippet.

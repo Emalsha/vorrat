@@ -1,0 +1,60 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo test
+
+  arm64:
+    # Raspberry Pi and other small ARM boards: cross-compile, then start the
+    # binary under QEMU and load a page, so an ARM-only break shows up here.
+    runs-on: ubuntu-latest
+    env:
+      CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
+      CC_aarch64_unknown_linux_gnu: aarch64-linux-gnu-gcc
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update -q && sudo apt-get install -y -q gcc-aarch64-linux-gnu qemu-user
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-unknown-linux-gnu
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build --release --locked --target aarch64-unknown-linux-gnu
+      - name: Start it under QEMU and load a page
+        run: |
+          bin=target/aarch64-unknown-linux-gnu/release/vorrat
+          ls -l "$bin"
+          VORRAT_DATA_DIR="$RUNNER_TEMP/data" VORRAT_LOOKUP=off \
+            qemu-aarch64 -L /usr/aarch64-linux-gnu "$bin" &
+          pid=$!
+          for i in $(seq 1 60); do curl -fsS -o /dev/null http://127.0.0.1:8087/ && break; sleep 1; done
+          curl -fsS -o /dev/null http://127.0.0.1:8087/plan
+          kill "$pid"
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build the image (not pushed)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: vorrat:ci

@@ -1,0 +1,335 @@
+# English<TAB>Français. One line per text; the English text is the key.
+Used up	Épuisé
+Thrown away	Jeté
+Add	Ajouter
+Add stock	Ajouter au stock
+Filled in from	Rempli depuis
+Check it, then add.	Vérifiez, puis ajoutez.
+Name	Nom
+e.g. Still water 1.5 L	p. ex. Eau plate 1,5 L
+Brand	Marque
+Kind	Type
+Category	Catégorie
+Quantity	Quantité
+Unit	Unité
+Expires	Date limite
+Pack size	Taille du paquet
+e.g. 1.5	p. ex. 1,5
+Pack unit	Unité du paquet
+Pack size lets "6 pcs" of 1.5 L bottles count as 9 L of water in the emergency plan.	Avec la taille du paquet, « 6 pcs » de bouteilles de 1,5 L comptent pour 9 L d'eau dans le plan d'urgence.
+Location	Emplacement
+Minimum	Minimum
+Barcode	Code-barres
+Price	Prix
+Or is it something you already have?	Ou est-ce quelque chose que vous avez déjà ?
+Same thing	C'est le même
+"Same thing" links this barcode to that item, so this scan and later ones add to it.	« C'est le même » associe ce code-barres à cet article : ce scan et les suivants s'y ajoutent.
+Offline: showing the last saved copy. Changes need a connection.	Hors ligne : dernière copie enregistrée. Les modifications nécessitent une connexion.
+Settings	Réglages
+Undo	Annuler
+Main	Menu principal
+Home	Accueil
+Stock	Stock
+Plan	Plan
+Shopping	Courses
+Emergency readiness	Préparation aux urgences
+days	jours
+person	personne
+people	personnes
+Your weakest essential lasts	Votre besoin essentiel le plus faible dure
+Everything in the plan is covered.	Tout le plan est couvert.
+Not yet covered:	Pas encore couvert :
+expired	périmé
+within 14 days	sous 14 jours
+running low	bientôt épuisé
+Scan to add	Scanner pour ajouter
+Scan to use up	Scanner pour consommer
+Expired & expiring soon	Périmé et bientôt périmé
+Nothing expires in the next 14 days.	Rien ne périme dans les 14 prochains jours.
+Running low	Bientôt épuisé
+low	bas
+Nothing below its minimum.	Rien sous son minimum.
+Recent	Récent
+No activity yet.	Aucune activité pour l'instant.
+in stock	en stock
+Edit	Modifier
+Use	Consommer
+Batches	Lots
+Opened	Ouvert
+Remove batch	Retirer le lot
+None in stock.	Rien en stock.
+Usually keeps about	Se conserve en général environ
+around	donc vers le
+Minimum quantity	Quantité minimale
+Warn me when stock drops below this.	M'avertir quand le stock passe en dessous.
+Save	Enregistrer
+Scans & files	Scans et fichiers
+Files	Fichiers
+Remove	Retirer
+No files. Attach a photo or PDF (warranty, passport scan, contract).	Aucun fichier. Joignez une photo ou un PDF (garantie, scan de passeport, contrat).
+File	Fichier
+Use as the item's picture	Utiliser comme image de l'article
+Upload	Envoyer
+Barcodes	Codes-barres
+main	principal
+No barcode yet.	Pas encore de code-barres.
+Add another barcode	Ajouter un autre code-barres
+Link	Associer
+Prices paid	Prix payés
+History	Historique
+No history.	Aucun historique.
+Delete item and all its stock	Supprimer l'article et tout son stock
+Counted in	Compté en
+Alert below	Alerte sous
+0 = no alert	0 = pas d'alerte
+Content per piece	Contenu par pièce
+e.g. 400	p. ex. 400
+Content per piece lets the emergency plan count a 400 g can as 0.4 kg.	Avec le contenu par pièce, le plan d'urgence compte une boîte de 400 g comme 0,4 kg.
+Once opened, use within (days)	Une fois ouvert, consommer sous (jours)
+e.g. 4 for milk; empty keeps the printed date	p. ex. 4 pour le lait ; vide = date imprimée
+Usual location	Emplacement habituel
+Notes	Notes
+Where the original is, policy number, …	Où est l'original, numéro de contrat, …
+Save changes	Enregistrer les modifications
+Search name, brand, barcode	Chercher nom, marque, code-barres
+Search	Recherche
+All kinds	Tous les types
+Filter	Filtrer
+Locations	Emplacements
+Nothing here yet.	Rien ici pour l'instant.
+Add something	Ajouter quelque chose
+Nest locations to match your home, e.g. Cellar › Emergency box, or Office › Cabinet › Folder "Insurance".	Imbriquez les emplacements comme chez vous, p. ex. Cave › Caisse d'urgence, ou Bureau › Armoire › Classeur « Assurance ».
+item	article
+items	articles
+Inside	Dans
+top level	niveau supérieur
+inside	dans
+Delete	Supprimer
+New location	Nouvel emplacement
+Add location	Ajouter l'emplacement
+Emergency plan	Plan d'urgence
+People	Personnes
+Days	Jours
+Update	Mettre à jour
+covered	couvert
+weakest essential lasts	le besoin essentiel le plus faible dure
+Targets start from the German civil-protection (BBK) checklist; edit them to fit your household. Stock counts by category; expired stock doesn't count.	Les objectifs partent de la liste de la protection civile allemande (BBK) ; adaptez-les à votre foyer. Le stock compte par catégorie ; le périmé ne compte pas.
+Common recommendations. They set the days; the targets stay yours.	Recommandations courantes. Elles fixent les jours ; vos objectifs restent les vôtres.
+Coverage	Couverture
+Label	Libellé
+Mode	Mode
+per person per day	par personne et par jour
+fixed total	total fixe
+Amount	Quantité
+Put the gaps on the shopping list	Mettre les manques sur la liste de courses
+Printable checklist	Liste à imprimer
+Add a target	Ajouter un objectif
+e.g. Medicines, Cash, Power bank	p. ex. Médicaments, Espèces, Batterie externe
+Add target	Ajouter l'objectif
+Checklist	Liste
+Emergency checklist	Liste d'urgence
+Back to the plan	Retour au plan
+Print	Imprimer
+As of	Au
+Supplies	Provisions
+What	Quoi
+Need	Besoin
+Have	Disponible
+Missing	Manque
+Also have ready	Avoir aussi à portée de main
+Use first	À consommer d'abord
+Meeting point:	Point de rencontre :
+Emergency contacts:	Contacts d'urgence :
+Medicines and doses:	Médicaments et doses :
+Scan	Scanner
+Add to stock	Ajouter au stock
+Use up	Consommer
+Found	Trouvé :
+The camera needs HTTPS. Open Vorrat through its https:// address.	La caméra nécessite HTTPS. Ouvrez Vorrat via son adresse https://.
+Could not open the camera. Allow camera access for this site, or type the code below.	Impossible d'ouvrir la caméra. Autorisez l'accès à la caméra pour ce site ou saisissez le code ci-dessous.
+Point at a barcode	Visez un code-barres
+Torch	Lampe
+Open camera	Ouvrir la caméra
+Or type the barcode	Ou saisissez le code-barres
+e.g. 4001724819806	p. ex. 4001724819806
+Look up	Chercher
+No barcode?	Pas de code-barres ?
+Add without a barcode (vegetables, documents, things…)	Ajouter sans code-barres (légumes, documents, objets…)
+Language	Langue
+Same as the browser	Comme le navigateur
+Reminders	Rappels
+One push a day at	Une notification par jour à
+via	via
+Only when something is new: expiring in 14 or 7 days, expired, or running low (documents: 90 and 30 days).	Seulement s'il y a du nouveau : périme dans 14 ou 7 jours, périmé ou bientôt épuisé (documents : 90 et 30 jours).
+Push is off.	Les notifications sont désactivées.
+Set	Définissez
+(and optionally VORRAT_NTFY_URL for a self-hosted ntfy) to get a daily reminder on your phone.	(et éventuellement VORRAT_NTFY_URL pour un ntfy auto-hébergé) pour recevoir un rappel quotidien sur votre téléphone.
+Send a test push now	Envoyer une notification de test
+Calendar	Calendrier
+Subscribe to this address in your phone's calendar to see expiry and renewal dates there:	Abonnez-vous à cette adresse dans le calendrier de votre téléphone pour y voir les dates d'expiration et de renouvellement :
+Backup	Sauvegarde
+Every night at	Chaque nuit à
+Back up now	Sauvegarder maintenant
+Backup is off.	La sauvegarde est désactivée.
+to a folder your backup tool covers.	sur un dossier couvert par votre outil de sauvegarde.
+Your data	Vos données
+Take it with you, any time.	Emportez-les quand vous voulez.
+Stock as CSV	Stock en CSV
+Everything as JSON	Tout en JSON
+Database file	Fichier de base de données
+Import stock from CSV	Importer le stock depuis un CSV
+Columns: name (required), qty, unit, category, kind, barcode, expires_on, location, price, min_qty, brand. Comma or semicolon. Existing items are matched by barcode or name; nothing is deleted.	Colonnes : name (obligatoire), qty, unit, category, kind, barcode, expires_on, location, price, min_qty, brand. Virgule ou point-virgule. Les articles existants sont reconnus par code-barres ou nom ; rien n'est supprimé.
+Import	Importer
+Privacy	Confidentialité
+Your data stays in one file on this server. No account, no tracking.	Vos données restent dans un seul fichier sur ce serveur. Pas de compte, pas de pistage.
+Unknown barcodes are looked up in Open Food Facts (only the barcode number is sent).	Les codes-barres inconnus sont recherchés dans Open Food Facts (seul le numéro est envoyé).
+Barcode lookup is off.	La recherche de codes-barres est désactivée.
+open source under AGPL-3.0.	open source sous AGPL-3.0.
+Shopping list	Liste de courses
+Item	Article
+Into stock	Au stock
+The list is empty.	La liste est vide.
+Add everything running low	Ajouter tout ce qui manque bientôt
+You may need soon	Bientôt nécessaire
+Not now	Pas maintenant
+Clear ticked items	Retirer les éléments cochés
+food	alimentation
+supply	fourniture
+document	document
+thing	objet
+pcs	pcs
+water	eau
+drinks	boissons
+grains	céréales
+vegetables	légumes
+fruit	fruits
+dairy	produits laitiers
+protein	poisson, viande, œufs
+fats	matières grasses
+ready meals	plats préparés
+snacks	en-cas
+spices	épices
+baby	bébé
+pet	animaux
+medicine	médicaments
+hygiene	hygiène
+cleaning	nettoyage
+batteries	piles
+light	éclairage
+tools	outils
+first aid	premiers secours
+documents	documents
+other	autre
+72 hours (EU)	72 heures (UE)
+1 week (Sweden, Switzerland)	1 semaine (Suède, Suisse)
+10 days (Germany, BBK)	10 jours (Allemagne, BBK)
+2 weeks	2 semaines
+Torch and spare batteries	Lampe de poche et piles de rechange
+Battery or wind-up radio	Radio à piles ou à manivelle
+First-aid kit	Trousse de premiers secours
+Personal medicines	Médicaments personnels
+Copies of documents, in a waterproof bag	Copies des documents dans une pochette étanche
+Some cash in small notes	Un peu d'espèces en petites coupures
+Charged power bank	Batterie externe chargée
+Candles, matches, lighter	Bougies, allumettes, briquet
+Hygiene items and toilet paper	Articles d'hygiène et papier toilette
+Warm blankets or sleeping bags	Couvertures chaudes ou sacs de couchage
+Drinking water & drinks	Eau potable et boissons
+Grains, bread, pasta, rice, potatoes	Céréales, pain, pâtes, riz, pommes de terre
+Vegetables & pulses	Légumes et légumineuses
+Fruit & nuts	Fruits et noix
+Milk & dairy (long-life)	Lait et produits laitiers (longue conservation)
+Fish, meat, eggs	Poisson, viande, œufs
+Fats & oils	Graisses et huiles
+Batteries	Piles
+Torch / candles	Lampe / bougies
+of min	sur min.
+next	prochain
+no date	sans date
+today	aujourd'hui
+tomorrow	demain
+Nothing yet in category	Rien encore dans la catégorie
+Spent this month:	Dépensé ce mois-ci :
+Thrown away this month:	Jeté ce mois-ci :
+Thrown away:	Jeté :
+Added	Ajouté
+Used	Consommé
+Threw away	Jeté
+add	ajouté
+use	consommé
+waste	jeté
+edit	modifié
+Already gone	Déjà retiré
+Batch removed	Lot retiré
+Choose a file	Choisissez un fichier
+Choose a CSV file	Choisissez un fichier CSV
+Cleared	Retiré
+File too large (max 25 MB)	Fichier trop volumineux (max. 25 Mo)
+Only photos (JPEG, PNG, WebP) and PDFs	Uniquement des photos (JPEG, PNG, WebP) et des PDF
+Upload failed (max 25 MB)	Échec de l'envoi (max. 25 Mo)
+Upload failed (max 5 MB)	Échec de l'envoi (max. 5 Mo)
+Barcode removed	Code-barres retiré
+Deleted (its stock is now without a location)	Supprimé (son stock n'a plus d'emplacement)
+Deleted	Supprimé
+Hidden for 14 days	Masqué pendant 14 jours
+Marked as opened	Marqué comme ouvert
+Minimum saved	Minimum enregistré
+Not found in Open Food Facts. Type the name.	Introuvable dans Open Food Facts. Saisissez le nom.
+Nothing left to take	Plus rien à prendre
+Saved	Enregistré
+Target added	Objectif ajouté
+Target removed	Objectif retiré
+Target saved	Objectif enregistré
+Picture updated	Image mise à jour
+Removed	Retiré
+Not linked to an item	Pas associé à un article
+Unknown language	Langue inconnue
+Not a text file: save the CSV as UTF-8	Pas un fichier texte : enregistrez le CSV en UTF-8
+L	L
+Opened: use by	Ouvert : à consommer avant le
+more	de plus
+expiring this week	périme cette semaine
+expiring soon	périme bientôt
+Expired	Périmé
+This week	Cette semaine
+Soon	Bientôt
+Vorrat: test push, all good	Vorrat : notification de test, tout va bien
+Nothing expiring or running low right now.	Rien ne périme ni ne manque pour l'instant.
+Sign in	Se connecter
+Sign out	Se déconnecter
+Household password	Mot de passe du foyer
+Too many attempts. Wait a minute.	Trop de tentatives. Attendez une minute.
+Wrong password	Mot de passe incorrect
+Could not start a session	Impossible d'ouvrir une session
+Power cut	Coupure de courant
+Power cut: what to eat first	Coupure de courant : quoi manger d'abord
+What to eat first when the power is off. Keep the fridge and freezer doors shut as much as you can.	Ce qu'il faut manger d'abord en cas de coupure. Gardez les portes du réfrigérateur et du congélateur fermées autant que possible.
+Drinking water lasts about	L'eau potable dure environ
+Fridge	Réfrigérateur
+Freezer	Congélateur
+Pantry	Placard
+Safe for about 4 hours without power.	Sûr pendant environ 4 heures sans courant.
+Nothing stored in a fridge.	Rien dans un réfrigérateur.
+A full freezer keeps about 48 hours, a half-full one about 24, if the door stays shut.	Un congélateur plein tient environ 48 heures, à moitié plein environ 24, si la porte reste fermée.
+Nothing stored in a freezer.	Rien dans un congélateur.
+Then shelf-stable food. Your emergency plan shows how long it lasts.	Ensuite, les aliments de longue conservation. Votre plan d'urgence indique combien de temps ils durent.
+Times follow common food-safety guidance (USDA). When in doubt, throw it out.	Les durées suivent les recommandations courantes de sécurité alimentaire (USDA). Dans le doute, jetez.
+Locations count as fridge or freezer by their name.	Les emplacements comptent comme réfrigérateur ou congélateur selon leur nom.
+Demo: try anything. The data resets every night.	Démo : essayez tout. Les données sont réinitialisées chaque nuit.
+Not available in the demo	Indisponible dans la démo
+%-d %b %Y	%d/%m/%Y
+%-d %b	%d/%m
+{0}d ago	il y a {0} j
+{0}d	{0} j
+{0}mo	{0} mois
+in {0}d	dans {0} j
+{0} yr	{0} an(s)
+{0} mo	{0} mois
+{0} wk	{0} sem.
+{0} d	{0} j
+where your other {0} are ({1} of {2})	là où sont vos autres {0} ({1} sur {2})
+Usually keeps about {0} from purchase (last {1} purchases).	Se conserve en général environ {0} après l'achat ({1} derniers achats).
+At your pace, what's here lasts until about {0}.	À votre rythme, ce stock dure jusqu'au {0} environ.
+You buy this about every {0} ({1} purchases).	Vous en achetez environ tous les {0} ({1} achats).
+None left. You buy it about every {0}.	Plus rien. Vous en achetez environ tous les {0}.
+At your pace this runs out in about {0} d.	À votre rythme, épuisé dans environ {0} j.

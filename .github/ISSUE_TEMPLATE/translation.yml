@@ -1,0 +1,19 @@
+name: Translation
+description: Correct a translation or offer a new language.
+labels: [translation]
+body:
+  - type: input
+    id: language
+    attributes:
+      label: Language
+      placeholder: "Nederlands"
+    validations:
+      required: true
+  - type: textarea
+    id: lines
+    attributes:
+      label: Corrected lines
+      description: Lines from locales/<code>.tsv as "English<TAB>translation", or a description of what reads wrong and where.
+      render: text
+    validations:
+      required: true

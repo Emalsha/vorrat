@@ -1,0 +1,21 @@
+name: Idea or improvement
+description: Suggest something that would help you plan or track supplies.
+labels: [idea]
+body:
+  - type: markdown
+    attributes:
+      value: Please search existing issues first. A concrete example of your situation helps us most.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: The situation or the limitation you hit, and your country if it matters.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: What would help?
+      description: The outcome you want. A proposed solution or your workaround is welcome but not required.
+    validations:
+      required: true

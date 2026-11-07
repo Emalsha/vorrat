@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}{{ "Settings"|t }} · Vorrat{% endblock %}
+{% block heading %}{{ "Settings"|t }}{% endblock %}
+{% block content %}
+  <h2>{{ "Language"|t }}</h2>
+  <form method="post" action="/settings/lang" class="card pad flex">
+    <select name="lang" aria-label="{{ "Language"|t }}" class="grow">
+      <option value="auto" {% if lang == "auto" %}selected{% endif %}>{{ "Same as the browser"|t }}</option>
+      {% for (code, name) in langs %}<option value="{{ code }}" {% if lang == **code %}selected{% endif %}>{{ name }}</option>{% endfor %}
+    </select>
+    <button class="btn">{{ "Save"|t }}</button>
+  </form>
+
+  <h2>{{ "Reminders"|t }}</h2>
+  <div class="card pad">
+    {% if let Some(server) = push %}
+      <p style="margin-top:0">{{ "One push a day at"|t }} <b>{{ digest_time }}</b> {{ "via"|t }} {{ server }}. {{ "Only when something is new: expiring in 14 or 7 days, expired, or running low (documents: 90 and 30 days)."|t }}</p>
+    {% else %}
+      <p style="margin-top:0">{{ "Push is off."|t }} {{ "Set"|t }} <code>VORRAT_NTFY_TOPIC</code> {{ "(and optionally VORRAT_NTFY_URL for a self-hosted ntfy) to get a daily reminder on your phone."|t }}</p>
+    {% endif %}
+    <form method="post" action="/settings/test-push"><button class="btn block">{{ "Send a test push now"|t }}</button></form>
+  </div>
+
+  <h2>{{ "Calendar"|t }}</h2>
+  <div class="card pad"><p style="margin:0">{{ "Subscribe to this address in your phone's calendar to see expiry and renewal dates there:"|t }} <a href="/calendar.ics">/calendar.ics</a></p></div>
+
+  <h2>{{ "Backup"|t }}</h2>
+  <div class="card pad">
+    {% if let Some(b) = backup %}
+      <p style="margin-top:0">{{ "Every night at"|t }} <b>{{ backup_time }}</b>: {{ b }}</p>
+      <form method="post" action="/settings/backup"><button class="btn block">{{ "Back up now"|t }}</button></form>
+    {% else %}
+      <p style="margin:0">{{ "Backup is off."|t }} {{ "Set"|t }} <code>VORRAT_BACKUP_DIR</code> {{ "to a folder your backup tool covers."|t }}</p>
+    {% endif %}
+  </div>
+
+  <h2>{{ "Your data"|t }}</h2>
+  <div class="card pad stack">
+    <p style="margin:0">{{ "Take it with you, any time."|t }}</p>
+    <div class="flex" style="flex-wrap:wrap">
+      <a class="btn small" href="/export/stock.csv">{{ "Stock as CSV"|t }}</a>
+      <a class="btn small" href="/export/vorrat.json">{{ "Everything as JSON"|t }}</a>
+      <a class="btn small" href="/export/vorrat.db">{{ "Database file"|t }}</a>
+    </div>
+    <form method="post" action="/import" enctype="multipart/form-data" class="stack">
+      <label>{{ "Import stock from CSV"|t }} <input type="file" name="file" accept=".csv,text/csv" required></label>
+      <p class="muted small" style="margin:0">{{ "Columns: name (required), qty, unit, category, kind, barcode, expires_on, location, price, min_qty, brand. Comma or semicolon. Existing items are matched by barcode or name; nothing is deleted."|t }}</p>
+      <button class="btn block">{{ "Import"|t }}</button>
+    </form>
+  </div>
+
+  <h2>{{ "Privacy"|t }}</h2>
+  <div class="card pad"><p style="margin:0">{{ "Your data stays in one file on this server. No account, no tracking."|t }}
+    {% if lookup %}{{ "Unknown barcodes are looked up in Open Food Facts (only the barcode number is sent)."|t }}{% else %}{{ "Barcode lookup is off."|t }}{% endif %}
+    Vorrat {{ version }}, {{ "open source under AGPL-3.0."|t }}</p></div>
+  {% if signed_in %}<form method="post" action="/logout" class="mt"><button class="btn block">{{ "Sign out"|t }}</button></form>{% endif %}
+{% endblock %}

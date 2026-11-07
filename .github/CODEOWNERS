@@ -1,0 +1,6 @@
+# Changes here need Emalsha's review. Agent pull requests may not touch them
+# (see .github/agent-policy/check.py).
+/.github/    @Emalsha
+/AGENTS.md   @Emalsha
+/CLAUDE.md   @Emalsha
+/LICENSE     @Emalsha

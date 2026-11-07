@@ -1,0 +1,4 @@
+vorrat.example.org {
+	encode zstd gzip
+	reverse_proxy vorrat:8087
+}

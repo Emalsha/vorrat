@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}{{ "Locations"|t }} · Vorrat{% endblock %}
+{% block heading %}{{ "Locations"|t }}{% endblock %}
+{% block content %}
+  <p class="muted small mt">{{ "Nest locations to match your home, e.g. Cellar › Emergency box, or Office › Cabinet › Folder \"Insurance\"."|t }}</p>
+  <div class="card"><ul class="list">
+    {% for l in locations %}
+    <li><details>
+      <summary class="row"><div class="grow"><div class="title">{{ l.path }}</div>
+        <div class="sub">{{ l.count }} {% if l.count == 1 %}{{ "item"|t }}{% else %}{{ "items"|t }}{% endif %}</div></div></summary>
+      <form method="post" action="/locations/{{ l.id }}" class="stack pad">
+        <div class="grid2">
+          <input name="name" value="{{ l.name }}" aria-label="{{ "Name"|t }}">
+          <select name="parent_id" aria-label="{{ "Inside"|t }}"><option value="">({{ "top level"|t }})</option>
+            {% for p in locations %}{% if p.id != l.id %}<option value="{{ p.id }}" {% if l.parent_id == Some(p.id.clone()) %}selected{% endif %}>{{ "inside"|t }} {{ p.path }}</option>{% endif %}{% endfor %}</select>
+        </div>
+        <div class="flex"><button class="btn small primary">{{ "Save"|t }}</button>
+          <button class="btn small danger" name="delete" value="1">{{ "Delete"|t }}</button></div>
+      </form>
+    </details></li>
+    {% endfor %}
+  </ul></div>
+  <h2>{{ "New location"|t }}</h2>
+  <form method="post" action="/locations" class="card pad stack">
+    <div class="grid2">
+      <input name="name" placeholder="{{ "Name"|t }}" required aria-label="{{ "Name"|t }}">
+      <select name="parent_id" aria-label="{{ "Inside"|t }}"><option value="">({{ "top level"|t }})</option>
+        {% for p in locations %}<option value="{{ p.id }}">{{ "inside"|t }} {{ p.path }}</option>{% endfor %}</select>
+    </div>
+    <button class="btn primary block">{{ "Add location"|t }}</button>
+  </form>
+{% endblock %}

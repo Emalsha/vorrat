@@ -1,0 +1,63 @@
+name: agent-policy
+
+# Deterministic check on pull requests written by agents (head branch agent/*).
+# It runs check.py from the BASE branch, so a patch can't loosen its own check.
+#   clean   -> pass
+#   flagged -> fails until Emalsha adds the label "agent-strict-review"
+#   owner   -> always fails (.github/, CODEOWNERS, AGENTS.md, CLAUDE.md, LICENSE)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+jobs:
+  policy:
+    if: startsWith(github.head_ref, 'agent/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the base branch (its policy, not the patch's)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Fetch the patch
+        run: git fetch --no-tags origin "${{ github.event.pull_request.head.sha }}"
+
+      - name: Run the policy
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+          STRICT: ${{ contains(github.event.pull_request.labels.*.name, 'agent-strict-review') }}
+        run: |
+          if [ ! -f .github/agent-policy/check.py ]; then
+            echo "No policy on the base branch yet; skipping."
+            exit 0
+          fi
+          git diff "$(git merge-base "$BASE" "$HEAD")" "$HEAD" > "$RUNNER_TEMP/patch.diff"
+          set +e
+          python3 .github/agent-policy/check.py "$RUNNER_TEMP/patch.diff" | tee "$RUNNER_TEMP/result.json"
+          code=${PIPESTATUS[0]}
+          set -e
+          {
+            echo "## Agent policy"
+            echo '```json'
+            cat "$RUNNER_TEMP/result.json"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          case "$code" in
+            0) echo "Clean." ;;
+            1) if [ "$STRICT" = "true" ]; then
+                 echo "Flagged, and a maintainer added agent-strict-review."
+               else
+                 echo "::error::Flagged. A maintainer must review these findings and add the label agent-strict-review."
+                 exit 1
+               fi ;;
+            2) echo "::error::This patch changes paths only the owner changes. An agent pull request can't do that."
+               exit 1 ;;
+            *) echo "::error::Policy check crashed (exit $code)."; exit 1 ;;
+          esac

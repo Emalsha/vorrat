@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}{{ "Stock"|t }} · Vorrat{% endblock %}
+{% block heading %}{{ "Stock"|t }}{% endblock %}
+{% block content %}
+  <form method="get" action="/items" class="card pad mt grid2">
+    <input type="search" name="q" value="{{ q }}" placeholder="{{ "Search name, brand, barcode"|t }}" aria-label="{{ "Search"|t }}">
+    <select name="kind" aria-label="{{ "Kind"|t }}"><option value="">{{ "All kinds"|t }}</option>
+      {% for k in kinds %}<option value="{{ k }}" {% if kind == **k %}selected{% endif %}>{{ k|t }}</option>{% endfor %}
+    </select>
+    <button class="btn">{{ "Filter"|t }}</button>
+  </form>
+  <p class="small right"><a href="/locations">{{ "Locations"|t }} ›</a></p>
+  <div class="card"><ul class="list">
+    {% for i in items %}
+    <li><a class="row" href="/items/{{ i.id }}">{% let t = i %}{% include "_thumb.html" %}
+      <div class="grow"><div class="title">{{ i.name }}</div><div class="sub">{{ i.sub }}</div></div>
+      {% if i.low %}<span class="pill soon">{{ "low"|t }}</span>{% endif %}</a></li>
+    {% else %}<li class="empty">{{ "Nothing here yet."|t }} <a href="/add">{{ "Add something"|t }}</a>.</li>{% endfor %}
+  </ul></div>
+{% endblock %}

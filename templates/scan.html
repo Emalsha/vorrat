@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}{{ "Scan"|t }} · Vorrat{% endblock %}
+{% block heading %}{% if mode == "use" %}{{ "Scan to use up"|t }}{% else %}{{ "Scan to add"|t }}{% endif %}{% endblock %}
+{% block content %}
+  <div class="chips mt">
+    <a class="chip {% if mode == "add" %}on{% endif %}" href="/scan">{{ "Add to stock"|t }}</a>
+    <a class="chip {% if mode == "use" %}on{% endif %}" href="/scan?mode=use">{{ "Use up"|t }}</a>
+  </div>
+
+  <div class="scanner mt" id="scanner" data-mode="{{ mode }}" data-found="{{ "Found"|t }}" data-https="{{ "The camera needs HTTPS. Open Vorrat through its https:// address."|t }}" data-nocam="{{ "Could not open the camera. Allow camera access for this site, or type the code below."|t }}" hidden>
+    <video id="video" playsinline muted></video>
+    <div class="frame"></div>
+    <div class="hint" id="hint">{{ "Point at a barcode"|t }}</div>
+    <button type="button" class="torch" id="torch" hidden aria-pressed="false" aria-label="{{ "Torch"|t }}">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6l-1 7h-4z"/><path d="M10 9v11a2 2 0 0 0 4 0V9"/></svg></button>
+  </div>
+  <button class="btn primary block big mt" id="start" hidden>{{ "Open camera"|t }}</button>
+  <p class="muted small" id="err" hidden></p>
+
+  <h2>{{ "Or type the barcode"|t }}</h2>
+  <form class="card pad stack" action="/scan/code" method="get">
+    <input type="hidden" name="mode" value="{{ mode }}">
+    <input name="code" inputmode="numeric" autocomplete="off" placeholder="{{ "e.g. 4001724819806"|t }}" aria-label="{{ "Barcode"|t }}">
+    <button class="btn block">{{ "Look up"|t }}</button>
+  </form>
+
+  <h2>{{ "No barcode?"|t }}</h2>
+  <a class="btn block" href="/add">{{ "Add without a barcode (vegetables, documents, things…)"|t }}</a>
+{% endblock %}
+{% block scripts %}
+<script src="/static/zxing-0.23.0.min.js" defer></script>
+<script src="/static/scan.js" defer></script>
+{% endblock %}

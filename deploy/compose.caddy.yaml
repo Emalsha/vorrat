@@ -1,0 +1,35 @@
+# Vorrat on a public server with automatic HTTPS (Caddy + Let's Encrypt).
+# 1. Point a DNS name (e.g. vorrat.example.org) at this server.
+# 2. Put that name in deploy/Caddyfile and set VORRAT_PASSWORD below.
+# 3. docker compose -f deploy/compose.caddy.yaml up -d --build
+services:
+  vorrat:
+    build: ..
+    image: vorrat:latest
+    restart: unless-stopped
+    volumes:
+      - vorrat-data:/data
+      - ./backups:/backups
+    environment:
+      VORRAT_PUBLIC_URL: https://vorrat.example.org
+      VORRAT_PASSWORD: change-me-to-a-long-passphrase
+      VORRAT_BACKUP_DIR: /backups
+      VORRAT_CURRENCY: EUR
+      # Daily reminder on your phone via ntfy (optional):
+      # VORRAT_NTFY_TOPIC: pick-a-long-random-topic
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+    depends_on: [vorrat]
+
+volumes:
+  vorrat-data:
+  caddy-data:

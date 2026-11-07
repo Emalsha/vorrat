@@ -1,0 +1,18 @@
+# Minimal self-hosting example. Put a TLS proxy (Caddy, Traefik, Tailscale
+# Serve) in front: the camera scanner and installable app need HTTPS.
+services:
+  vorrat:
+    build: .
+    image: vorrat:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8087:8087"
+    volumes:
+      - vorrat-data:/data
+    environment:
+      VORRAT_CURRENCY: EUR
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+volumes:
+  vorrat-data:

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}{{ "Edit"|t }} {{ item.name }} · Vorrat{% endblock %}
+{% block heading %}{{ "Edit"|t }}: {{ item.name }}{% endblock %}
+{% block content %}
+  <form class="stack mt" method="post" action="/items/{{ item.id }}/edit">
+    <div class="card pad stack">
+      <label>{{ "Name"|t }} <input name="name" value="{{ item.name }}" required autocomplete="off"></label>
+      <div class="grid2">
+        <label>{{ "Kind"|t }} <select name="kind">{% for k in kinds %}<option value="{{ k }}" {% if item.kind == **k %}selected{% endif %}>{{ k|t }}</option>{% endfor %}</select></label>
+        <label>{{ "Category"|t }} <select name="category"><option value="">—</option>{% for c in categories %}<option value="{{ c }}" {% if item.category.clone().unwrap_or_default() == **c %}selected{% endif %}>{{ c|t }}</option>{% endfor %}</select></label>
+      </div>
+      <div class="grid2">
+        <label>{{ "Counted in"|t }} <select name="unit">{% for u in units %}<option value="{{ u }}" {% if item.unit == **u %}selected{% endif %}>{{ u|t }}</option>{% endfor %}</select></label>
+        <label>{{ "Alert below"|t }} <input name="min_qty" inputmode="decimal" value="{{ min_qty }}" placeholder="{{ "0 = no alert"|t }}"></label>
+      </div>
+      <div class="grid2">
+        <label>{{ "Content per piece"|t }} <input name="size" inputmode="decimal" value="{{ size }}" placeholder="{{ "e.g. 400"|t }}"></label>
+        <label>{{ "Unit"|t }} <select name="size_unit"><option value="">—</option>{% for u in size_units %}<option value="{{ u }}" {% if item.size_unit.clone().unwrap_or_default() == **u %}selected{% endif %}>{{ u|t }}</option>{% endfor %}</select></label>
+      </div>
+      <p class="muted small" style="margin:0">{{ "Content per piece lets the emergency plan count a 400 g can as 0.4 kg."|t }}</p>
+      <label>{{ "Once opened, use within (days)"|t }} <input name="open_days" inputmode="numeric" value="{{ open_days }}" placeholder="{{ "e.g. 4 for milk; empty keeps the printed date"|t }}"></label>
+      <div class="grid2">
+        <label>{{ "Brand"|t }} <input name="brand" value="{{ item.brand.as_deref().unwrap_or("") }}"></label>
+        <label>{{ "Barcode"|t }} <input name="barcode" inputmode="numeric" value="{{ item.barcode.as_deref().unwrap_or("") }}"></label>
+      </div>
+      <label>{{ "Usual location"|t }} <select name="default_location_id"><option value="">—</option>
+        {% for l in locations %}<option value="{{ l.id }}" {% if item.default_location_id == Some(l.id.clone()) %}selected{% endif %}>{{ l.path }}</option>{% endfor %}</select></label>
+      <label>{{ "Notes"|t }} <textarea name="notes" placeholder="{{ "Where the original is, policy number, …"|t }}">{{ item.notes.as_deref().unwrap_or("") }}</textarea></label>
+    </div>
+    <button class="btn primary block big">{{ "Save changes"|t }}</button>
+  </form>
+{% endblock %}

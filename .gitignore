@@ -1,0 +1,7 @@
+/target
+/data
+*.db-wal
+*.db-shm
+
+# Test fixture: a schema v2 database with synthetic data.
+!tests/fixtures/*.db

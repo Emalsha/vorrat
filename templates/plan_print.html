@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}{{ "Checklist"|t }} · Vorrat{% endblock %}
+{% block heading %}{{ "Emergency checklist"|t }}{% endblock %}
+{% block content %}
+  <div class="flex mt noprint" style="justify-content:space-between">
+    <a href="/plan" class="btn small">{{ "Back to the plan"|t }}</a>
+    <button class="btn small primary" data-print>{{ "Print"|t }}</button>
+  </div>
+  <section class="printsheet">
+    <p><b>{{ people }} {% if people == 1 %}{{ "person"|t }}{% else %}{{ "people"|t }}{% endif %}, {{ days }} {{ "days"|t }}.</b> {{ "As of"|t }} {{ today }}. {{ pct }}% {{ "covered"|t }}{% if let Some(w) = weakest %}; {{ "weakest essential lasts"|t }} {{ w }} {{ "days"|t }}{% endif %}.</p>
+
+    <h2>{{ "Supplies"|t }}</h2>
+    <table class="check">
+      <thead><tr><th></th><th>{{ "What"|t }}</th><th class="num">{{ "Need"|t }}</th><th class="num">{{ "Have"|t }}</th><th class="num">{{ "Missing"|t }}</th></tr></thead>
+      <tbody>
+      {% for l in lines %}
+        <tr><td class="box">{% if l.covered %}☑{% else %}☐{% endif %}</td><td>{{ l.label|t }}</td><td class="num">{{ l.need }}</td><td class="num">{{ l.have }}</td><td class="num">{{ l.missing }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+
+    <h2>{{ "Also have ready"|t }}</h2>
+    <ul class="checks">
+      {% for c in extras %}<li>☐ {{ c|t }}</li>{% endfor %}
+    </ul>
+
+    {% if !soon.is_empty() %}
+    <h2>{{ "Use first"|t }} ({{ days }} {{ "days"|t }})</h2>
+    <table class="check">
+      <tbody>
+      {% for b in soon %}<tr><td>{{ b.name }}</td><td class="num">{{ b.qty }}</td><td class="num">{{ b.when }}</td></tr>{% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+
+    <h2>{{ "Notes"|t }}</h2>
+    <p class="lines">{{ "Meeting point:"|t }}</p>
+    <p class="lines">{{ "Emergency contacts:"|t }}</p>
+    <p class="lines">{{ "Medicines and doses:"|t }}</p>
+  </section>
+{% endblock %}
+{% block scripts %}<script src="/static/print.js"></script>{% endblock %}

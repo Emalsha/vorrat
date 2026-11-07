@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="{{ ""|lang_code }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2f6f4f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Vorrat">
+  <link rel="apple-touch-icon" href="/static/icon-180.png">
+  <link rel="manifest" href="/static/manifest.webmanifest">
+  <link rel="stylesheet" href="/static/app.css">
+  <title>{% block title %}Vorrat{% endblock %}</title>
+</head>
+<body>
+  {% let demo = ""|demo_note %}{% if !demo.is_empty() %}<div class="demo-note">{{ demo }}</div>{% endif %}
+  <div class="offline-note" role="status">{{ "Offline: showing the last saved copy. Changes need a connection."|t }}</div>
+  <header class="top"><div class="wrap">
+    <h1>{% block heading %}Vorrat{% endblock %}</h1>
+    {% if tab != "login" %}<a href="/settings" aria-label="{{ "Settings"|t }}" class="muted"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg></a>{% endif %}
+  </div></header>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+  {% if let Some(m) = msg %}<div class="toast {% if undo.is_some() %}with-undo{% endif %}" role="status"><span>{{ m|t }}</span>
+    {% if let Some(u) = undo %}<form method="post" action="/undo/{{ u }}" class="inline"><button class="undo">{{ "Undo"|t }}</button></form>{% endif %}
+  </div>{% endif %}
+  {% if tab != "login" %}<nav class="tabs" aria-label="{{ "Main"|t }}">
+    <a href="/" class="{% if tab == "home" %}on{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>{{ "Home"|t }}</a>
+    <a href="/items" class="{% if tab == "items" %}on{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/></svg>{{ "Stock"|t }}</a>
+    <a href="/add" class="scan {% if tab == "add" %}on{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>{{ "Add"|t }}</a>
+    <a href="/plan" class="{% if tab == "plan" %}on{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg>{{ "Plan"|t }}</a>
+    <a href="/shopping" class="{% if tab == "shopping" %}on{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg>{{ "Shopping"|t }}</a>
+  </nav>{% endif %}
+  <script src="/static/app.js" defer></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

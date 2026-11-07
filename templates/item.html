@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}{{ item.name }} · Vorrat{% endblock %}
+{% block heading %}{{ item.name }}{% endblock %}
+{% block content %}
+  <div class="card pad mt">
+    {% if let Some(img) = item.image %}<img class="form-pic" src="/files/{{ img }}" alt="" style="float:right">{% endif %}
+    <b>{{ total }} {{ item.unit }}</b> {{ "in stock"|t }}
+    <a href="/items/{{ item.id }}/edit" class="small">{{ "Edit"|t }}</a>
+    <span class="muted small">· {{ item.kind|t }}{% if let Some(c) = item.category %} · {{ c|t }}{% endif %}{% if let Some(bc) = item.barcode %} · {{ bc }}{% endif %}</span>
+    {% if item.kind != "document" %}
+    <form method="post" action="/items/{{ item.id }}/use" class="flex mt">
+      <input name="qty" inputmode="decimal" value="1" aria-label="{{ "Quantity"|t }}" style="max-width:6em">
+      <button class="btn">{{ "Use"|t }}</button>
+      <button class="btn danger" name="waste" value="1">{{ "Thrown away"|t }}</button>
+    </form>
+    {% endif %}
+  </div>
+
+  {% if !insights.is_empty() %}<div class="card pad mt small">{% for i in insights %}<div>{{ i }}</div>{% endfor %}</div>{% endif %}
+
+  <h2>{{ "Batches"|t }}</h2>
+  <div class="card"><ul class="list">
+    {% for b in batches %}<li>{% include "_batch_row.html" %}
+      <div class="flex pad" style="padding-top:0">
+        <form method="post" action="/batches/{{ b.id }}/open" class="inline"><button class="btn small">{{ "Opened"|t }}</button></form>
+        <form method="post" action="/batches/{{ b.id }}/delete" class="inline"><input type="hidden" name="back" value="{{ back_to }}"><button class="btn small danger">{{ "Remove batch"|t }}</button></form>
+      </div></li>
+    {% else %}<li class="empty">{{ "None in stock."|t }}</li>{% endfor %}
+  </ul></div>
+
+  <h2 id="add">{{ "Add stock"|t }}</h2>
+  <form method="post" action="/items/{{ item.id }}/batches" class="card pad stack">
+    <div class="grid2">
+      <label>{{ "Quantity"|t }} <input name="qty" inputmode="decimal" value="{{ restock_qty }}"></label>
+      <label>{{ "Expires"|t }} <input type="date" name="expires_on"></label>
+    </div>
+    {% if let Some((label, date)) = expiry_hint %}<p class="muted small" style="margin:0">{{ "Usually keeps about"|t }} {{ label }}: {{ "around"|t }} {{ date }}.</p>{% endif %}
+    <div class="grid2">
+      <label>{{ "Location"|t }} <select name="location_id"><option value="">—</option>
+        {% for l in locations %}<option value="{{ l.id }}" {% if item.default_location_id == Some(l.id.clone()) %}selected{% endif %}>{{ l.path }}</option>{% endfor %}</select></label>
+      <label>{{ "Price"|t }} <input name="price" inputmode="decimal"></label>
+    </div>
+    <button class="btn primary block">{{ "Add"|t }}</button>
+  </form>
+
+  {% if item.kind != "document" %}
+  <h2>{{ "Minimum"|t }}</h2>
+  <form method="post" action="/items/{{ item.id }}/minimum" class="card pad flex">
+    <input name="min_qty" inputmode="decimal" value="{{ min_qty }}" aria-label="{{ "Minimum quantity"|t }}" style="max-width:8em">
+    <span class="muted small grow">{{ "Warn me when stock drops below this."|t }}</span>
+    <button class="btn">{{ "Save"|t }}</button>
+  </form>
+  {% endif %}
+
+  <h2>{% if item.kind == "document" %}{{ "Scans & files"|t }}{% else %}{{ "Files"|t }}{% endif %}</h2>
+  <div class="card"><ul class="list">
+    {% for a in attachments %}<li class="row-wrap"><a class="row" href="/attachments/{{ a.id }}" target="_blank" rel="noopener"><div class="grow"><div class="title">{{ a.filename }}</div><div class="sub">{{ a.mime.as_deref().unwrap_or("") }}</div></div></a>
+      <form method="post" action="/attachments/{{ a.id }}/delete" class="inline pad"><button class="btn small danger">{{ "Remove"|t }}</button></form></li>
+    {% else %}<li class="empty">{{ "No files. Attach a photo or PDF (warranty, passport scan, contract)."|t }}</li>{% endfor %}
+  </ul></div>
+  <form method="post" action="/items/{{ item.id }}/attachments" enctype="multipart/form-data" class="card pad stack mt">
+    <input type="file" name="file" accept="image/jpeg,image/png,image/webp,application/pdf" required aria-label="{{ "File"|t }}">
+    <label class="small flex" style="align-items:center"><input type="checkbox" name="as_picture" value="1" style="width:auto;margin:0"> {{ "Use as the item's picture"|t }}</label>
+    <button class="btn block">{{ "Upload"|t }}</button>
+  </form>
+
+  <h2>{{ "Barcodes"|t }}</h2>
+  <div class="card"><ul class="list">
+    {% if let Some(bc) = item.barcode %}<li class="pad small">{{ bc }} <span class="muted">({{ "main"|t }})</span></li>{% endif %}
+    {% for c in extra_barcodes %}<li class="row-wrap"><div class="pad small grow">{{ c }}</div>
+      <form method="post" action="/items/{{ item.id }}/barcodes/delete" class="inline pad"><input type="hidden" name="code" value="{{ c }}"><button class="btn small danger">{{ "Remove"|t }}</button></form></li>{% endfor %}
+    {% if item.barcode.is_none() && extra_barcodes.is_empty() %}<li class="empty">{{ "No barcode yet."|t }}</li>{% endif %}
+  </ul></div>
+  <form method="post" action="/barcodes/link" class="card pad flex mt">
+    <input type="hidden" name="item_id" value="{{ item.id }}">
+    <input name="code" inputmode="numeric" required placeholder="{{ "Add another barcode"|t }}" aria-label="{{ "Barcode"|t }}" class="grow">
+    <button class="btn">{{ "Link"|t }}</button>
+  </form>
+
+  {% if !prices.is_empty() %}
+  <h2>{{ "Prices paid"|t }}</h2>
+  <div class="card"><ul class="list">
+    {% for p in prices %}<li class="pad small">{{ p }}</li>{% endfor %}
+  </ul></div>
+  {% endif %}
+
+  <h2>{{ "History"|t }}</h2>
+  <div class="card"><ul class="list">
+    {% for h in history %}<li class="pad small">{{ h }}</li>{% else %}<li class="empty">{{ "No history."|t }}</li>{% endfor %}
+  </ul></div>
+
+  <form method="post" action="/items/{{ item.id }}/delete" class="mt"><button class="btn danger block">{{ "Delete item and all its stock"|t }}</button></form>
+{% endblock %}

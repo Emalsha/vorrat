@@ -1,0 +1,335 @@
+# English<TAB>Nederlands. One line per text; the English text is the key.
+Used up	Op
+Thrown away	Weggegooid
+Add	Toevoegen
+Add stock	Voorraad toevoegen
+Filled in from	Ingevuld vanuit
+Check it, then add.	Controleer het en voeg toe.
+Name	Naam
+e.g. Still water 1.5 L	bijv. Plat water 1,5 L
+Brand	Merk
+Kind	Soort
+Category	Categorie
+Quantity	Aantal
+Unit	Eenheid
+Expires	Houdbaar tot
+Pack size	Verpakkingsgrootte
+e.g. 1.5	bijv. 1,5
+Pack unit	Verpakkingseenheid
+Pack size lets "6 pcs" of 1.5 L bottles count as 9 L of water in the emergency plan.	Met de verpakkingsgrootte tellen „6 st.” flessen van 1,5 L als 9 L water in het noodplan.
+Location	Plek
+Minimum	Minimum
+Barcode	Barcode
+Price	Prijs
+Or is it something you already have?	Of is het iets wat je al hebt?
+Same thing	Hetzelfde
+"Same thing" links this barcode to that item, so this scan and later ones add to it.	„Hetzelfde” koppelt deze barcode aan dat artikel, zodat deze en latere scans daar bijtellen.
+Offline: showing the last saved copy. Changes need a connection.	Offline: je ziet de laatst opgeslagen versie. Wijzigingen hebben een verbinding nodig.
+Settings	Instellingen
+Undo	Ongedaan maken
+Main	Hoofdmenu
+Home	Start
+Stock	Voorraad
+Plan	Plan
+Shopping	Boodschappen
+Emergency readiness	Noodvoorbereiding
+days	dagen
+person	persoon
+people	personen
+Your weakest essential lasts	Je krapste basisbehoefte duurt
+Everything in the plan is covered.	Alles in het plan is gedekt.
+Not yet covered:	Nog niet gedekt:
+expired	verlopen
+within 14 days	binnen 14 dagen
+running low	raakt op
+Scan to add	Scannen en toevoegen
+Scan to use up	Scannen en verbruiken
+Expired & expiring soon	Verlopen en verloopt binnenkort
+Nothing expires in the next 14 days.	Niets verloopt in de komende 14 dagen.
+Running low	Raakt op
+low	laag
+Nothing below its minimum.	Niets onder het minimum.
+Recent	Recent
+No activity yet.	Nog geen activiteit.
+in stock	op voorraad
+Edit	Bewerken
+Use	Verbruiken
+Batches	Partijen
+Opened	Geopend
+Remove batch	Partij verwijderen
+None in stock.	Niets op voorraad.
+Usually keeps about	Blijft meestal ongeveer goed
+around	dus tot ongeveer
+Minimum quantity	Minimumaantal
+Warn me when stock drops below this.	Waarschuw me als de voorraad hieronder zakt.
+Save	Opslaan
+Scans & files	Scans en bestanden
+Files	Bestanden
+Remove	Verwijderen
+No files. Attach a photo or PDF (warranty, passport scan, contract).	Geen bestanden. Voeg een foto of pdf toe (garantie, paspoortscan, contract).
+File	Bestand
+Use as the item's picture	Gebruiken als afbeelding van het artikel
+Upload	Uploaden
+Barcodes	Barcodes
+main	hoofd
+No barcode yet.	Nog geen barcode.
+Add another barcode	Nog een barcode toevoegen
+Link	Koppelen
+Prices paid	Betaalde prijzen
+History	Geschiedenis
+No history.	Geen geschiedenis.
+Delete item and all its stock	Artikel en alle voorraad verwijderen
+Counted in	Geteld in
+Alert below	Waarschuwen onder
+0 = no alert	0 = geen waarschuwing
+Content per piece	Inhoud per stuk
+e.g. 400	bijv. 400
+Content per piece lets the emergency plan count a 400 g can as 0.4 kg.	Met de inhoud per stuk telt het noodplan een blik van 400 g als 0,4 kg.
+Once opened, use within (days)	Na openen gebruiken binnen (dagen)
+e.g. 4 for milk; empty keeps the printed date	bijv. 4 voor melk; leeg = gedrukte datum
+Usual location	Vaste plek
+Notes	Notities
+Where the original is, policy number, …	Waar het origineel ligt, polisnummer, …
+Save changes	Wijzigingen opslaan
+Search name, brand, barcode	Zoek naam, merk, barcode
+Search	Zoeken
+All kinds	Alle soorten
+Filter	Filteren
+Locations	Plekken
+Nothing here yet.	Hier staat nog niets.
+Add something	Iets toevoegen
+Nest locations to match your home, e.g. Cellar › Emergency box, or Office › Cabinet › Folder "Insurance".	Nest plekken zoals in je huis, bijv. Kelder › Noodkist, of Kantoor › Kast › Map „Verzekering”.
+item	artikel
+items	artikelen
+Inside	Binnen
+top level	hoogste niveau
+inside	in
+Delete	Verwijderen
+New location	Nieuwe plek
+Add location	Plek toevoegen
+Emergency plan	Noodplan
+People	Personen
+Days	Dagen
+Update	Bijwerken
+covered	gedekt
+weakest essential lasts	krapste basisbehoefte duurt
+Targets start from the German civil-protection (BBK) checklist; edit them to fit your household. Stock counts by category; expired stock doesn't count.	De doelen gaan uit van de checklist van de Duitse civiele bescherming (BBK); pas ze aan je huishouden aan. Voorraad telt per categorie; verlopen voorraad telt niet.
+Common recommendations. They set the days; the targets stay yours.	Gangbare adviezen. Ze zetten het aantal dagen; je doelen blijven van jou.
+Coverage	Dekking
+Label	Naam
+Mode	Modus
+per person per day	per persoon per dag
+fixed total	vast totaal
+Amount	Hoeveelheid
+Put the gaps on the shopping list	Tekorten op het boodschappenlijstje
+Printable checklist	Checklist om te printen
+Add a target	Doel toevoegen
+e.g. Medicines, Cash, Power bank	bijv. Medicijnen, Contant geld, Powerbank
+Add target	Doel toevoegen
+Checklist	Checklist
+Emergency checklist	Nood-checklist
+Back to the plan	Terug naar het plan
+Print	Printen
+As of	Stand
+Supplies	Voorraden
+What	Wat
+Need	Nodig
+Have	Aanwezig
+Missing	Tekort
+Also have ready	Ook klaarleggen
+Use first	Eerst opmaken
+Meeting point:	Verzamelpunt:
+Emergency contacts:	Noodcontacten:
+Medicines and doses:	Medicijnen en doses:
+Scan	Scannen
+Add to stock	Naar voorraad
+Use up	Verbruiken
+Found	Gevonden:
+The camera needs HTTPS. Open Vorrat through its https:// address.	De camera heeft HTTPS nodig. Open Vorrat via het https://-adres.
+Could not open the camera. Allow camera access for this site, or type the code below.	De camera kon niet worden geopend. Sta cameratoegang toe voor deze site of typ de code hieronder.
+Point at a barcode	Richt op een barcode
+Torch	Zaklamp
+Open camera	Camera openen
+Or type the barcode	Of typ de barcode
+e.g. 4001724819806	bijv. 4001724819806
+Look up	Opzoeken
+No barcode?	Geen barcode?
+Add without a barcode (vegetables, documents, things…)	Toevoegen zonder barcode (groente, documenten, spullen…)
+Language	Taal
+Same as the browser	Zoals de browser
+Reminders	Herinneringen
+One push a day at	Eén pushbericht per dag om
+via	via
+Only when something is new: expiring in 14 or 7 days, expired, or running low (documents: 90 and 30 days).	Alleen als er iets nieuws is: verloopt over 14 of 7 dagen, verlopen of raakt op (documenten: 90 en 30 dagen).
+Push is off.	Push staat uit.
+Set	Stel
+(and optionally VORRAT_NTFY_URL for a self-hosted ntfy) to get a daily reminder on your phone.	in (en eventueel VORRAT_NTFY_URL voor een eigen ntfy) om dagelijks een herinnering op je telefoon te krijgen.
+Send a test push now	Nu een testbericht sturen
+Calendar	Agenda
+Subscribe to this address in your phone's calendar to see expiry and renewal dates there:	Abonneer je op dit adres in de agenda van je telefoon om vervaldata en verlengingen daar te zien:
+Backup	Back-up
+Every night at	Elke nacht om
+Back up now	Nu back-up maken
+Backup is off.	Back-up staat uit.
+to a folder your backup tool covers.	in op een map die je back-upprogramma meeneemt.
+Your data	Je gegevens
+Take it with you, any time.	Neem ze altijd mee.
+Stock as CSV	Voorraad als CSV
+Everything as JSON	Alles als JSON
+Database file	Databasebestand
+Import stock from CSV	Voorraad importeren uit CSV
+Columns: name (required), qty, unit, category, kind, barcode, expires_on, location, price, min_qty, brand. Comma or semicolon. Existing items are matched by barcode or name; nothing is deleted.	Kolommen: name (verplicht), qty, unit, category, kind, barcode, expires_on, location, price, min_qty, brand. Komma of puntkomma. Bestaande artikelen worden herkend op barcode of naam; er wordt niets verwijderd.
+Import	Importeren
+Privacy	Privacy
+Your data stays in one file on this server. No account, no tracking.	Je gegevens blijven in één bestand op deze server. Geen account, geen tracking.
+Unknown barcodes are looked up in Open Food Facts (only the barcode number is sent).	Onbekende barcodes worden opgezocht in Open Food Facts (alleen het barcodenummer wordt verstuurd).
+Barcode lookup is off.	Barcode opzoeken staat uit.
+open source under AGPL-3.0.	open source onder AGPL-3.0.
+Shopping list	Boodschappenlijst
+Item	Artikel
+Into stock	Naar voorraad
+The list is empty.	De lijst is leeg.
+Add everything running low	Alles wat opraakt toevoegen
+You may need soon	Heb je binnenkort nodig
+Not now	Niet nu
+Clear ticked items	Afgevinkte verwijderen
+food	voedsel
+supply	voorraadartikel
+document	document
+thing	spullen
+pcs	st.
+water	water
+drinks	dranken
+grains	granen
+vegetables	groente
+fruit	fruit
+dairy	zuivel
+protein	vis, vlees, eieren
+fats	vetten
+ready meals	kant-en-klaarmaaltijden
+snacks	snacks
+spices	kruiden
+baby	baby
+pet	huisdier
+medicine	medicijnen
+hygiene	hygiëne
+cleaning	schoonmaak
+batteries	batterijen
+light	verlichting
+tools	gereedschap
+first aid	EHBO
+documents	documenten
+other	overig
+72 hours (EU)	72 uur (EU)
+1 week (Sweden, Switzerland)	1 week (Zweden, Zwitserland)
+10 days (Germany, BBK)	10 dagen (Duitsland, BBK)
+2 weeks	2 weken
+Torch and spare batteries	Zaklamp en reservebatterijen
+Battery or wind-up radio	Radio op batterijen of met slinger
+First-aid kit	EHBO-doos
+Personal medicines	Persoonlijke medicijnen
+Copies of documents, in a waterproof bag	Kopieën van documenten in een waterdichte hoes
+Some cash in small notes	Wat contant geld in kleine biljetten
+Charged power bank	Opgeladen powerbank
+Candles, matches, lighter	Kaarsen, lucifers, aansteker
+Hygiene items and toilet paper	Hygiëneartikelen en wc-papier
+Warm blankets or sleeping bags	Warme dekens of slaapzakken
+Drinking water & drinks	Drinkwater en dranken
+Grains, bread, pasta, rice, potatoes	Granen, brood, pasta, rijst, aardappelen
+Vegetables & pulses	Groente en peulvruchten
+Fruit & nuts	Fruit en noten
+Milk & dairy (long-life)	Melk en zuivel (lang houdbaar)
+Fish, meat, eggs	Vis, vlees, eieren
+Fats & oils	Vetten en oliën
+Batteries	Batterijen
+Torch / candles	Zaklamp / kaarsen
+of min	van min.
+next	volgende
+no date	geen datum
+today	vandaag
+tomorrow	morgen
+Nothing yet in category	Nog niets in categorie
+Spent this month:	Deze maand uitgegeven:
+Thrown away this month:	Deze maand weggegooid:
+Thrown away:	Weggegooid:
+Added	Toegevoegd
+Used	Verbruikt
+Threw away	Weggegooid
+add	toegevoegd
+use	verbruikt
+waste	weggegooid
+edit	bewerkt
+Already gone	Al verwijderd
+Batch removed	Partij verwijderd
+Choose a file	Kies een bestand
+Choose a CSV file	Kies een CSV-bestand
+Cleared	Verwijderd
+File too large (max 25 MB)	Bestand te groot (max. 25 MB)
+Only photos (JPEG, PNG, WebP) and PDFs	Alleen foto's (JPEG, PNG, WebP) en pdf's
+Upload failed (max 25 MB)	Uploaden mislukt (max. 25 MB)
+Upload failed (max 5 MB)	Uploaden mislukt (max. 5 MB)
+Barcode removed	Barcode verwijderd
+Deleted (its stock is now without a location)	Verwijderd (de voorraad daar heeft nu geen plek)
+Deleted	Verwijderd
+Hidden for 14 days	14 dagen verborgen
+Marked as opened	Gemarkeerd als geopend
+Minimum saved	Minimum opgeslagen
+Not found in Open Food Facts. Type the name.	Niet gevonden in Open Food Facts. Typ de naam.
+Nothing left to take	Niets meer over
+Saved	Opgeslagen
+Target added	Doel toegevoegd
+Target removed	Doel verwijderd
+Target saved	Doel opgeslagen
+Picture updated	Afbeelding bijgewerkt
+Removed	Verwijderd
+Not linked to an item	Niet gekoppeld aan een artikel
+Unknown language	Onbekende taal
+Not a text file: save the CSV as UTF-8	Geen tekstbestand: sla de CSV op als UTF-8
+L	L
+Opened: use by	Geopend: opmaken voor
+more	meer
+expiring this week	verloopt deze week
+expiring soon	verloopt binnenkort
+Expired	Verlopen
+This week	Deze week
+Soon	Binnenkort
+Vorrat: test push, all good	Vorrat: testbericht, alles in orde
+Nothing expiring or running low right now.	Er verloopt nu niets en niets raakt op.
+Sign in	Inloggen
+Sign out	Uitloggen
+Household password	Wachtwoord van het huishouden
+Too many attempts. Wait a minute.	Te veel pogingen. Wacht een minuut.
+Wrong password	Verkeerd wachtwoord
+Could not start a session	Kon geen sessie starten
+Power cut	Stroomstoring
+Power cut: what to eat first	Stroomstoring: wat eerst eten
+What to eat first when the power is off. Keep the fridge and freezer doors shut as much as you can.	Wat je eerst eet als de stroom uitvalt. Houd koelkast en vriezer zo veel mogelijk dicht.
+Drinking water lasts about	Drinkwater is genoeg voor ongeveer
+Fridge	Koelkast
+Freezer	Vriezer
+Pantry	Voorraadkast
+Safe for about 4 hours without power.	Zonder stroom ongeveer 4 uur veilig.
+Nothing stored in a fridge.	Niets in een koelkast.
+A full freezer keeps about 48 hours, a half-full one about 24, if the door stays shut.	Een volle vriezer houdt het ongeveer 48 uur, een halfvolle ongeveer 24, als de deur dicht blijft.
+Nothing stored in a freezer.	Niets in een vriezer.
+Then shelf-stable food. Your emergency plan shows how long it lasts.	Daarna houdbaar voedsel. Je noodplan laat zien hoelang het duurt.
+Times follow common food-safety guidance (USDA). When in doubt, throw it out.	De tijden volgen gangbare voedselveiligheidsadviezen (USDA). Bij twijfel: weggooien.
+Locations count as fridge or freezer by their name.	Plekken tellen als koelkast of vriezer op basis van hun naam.
+Demo: try anything. The data resets every night.	Demo: probeer alles uit. De gegevens worden elke nacht teruggezet.
+Not available in the demo	Niet beschikbaar in de demo
+%-d %b %Y	%-d-%-m-%Y
+%-d %b	%-d-%-m
+{0}d ago	{0} d. geleden
+{0}d	{0} d.
+{0}mo	{0} mnd.
+in {0}d	over {0} d.
+{0} yr	{0} jr.
+{0} mo	{0} mnd.
+{0} wk	{0} wk.
+{0} d	{0} d.
+where your other {0} are ({1} of {2})	waar je andere {0} liggen ({1} van {2})
+Usually keeps about {0} from purchase (last {1} purchases).	Blijft meestal ongeveer {0} goed na aankoop (laatste {1} aankopen).
+At your pace, what's here lasts until about {0}.	In jouw tempo duurt deze voorraad tot ongeveer {0}.
+You buy this about every {0} ({1} purchases).	Je koopt dit ongeveer elke {0} ({1} aankopen).
+None left. You buy it about every {0}.	Niets meer over. Je koopt het ongeveer elke {0}.
+At your pace this runs out in about {0} d.	In jouw tempo is dit over ongeveer {0} d. op.

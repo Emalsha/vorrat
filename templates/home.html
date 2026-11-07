@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>{{ "Emergency readiness"|t }}</h2>
+  <a class="card pad" href="/plan" style="display:block;color:inherit">
+    <div class="flex" style="justify-content:space-between">
+      <b>{{ plan_pct }}% · {{ plan_days }} {{ "days"|t }}</b>
+      <span class="muted small">{{ people }} {% if people == 1 %}{{ "person"|t }}{% else %}{{ "people"|t }}{% endif %} ›</span>
+    </div>
+    <div class="bar {{ plan_bar }}"><i style="width:{{ plan_pct }}%"></i></div>
+    <div class="muted small mt">
+      {% if let Some(w) = weakest %}{{ "Your weakest essential lasts"|t }} <b>{{ w }} {{ "days"|t }}</b>. {% endif %}
+      {% if gaps.is_empty() %}{{ "Everything in the plan is covered."|t }}{% else %}{{ "Not yet covered:"|t }} {{ gaps.join("; ") }}.{% endif %}
+    </div>
+  </a>
+
+  <div class="stats mt">
+    <a class="card stat {% if expired > 0 %}alert{% endif %}" href="#expiring"><b>{{ expired }}</b><span>{{ "expired"|t }}</span></a>
+    <a class="card stat {% if soon > 0 %}warn{% endif %}" href="#expiring"><b>{{ soon }}</b><span>{{ "within 14 days"|t }}</span></a>
+    <a class="card stat {% if !low.is_empty() %}warn{% endif %}" href="#low"><b>{{ low.len() }}</b><span>{{ "running low"|t }}</span></a>
+  </div>
+
+  <div class="actions"><a class="btn primary big" href="/scan">{{ "Scan to add"|t }}</a><a class="btn big" href="/scan?mode=use">{{ "Scan to use up"|t }}</a></div>
+
+  <h2 id="expiring">{{ "Expired & expiring soon"|t }}</h2>
+  <div class="card"><ul class="list">
+    {% let back_to = "/" %}
+    {% for b in expiring %}<li>{% include "_batch_row.html" %}</li>
+    {% else %}<li class="empty">{{ "Nothing expires in the next 14 days."|t }}</li>{% endfor %}
+  </ul></div>
+
+  <h2 id="low">{{ "Running low"|t }}</h2>
+  <div class="card"><ul class="list">
+    {% for i in low %}
+    <li><a class="row" href="/items/{{ i.id }}">{% let t = i %}{% include "_thumb.html" %}
+      <div class="grow"><div class="title">{{ i.name }}</div><div class="sub">{{ i.sub }}</div></div>
+      <span class="pill soon">{{ "low"|t }}</span></a></li>
+    {% else %}<li class="empty">{{ "Nothing below its minimum."|t }}</li>{% endfor %}
+  </ul></div>
+
+  <h2>{{ "Recent"|t }}</h2>
+  <div class="card"><ul class="list">
+    {% for r in recent %}<li class="pad">{{ r }}</li>
+    {% else %}<li class="empty">{{ "No activity yet."|t }}</li>{% endfor %}
+  </ul></div>
+  {% if let Some(n) = month_note %}<p class="muted small right">{{ n }}</p>{% endif %}
+{% endblock %}

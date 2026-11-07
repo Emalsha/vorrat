@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}{{ "Power cut"|t }} · Vorrat{% endblock %}
+{% block heading %}{{ "Power cut"|t }}{% endblock %}
+{% block content %}
+  <p class="muted small mt">{{ "What to eat first when the power is off. Keep the fridge and freezer doors shut as much as you can."|t }}</p>
+  {% if let Some(w) = water_days %}<div class="card pad mt"><b>{{ "Drinking water lasts about"|t }} {{ w }} {{ "days"|t }}</b> <span class="muted small">({{ people }} {% if people == 1 %}{{ "person"|t }}{% else %}{{ "people"|t }}{% endif %})</span></div>{% endif %}
+
+  <h2>1. {{ "Fridge"|t }}</h2>
+  <p class="muted small">{{ "Safe for about 4 hours without power."|t }}</p>
+  <div class="card"><ul class="list">
+    {% let back_to = "/plan/power-cut" %}
+    {% for b in fridge %}<li>{% include "_batch_row.html" %}</li>
+    {% else %}<li class="empty">{{ "Nothing stored in a fridge."|t }}</li>{% endfor %}
+  </ul></div>
+
+  <h2>2. {{ "Freezer"|t }}</h2>
+  <p class="muted small">{{ "A full freezer keeps about 48 hours, a half-full one about 24, if the door stays shut."|t }}</p>
+  <div class="card"><ul class="list">
+    {% for b in freezer %}<li>{% include "_batch_row.html" %}</li>
+    {% else %}<li class="empty">{{ "Nothing stored in a freezer."|t }}</li>{% endfor %}
+  </ul></div>
+
+  <h2>3. {{ "Pantry"|t }}</h2>
+  <p class="muted small">{{ "Then shelf-stable food. Your emergency plan shows how long it lasts."|t }} <a href="/plan">{{ "Emergency plan"|t }} ›</a></p>
+  <p class="muted small">{{ "Times follow common food-safety guidance (USDA). When in doubt, throw it out."|t }} {{ "Locations count as fridge or freezer by their name."|t }}</p>
+{% endblock %}

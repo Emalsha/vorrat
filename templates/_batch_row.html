@@ -1,0 +1,17 @@
+<div class="row-wrap">
+  <a class="row" href="/items/{{ b.item_id }}">
+    {% let t = b %}{% include "_thumb.html" %}
+    <div class="grow"><div class="title">{{ b.name }}</div><div class="sub">{{ b.sub }}</div></div>
+    <span class="pill {{ b.status }}">{{ b.when }}</span>
+  </a>
+  {% if b.can_use && (b.status == "expired" || b.status == "urgent") %}
+  <div class="row-actions">
+    <form method="post" action="/items/{{ b.item_id }}/use" class="inline">
+      <input type="hidden" name="batch_id" value="{{ b.id }}"><input type="hidden" name="qty" value="{{ b.qty }}"><input type="hidden" name="back" value="{{ back_to }}">
+      <button class="btn small">{{ "Used up"|t }}</button></form>
+    <form method="post" action="/items/{{ b.item_id }}/use" class="inline">
+      <input type="hidden" name="batch_id" value="{{ b.id }}"><input type="hidden" name="qty" value="{{ b.qty }}"><input type="hidden" name="back" value="{{ back_to }}"><input type="hidden" name="waste" value="1">
+      <button class="btn small danger">{{ "Thrown away"|t }}</button></form>
+  </div>
+  {% endif %}
+</div>

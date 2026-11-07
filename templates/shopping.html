@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}{{ "Shopping"|t }} · Vorrat{% endblock %}
+{% block heading %}{{ "Shopping list"|t }}{% endblock %}
+{% block content %}
+  <form method="post" action="/shopping" class="card pad flex mt">
+    <input name="label" required placeholder="{{ "Add something"|t }}" aria-label="{{ "Item"|t }}" class="grow">
+    <button class="btn">{{ "Add"|t }}</button>
+  </form>
+  <div class="card mt"><ul class="list">
+    {% for e in entries %}
+    <li class="row-wrap"><form method="post" action="/shopping/{{ e.id }}/toggle" class="pad grow">
+      <button class="check {% if e.done %}done{% endif %}" style="all:unset;cursor:pointer">{% if e.done %}☑{% else %}☐{% endif %} {{ e.label }}</button>
+    </form>
+    {% if e.done && e.item_id.is_some() %}<form method="post" action="/shopping/{{ e.id }}/stock" class="inline pad"><button class="btn small primary">{{ "Into stock"|t }}</button></form>{% endif %}</li>
+    {% else %}<li class="empty">{{ "The list is empty."|t }}</li>{% endfor %}
+  </ul></div>
+  {% if low_missing > 0 %}<form method="post" action="/shopping/add-low" class="mt"><button class="btn block">{{ "Add everything running low"|t }} ({{ low_missing }})</button></form>{% endif %}
+
+  {% if !suggestions.is_empty() %}
+  <h2>{{ "You may need soon"|t }}</h2>
+  <div class="card"><ul class="list">
+    {% for (id, name, reason) in suggestions %}
+    <li class="row-wrap"><div class="pad grow"><div class="title">{{ name }}</div><div class="sub wrap">{{ reason }}</div></div>
+      <form method="post" action="/shopping" class="inline"><input type="hidden" name="label" value="{{ name }}"><input type="hidden" name="item_id" value="{{ id }}"><button class="btn small">{{ "Add"|t }}</button></form>
+      <form method="post" action="/shopping/suggestions/{{ id }}/dismiss" class="inline pad"><button class="btn small">{{ "Not now"|t }}</button></form></li>
+    {% endfor %}
+  </ul></div>
+  {% endif %}
+
+  {% if any_done %}<form method="post" action="/shopping/clear" class="mt"><button class="btn block">{{ "Clear ticked items"|t }}</button></form>{% endif %}
+{% endblock %}
