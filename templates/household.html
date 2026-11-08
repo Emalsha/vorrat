@@ -8,10 +8,10 @@
   <div class="card"><ul class="list">
     {% for m in people %}
     <li><details>
-      <summary class="pad" style="display:block">
+      <summary class="pad">
         <b>{{ m.label }}</b> <span class="muted small">{% if !m.name.is_empty() %}{{ m.type|t }}{% if !m.needs_text.is_empty() %} · {% endif %}{% endif %}{{ m.needs_text }}</span>
       </summary>
-      <form method="post" action="/household/{{ m.id }}" class="stack pad" style="padding-top:0">
+      <form method="post" action="/household/{{ m.id }}" class="stack pad pt0">
         <div class="grid2">
           <input name="name" value="{{ m.name }}" placeholder="{{ "Name (optional)"|t }}" maxlength="60" aria-label="{{ "Name"|t }}">
           <select name="type" aria-label="{{ "Age group"|t }}">{% for t in person_types %}<option value="{{ t }}" {% if m.type == **t %}selected{% endif %}>{{ t|t }}</option>{% endfor %}</select>
@@ -43,8 +43,8 @@
   <div class="card"><ul class="list">
     {% for m in pets %}
     <li><details>
-      <summary class="pad" style="display:block"><b>{{ m.label }}</b>{% if !m.name.is_empty() %} <span class="muted small">{{ m.type|t }}</span>{% endif %}</summary>
-      <form method="post" action="/household/{{ m.id }}" class="stack pad" style="padding-top:0">
+      <summary class="pad"><b>{{ m.label }}</b>{% if !m.name.is_empty() %} <span class="muted small">{{ m.type|t }}</span>{% endif %}</summary>
+      <form method="post" action="/household/{{ m.id }}" class="stack pad pt0">
         <div class="grid2">
           <input name="name" value="{{ m.name }}" placeholder="{{ "Name (optional)"|t }}" maxlength="60" aria-label="{{ "Name"|t }}">
           <select name="type" aria-label="{{ "Kind of pet"|t }}">{% for t in pet_types %}<option value="{{ t }}" {% if m.type == **t %}selected{% endif %}>{{ t|t }}</option>{% endfor %}</select>

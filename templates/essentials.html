@@ -9,12 +9,12 @@
   <div class="muted small mt">{{ g.who }}</div>
   <div class="card"><ul class="list">
     {% for m in g.meds %}
-    <li><a class="row" href="/items/{{ m.id }}" style="display:block">
-      <div class="flex" style="justify-content:space-between">
+    <li><a class="row col" href="/items/{{ m.id }}">
+      <div class="flex between">
         <b>{{ m.name }}</b>
         <span class="small">{{ "lasts"|t }} {{ m.days }} {{ "days"|t }}</span>
       </div>
-      <div class="bar {{ m.bar }}"><i style="width:{{ m.pct }}%"></i></div>
+      <progress class="bar {{ m.bar }}" max="100" value="{{ m.pct }}" aria-hidden="true"></progress>
       <div class="muted small mt">{% if !m.detail.is_empty() %}{{ m.detail }} · {% endif %}{{ m.stock }}{% if let Some(e) = m.expiry %} · {{ "expires"|t }} {{ e }}{% endif %}</div>
       {% if let Some((d, soon)) = m.renew %}<div class="small {% if !soon %}muted{% endif %}">{% if *soon %}<b>{% endif %}{{ "Renew prescription by"|t }} {{ d }}{% if *soon %}</b>{% endif %}</div>{% endif %}
     </a></li>

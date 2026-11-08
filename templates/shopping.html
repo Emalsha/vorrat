@@ -8,8 +8,8 @@
   </form>
   <div class="card mt"><ul class="list">
     {% for e in entries %}
-    <li class="row-wrap"><form method="post" action="/shopping/{{ e.id }}/toggle" class="pad grow">
-      <button class="check {% if e.done %}done{% endif %}" style="all:unset;cursor:pointer">{% if e.done %}☑{% else %}☐{% endif %} {{ e.label }}</button>
+    <li class="row-line{% if e.done %} done{% endif %}"><form method="post" action="/shopping/{{ e.id }}/toggle" class="pad grow">
+      <button class="tick" aria-pressed="{{ e.done }}"><span class="box" aria-hidden="true">{% if e.done %}{% let icon = "ok" %}{% include "_icon.html" %}{% endif %}</span><span class="label">{{ e.label }}</span></button>
     </form>
     {% if e.done && e.item_id.is_some() %}<form method="post" action="/shopping/{{ e.id }}/stock" class="inline pad"><button class="btn small primary">{{ "Into stock"|t }}</button></form>{% endif %}</li>
     {% else %}<li class="empty">{{ "The list is empty."|t }}</li>{% endfor %}
@@ -20,7 +20,7 @@
   <h2>{{ "You may need soon"|t }}</h2>
   <div class="card"><ul class="list">
     {% for (id, name, reason) in suggestions %}
-    <li class="row-wrap"><div class="pad grow"><div class="title">{{ name }}</div><div class="sub wrap">{{ reason }}</div></div>
+    <li class="row-line"><div class="pad grow"><div class="title">{{ name }}</div><div class="sub wrap">{{ reason }}</div></div>
       <form method="post" action="/shopping" class="inline"><input type="hidden" name="label" value="{{ name }}"><input type="hidden" name="item_id" value="{{ id }}"><button class="btn small">{{ "Add"|t }}</button></form>
       <form method="post" action="/shopping/suggestions/{{ id }}/dismiss" class="inline pad"><button class="btn small">{{ "Not now"|t }}</button></form></li>
     {% endfor %}

@@ -3,19 +3,19 @@
 {% block heading %}{{ "Emergency plan"|t }}{% endblock %}
 {% block content %}
   <form method="post" action="/plan/settings" class="card pad mt">
-    <a href="/household" class="flex" style="justify-content:space-between">
+    <a href="/household" class="flex between">
       <span><b>{{ "Household"|t }}</b> <span class="muted">{{ people }} {% if people == 1 %}{{ "person"|t }}{% else %}{{ "people"|t }}{% endif %}{% if pets > 0 %} · {{ pets }} {% if pets == 1 %}{{ "pet"|t }}{% else %}{{ "pets"|t }}{% endif %}{% endif %}</span></span>
       <span class="muted small">{{ "Edit"|t }} ›</span>
     </a>
-    <div class="grid2 mt" style="align-items:end">
+    <div class="grid2 mt end">
       <label>{{ "Days"|t }} <input name="days" inputmode="numeric" value="{{ days }}"></label>
       <button class="btn">{{ "Update"|t }}</button>
     </div>
-    <p class="muted small" style="margin:10px 0 0">{{ pct }}% {{ "covered"|t }}{% if let Some(w) = weakest %} · {{ "weakest essential lasts"|t }} {{ w }} {{ "days"|t }}{% endif %}. {{ "Targets start from the German civil-protection (BBK) checklist; edit them to fit your household. Stock counts by category; expired stock doesn't count."|t }}</p>
+    <p class="muted small mt0">{{ pct }}% {{ "covered"|t }}{% if let Some(w) = weakest %} · {{ "weakest essential lasts"|t }} {{ w }} {{ "days"|t }}{% endif %}. {{ "Targets start from the German civil-protection (BBK) checklist; edit them to fit your household. Stock counts by category; expired stock doesn't count."|t }}</p>
   </form>
 
   <div class="card pad mt">
-    <a href="/essentials" class="flex" style="justify-content:space-between">
+    <a href="/essentials" class="flex between">
       <span><b>{{ "Medicine and essentials"|t }}</b><br><span class="muted small">{% if let Some(m) = medicine_days %}{{ "medicine lasts"|t }} {{ m }} {{ "days"|t }} · {% endif %}{{ "first-aid kit"|t }} {{ first_aid.0 }}/{{ first_aid.1 }} · {{ "essentials"|t }} {{ essentials.0 }}/{{ essentials.1 }}</span></span>
       <span class="muted small">{{ "Edit"|t }} ›</span>
     </a>
@@ -26,12 +26,12 @@
   <div class="card"><ul class="list">
     {% for g in suggestions %}
     <li><details>
-      <summary class="pad" style="display:block">
+      <summary class="pad">
         <b>{{ g.label|t }}</b> <span class="muted small">{{ "for"|t }} {{ g.who }}</span>
         <div class="muted small">{{ "Named by"|t }}: {{ g.named_by }}</div>
       </summary>
-      <div class="stack pad" style="padding-top:0">
-        <form method="post" action="/essentials/check/{{ g.key }}" class="flex" style="flex-wrap:wrap">
+      <div class="stack pad pt0">
+        <form method="post" action="/essentials/check/{{ g.key }}" class="flex">
           <button class="btn small primary" name="action" value="add">{{ "Add to stock"|t }}</button>
           <button class="btn small" name="action" value="shop">{{ "To the shopping list"|t }}</button>
           <button class="btn small" name="action" value="dismiss">{{ "Not needed"|t }}</button>
@@ -51,7 +51,7 @@
 
   <div class="card pad mt">
     <div class="muted small">{{ "Common recommendations. They set the days; the targets stay yours."|t }}</div>
-    <div class="flex mt" style="flex-wrap:wrap">
+    <div class="flex mt">
       {% for (d, label) in presets %}
       <form method="post" action="/plan/settings"><button class="btn small{% if days == *d %} primary{% endif %}" name="days" value="{{ d }}">{{ label|t }}</button></form>
       {% endfor %}
@@ -62,15 +62,15 @@
   <div class="card"><ul class="list">
     {% for c in lines %}
     <li><details>
-      <summary class="pad" style="display:block">
-        <div class="flex" style="justify-content:space-between">
+      <summary class="pad">
+        <div class="flex between">
           <b>{{ c.label|t }}</b>
           <span class="small {% if c.covered %}muted{% endif %}">{{ c.progress }}</span>
         </div>
-        <div class="bar {{ c.bar }}"><i style="width:{{ c.pct }}%"></i></div>
+        <progress class="bar {{ c.bar }}" max="100" value="{{ c.pct }}" aria-hidden="true"></progress>
         <div class="muted small mt">{{ c.contributors }}</div>
       </summary>
-      <form method="post" action="/plan/targets/{{ c.id }}" class="stack pad" style="padding-top:0">
+      <form method="post" action="/plan/targets/{{ c.id }}" class="stack pad pt0">
         <input name="label" value="{{ c.label }}" aria-label="{{ "Label"|t }}">
         <div class="grid2">
           <select name="category" aria-label="{{ "Category"|t }}">{% for k in categories %}<option value="{{ k }}" {% if c.category == **k %}selected{% endif %}>{{ k|t }}</option>{% endfor %}</select>

@@ -211,7 +211,7 @@ async fn security(req: Request, next: Next) -> Response {
         set(
         h,
         "content-security-policy",
-        "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; \
+        "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; \
          object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
     );
     }
@@ -479,9 +479,9 @@ fn pct(r: f64) -> u32 {
 
 fn bar_class(r: f64) -> &'static str {
     if r < 0.4 {
-        "low"
+        "crit"
     } else if r < 0.9 {
-        "mid"
+        "warn"
     } else {
         ""
     }
@@ -2451,7 +2451,7 @@ async fn settings_page(State(s): St, Query(f): Query<Flash>) -> Res<Html<String>
     let c = &s.cfg;
     render(SettingsT {
         msg: f.msg,
-        tab: "",
+        tab: "settings",
         undo: None,
         // Never show the topic itself: on ntfy.sh it works like a password.
         push: (!c.ntfy_topic.is_empty()).then(|| c.ntfy_url.clone()),
