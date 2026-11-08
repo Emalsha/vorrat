@@ -2,14 +2,15 @@
 {% block title %}{{ "Add"|t }} · Vorrat{% endblock %}
 {% block heading %}{{ "Add stock"|t }}{% endblock %}
 {% block content %}
+<div class="cols">
+  <div class="col">
   {% if !p.source.is_empty() %}<p class="muted small mt">{{ "Filled in from"|t }} {{ p.source }}. {{ "Check it, then add."|t }}</p>{% endif %}
   {% if !p.hint.is_empty() %}<p class="muted small">{{ p.hint }}</p>{% endif %}
-  <form method="post" action="/add" class="card pad stack mt">
+  <form method="post" action="/add" class="card pad stack">
     {% if !p.image.is_empty() %}<img class="form-pic" src="/files/{{ p.image }}" alt="">{% endif %}
     <input type="hidden" name="image" value="{{ p.image }}">
     <input type="hidden" name="nutriscore" value="{{ p.nutriscore }}">
     <label>{{ "Name"|t }} <input name="name" required autofocus placeholder="{{ "e.g. Still water 1.5 L"|t }}" value="{{ p.name }}"></label>
-    <label>{{ "Brand"|t }} <input name="brand" value="{{ p.brand }}"></label>
     <div class="grid2">
       <label>{{ "Kind"|t }} <select name="kind">{% for k in kinds %}<option value="{{ k }}" {% if p.kind == **k %}selected{% endif %}>{{ k|t }}</option>{% endfor %}</select></label>
       <label>{{ "Category"|t }} <select name="category"><option value="">—</option>{% for c in categories %}<option value="{{ c }}" {% if p.category == **c %}selected{% endif %}>{{ c|t }}</option>{% endfor %}</select></label>
@@ -20,20 +21,35 @@
       <label>{{ "Expires"|t }} <input type="date" name="expires_on"></label>
     </div>
     <div class="grid2">
+      <label>{{ "Location"|t }} <select name="location_id"><option value="">—</option>{% for l in locations %}<option value="{{ l.id }}" {% if p.location_id == l.id.to_string() %}selected{% endif %}>{{ l.path }}</option>{% endfor %}</select></label>
+      <label>{{ "Minimum"|t }} <input name="min_qty" inputmode="decimal" placeholder="0"></label>
+    </div>
+    <details{% if !p.barcode.is_empty() || !p.size.is_empty() || !p.brand.is_empty() %} open{% endif %}>
+    <summary class="row-line between"><b>{{ "More details"|t }}</b>{% let icon = "chev" %}{% include "_icon.html" %}</summary>
+    <div class="stack mt">
+    <label>{{ "Brand"|t }} <input name="brand" value="{{ p.brand }}"></label>
+    <div class="grid2">
       <label>{{ "Pack size"|t }} <input name="size" inputmode="decimal" placeholder="{{ "e.g. 1.5"|t }}" value="{{ p.size }}"></label>
       <label>{{ "Pack unit"|t }} <select name="size_unit"><option value="">—</option>{% for u in units %}<option value="{{ u }}" {% if p.size_unit == **u %}selected{% endif %}>{{ u|t }}</option>{% endfor %}</select></label>
     </div>
     <p class="muted small m0">{{ "Pack size lets \"6 pcs\" of 1.5 L bottles count as 9 L of water in the emergency plan."|t }}</p>
     <div class="grid2">
-      <label>{{ "Location"|t }} <select name="location_id"><option value="">—</option>{% for l in locations %}<option value="{{ l.id }}" {% if p.location_id == l.id.to_string() %}selected{% endif %}>{{ l.path }}</option>{% endfor %}</select></label>
-      <label>{{ "Minimum"|t }} <input name="min_qty" inputmode="decimal" placeholder="0"></label>
-    </div>
-    <div class="grid2">
       <label>{{ "Barcode"|t }} <input name="barcode" inputmode="numeric" value="{{ p.barcode }}"></label>
       <label>{{ "Price"|t }} <input name="price" inputmode="decimal"></label>
     </div>
-    <button class="btn primary block">{{ "Add"|t }}</button>
+    </div>
+    </details>
+    <button class="btn primary block big">{{ "Add"|t }}</button>
   </form>
+  </div>
+  <div class="col">
+  {% if similar.is_empty() %}
+  <h2>{{ "Has a barcode?"|t }}</h2>
+  <div class="card pad stack">
+    <p class="muted small m0">{{ "Scanning fills in the name and pack size for you."|t }}</p>
+    <a class="btn block" href="/scan">{{ "Scan to add"|t }}</a>
+  </div>
+  {% endif %}
   {% if !similar.is_empty() %}
   <h2>{{ "Or is it something you already have?"|t }}</h2>
   <div class="card"><ul class="list">
@@ -47,4 +63,6 @@
   </ul></div>
   <p class="muted small">{{ "\"Same thing\" links this barcode to that item, so this scan and later ones add to it."|t }}</p>
   {% endif %}
+  </div>
+</div>
 {% endblock %}

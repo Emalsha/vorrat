@@ -77,7 +77,7 @@ The criteria that matter most for Vorrat, including the ones WCAG 2.2 added:
 | 2.4.11 Focus not obscured (new in 2.2) | AA | The sticky header and bottom navigation must not cover the focused element: `scroll-padding` on `html` keeps it clear. |
 | 2.5.8 Target size (new in 2.2) | AA | Hard floor 24 × 24 px. Vorrat's own rule is stricter: 44 px for anything used often, 40 px for small buttons. |
 | 2.5.7 Dragging movements (new in 2.2) | AA | No drag-only interactions. |
-| 3.2.3 Consistent navigation, 3.2.6 Consistent help (new) | AA / A | Bottom navigation and settings link in the same place on every page. |
+| 3.2.3 Consistent navigation, 3.2.6 Consistent help (new) | AA / A | Bottom navigation (sidebar on a desktop) and settings link in the same place on every page. |
 | 3.3.1 Error identification, 3.3.2 Labels | A | Visible labels (not only placeholders). Errors in words, near the field. |
 | 3.3.7 Redundant entry (new in 2.2) | A | Don't ask twice for what Vorrat knows: prefill from barcode, last purchase, the household profile. |
 | 3.3.8 Accessible authentication (new in 2.2) | AA | The household password field allows paste and password managers (`autocomplete="current-password"`). No puzzles. |
@@ -99,7 +99,7 @@ no internet at all.
 - **No web fonts, no icon fonts, no CDNs.** The system font stack is legible
   and costs nothing. Icons are small inline SVG in the templates.
 - **One stylesheet**, `static/app.css`, compiled into the binary and cached by
-  the service worker. Keep it small: today about 15 KB uncompressed. No CSS framework, no
+  the service worker. Keep it small: today about 18 KB uncompressed. No CSS framework, no
   build step, no preprocessor.
 - **No inline styles.** The content security policy is `style-src 'self'`, so
   a `style="…"` attribute does nothing. Use a class. `tests/ui.rs` fails on
@@ -150,22 +150,66 @@ alone.
 | `--s1` … `--s6` | 4, 8, 12, 16, 24, 32 px | Gaps and padding. Nothing in between. |
 | `--radius`, `--radius-sm` | 14 px, 10 px | Cards; buttons and fields |
 | `--target` | 44 px | Minimum height of buttons, rows, fields, tabs |
-| `--measure` | 720 px | Maximum content width |
+| `--measure` | 720 px | Maximum content width on a phone or tablet, and of a lone form |
+| `--wide` | 1160 px | Maximum content width on a desktop |
+| `--sidebar` | 248 px | Width of the desktop sidebar |
 | Type | 16 px body, 0.875 rem small, 1.25 rem titles, 2.25 rem the big number | No text below 0.75 rem, and that only for tab labels |
 
 ## 6. Layout shell
 
-Every page uses `templates/base.html`:
+Every page uses `templates/base.html`. One page serves every screen: the
+same HTML, laid out by CSS for a phone or for a desktop. There is no second
+template, no user-agent sniffing and no JavaScript involved.
+
+Common to both:
 
 1. A "Skip to content" link, the first thing a keyboard reaches.
-2. A sticky header: page title on the left, settings on the right.
-3. `<main id="main">`: one column, at most `--measure` wide, 16 px gutters.
-4. The message from the last action (with Undo when there is one) at the top
-   of `main`. It stays until the next page; it doesn't fade away while
-   someone is reading or reaching for Undo.
-5. The fixed bottom navigation with five places: Home, Stock, Add, Plan,
-   Shopping. Add sits in the middle and is the largest. The current place has
-   `aria-current="page"` and the accent colour.
+2. A sticky header with the page title. Pages below a list (an item, its
+   edit form) put a back link before the title in the `back` block.
+3. `<main id="main">`, the message from the last action (with Undo when
+   there is one) at its top. It stays until the next page; it doesn't fade
+   away while someone is reading or reaching for Undo.
+4. One `<nav class="tabs">` that holds every place. Links marked
+   `.phone-only` show only on a phone, links marked `.wide-only` only on a
+   desktop, so the DOM order is the focus order in both layouts.
+
+### Phone and tablet (below 64em, about 1024 px)
+
+- One column, at most `--measure` wide, 16 px gutters.
+- The fixed bottom navigation with five places: Home, Stock, Add, Plan,
+  Shopping. Add sits in the middle as a raised round button, the largest
+  target on the screen and within reach of a thumb. The current place has
+  `aria-current="page"`, the accent colour and an underline.
+- Settings is the gear in the header.
+- Secondary information (files, barcodes, prices, history) sits in
+  `<details>` so the first screen shows what is used every day.
+
+### Desktop (64em and wider)
+
+- A fixed sidebar, `--sidebar` wide, on the left: the Vorrat name, Add
+  stock as the one primary button, the four places, a divider, then
+  Medicine and essentials, Household, Locations, and Settings at the bottom.
+  The current place has the accent colour, a soft background and a bar on
+  its left edge, so it never depends on colour alone.
+- Content up to `--wide`, 24 px gutters. The header has no gear: Settings
+  is in the sidebar.
+- From 75em (about 1200 px) pages use two columns with `.cols` (below).
+  Under 75em, and at 200 % text zoom, they fall back to one column because
+  the breakpoints are in `em`.
+
+### Page columns
+
+`.cols > .col + .col` is one column on a phone and two on a wide screen.
+The DOM order is the phone order, so put what matters first in the first
+column, and the side information in the second.
+
+| Variant | Columns | Use |
+|---|---|---|
+| `.cols` | 3 : 2 | Main content and a side column (Home, Plan, Item, Add, Scan, Shopping) |
+| `.cols.lead` | narrow first, sticky | Filters next to a long list (Stock) |
+| `.cols.even` | 1 : 1 | Groups of equal weight (Settings) |
+
+`.narrow` keeps a lone form at `--measure` on a wide screen (edit item).
 
 ## 7. Components
 
@@ -188,7 +232,8 @@ Use these classes; add a new one only when none fits, and add it here.
 | Notice | `.notice` (`role="status"`) | The message after an action, with an optional Undo. |
 | Disclosure | `<details>` with a `<summary>` | For editing and for secondary information. |
 
-Helpers: `.muted`, `.small`, `.right`, `.mt`, `.mt-xs`, `.m0`, `.mt0`, `.pt0`,
+Helpers: `.phone-only`, `.wide-only` (shown only below or above 64em),
+`.cols`, `.narrow`, `.muted`, `.small`, `.right`, `.mt`, `.mt-xs`, `.m0`, `.mt0`, `.pt0`,
 `.flex`, `.row-line` (a row with controls side by side), `.row.col` (a row
 that stacks), `.between`, `.end`, `.grow`, `.grid2`, `.grid3`, `.stack`, `.vh` (visually hidden,
 still read aloud).
@@ -207,6 +252,9 @@ The same four words and icons everywhere:
 ## 8. Screens
 
 ### Home
+
+On a desktop, readiness and the scan buttons are the first column and
+"Needs attention" with recent activity the second.
 
 1. **Readiness**: "Ready for N of D days" in the biggest type on the page,
    where N is how long the weakest essential lasts (capped at D), a progress
@@ -228,6 +276,8 @@ The same four words and icons everywhere:
 4. Rows: name, quantity and unit, next expiry; a pill when it is low or
    expiring. The number of items shown.
 5. Adding is the middle tab, so there is no second floating Add button.
+6. On a desktop the search, filters and the Locations link stay in a sticky
+   column on the left; the list fills the rest.
 
 ### Plan
 
@@ -240,6 +290,38 @@ The same four words and icons everywhere:
 4. Medicine and essentials, suggestions for the household.
 5. Tools: printable checklist, power cut.
 6. Add a target, closed by default.
+
+### Item
+
+1. The amount in stock in big type, with kind, category and barcode under
+   it, and the picture beside it.
+2. Use and Thrown away right there, then Add stock and Edit.
+3. Batches, then the Add stock form.
+4. Side column: daily dose (medicine), minimum, then files, barcodes,
+   prices and history in `<details>` (files open for documents), and
+   Delete last.
+
+### Add
+
+The fields people fill every time (name, kind, category, quantity, unit,
+expiry, location, minimum) first; brand, pack size, barcode and price in
+"More details", open when a barcode lookup filled them. The side column
+offers scanning, or the "Same thing" matches after a scan.
+
+### Scan
+
+Mode chips and the camera first; typing the code and adding without a
+barcode in the side column.
+
+### Shopping
+
+The list with its add field and the bulk actions first; "You may need
+soon" in the side column.
+
+### Settings
+
+Language, reminders, calendar and backup in the first column; your data,
+privacy and sign out in the second.
 
 ## 9. Writing
 

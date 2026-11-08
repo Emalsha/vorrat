@@ -2,7 +2,9 @@
 {% block title %}{{ "Stock"|t }} · Vorrat{% endblock %}
 {% block heading %}{{ "Stock"|t }}{% endblock %}
 {% block content %}
-  <form method="get" action="/items" class="search mt" role="search">
+<div class="cols lead">
+  <div class="col">
+  <form method="get" action="/items" class="search" role="search">
     <input type="hidden" name="kind" value="{{ kind }}">{% if low %}<input type="hidden" name="low" value="1">{% endif %}<input type="hidden" name="sort" value="{{ sort }}">
     <input type="search" name="q" value="{{ q }}" placeholder="{{ "Search name, brand, barcode"|t }}" aria-label="{{ "Search"|t }}">
     <button class="btn">{{ "Search"|t }}</button>
@@ -12,7 +14,10 @@
     {% for (k, label) in kinds %}<a class="chip" href="/items?kind={{ k }}&amp;q={{ q|urlencode }}&amp;sort={{ sort }}"{% if kind == **k %} aria-current="true"{% endif %}>{{ label|t }}</a>
     {% endfor %}<a class="chip" href="/items?low=1&amp;q={{ q|urlencode }}&amp;sort={{ sort }}"{% if low %} aria-current="true"{% endif %}>{{ "Running low"|t }}</a>
   </nav>
-  <div class="flex between small mt">
+  <p class="small wide-only"><a href="/locations">{{ "Locations"|t }} ›</a></p>
+  </div>
+  <div class="col">
+  <div class="flex between small">
     <span class="muted">{{ shown }}</span>
     <span>{% if sort == "expiry" %}<a href="/items?kind={{ kind|urlencode }}{% if low %}&amp;low=1{% endif %}&amp;q={{ q|urlencode }}&amp;sort=name">{{ "By name"|t }}</a> · <b aria-current="true">{{ "By expiry date"|t }}</b>{% else %}<b aria-current="true">{{ "By name"|t }}</b> · <a href="/items?kind={{ kind|urlencode }}{% if low %}&amp;low=1{% endif %}&amp;q={{ q|urlencode }}&amp;sort=expiry">{{ "By expiry date"|t }}</a>{% endif %}</span>
   </div>
@@ -25,5 +30,7 @@
       {% else if !i.status.is_empty() %}<span class="pill {{ i.status }}">{% let icon = "warn" %}{% include "_icon.html" %}<span class="vh">{{ "Expires soon"|t }}</span>{{ i.when }}</span>{% endif %}</a></li>
     {% else %}<li class="empty">{% if q.is_empty() && kind.is_empty() && !low %}{{ "Nothing here yet."|t }} <a href="/add">{{ "Add something"|t }}</a>.{% else %}{{ "Nothing matches."|t }} <a href="/items">{{ "Show everything"|t }}</a>.{% endif %}</li>{% endfor %}
   </ul></div>
-  <p class="small right"><a href="/locations">{{ "Locations"|t }} ›</a></p>
+  <p class="small right phone-only"><a href="/locations">{{ "Locations"|t }} ›</a></p>
+  </div>
+</div>
 {% endblock %}

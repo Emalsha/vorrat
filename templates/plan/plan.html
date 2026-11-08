@@ -2,6 +2,8 @@
 {% block title %}{{ "Plan"|t }} · Vorrat{% endblock %}
 {% block heading %}{{ "Emergency plan"|t }}{% endblock %}
 {% block content %}
+<div class="cols">
+  <div class="col">
   <div class="card mt">
     {% include "_ready.html" %}
     <div class="pad pt0 stack">
@@ -56,6 +58,8 @@
   </ul></div>
   {% if has_gaps %}<form method="post" action="/plan/to-shopping" class="mt"><button class="btn primary block">{{ "Put the gaps on the shopping list"|t }}</button></form>{% endif %}
   <p class="muted small">{{ "Targets start from the German civil-protection (BBK) checklist; edit them to fit your household. Stock counts by category; expired stock doesn't count."|t }}</p>
+  </div>
+  <div class="col">
 
   <h2>{{ "Medicine and essentials"|t }}</h2>
   <div class="card"><a href="/essentials" class="row">
@@ -113,4 +117,6 @@
       <button class="btn block">{{ "Add target"|t }}</button>
     </form>
   </details>
+  </div>
+</div>
 {% endblock %}
