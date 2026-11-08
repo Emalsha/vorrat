@@ -168,9 +168,9 @@ async fn open_redirects_are_not_possible() {
 #[tokio::test]
 async fn plan_settings_and_gaps_to_shopping() {
     let (app, st) = app();
-    post(&app, "/plan/settings", "people=3&days=10", "same-origin").await;
-    assert_eq!(st.store.setting_int("people", 0), 3);
-    let r = post(&app, "/plan/settings", "people=0&days=10", "same-origin").await;
+    post(&app, "/plan/settings", "days=10", "same-origin").await;
+    assert_eq!(st.store.setting_int("days", 0), 10);
+    let r = post(&app, "/plan/settings", "days=0", "same-origin").await;
     assert!(
         r.headers()
             .get("location")
@@ -713,7 +713,7 @@ async fn plan_presets_and_printable_checklist() {
     let (_, body) = get(&app, "/plan").await;
     assert!(body.contains("72 hours"));
     assert!(body.contains("/plan/print"));
-    post(&app, "/plan/settings", "people=2&days=3", "same-origin").await;
+    post(&app, "/plan/settings", "days=3", "same-origin").await;
     assert_eq!(st.store.setting_int("days", 0), 3);
 
     let id = common::item(&st.store, "Crackers");
@@ -1006,4 +1006,86 @@ async fn french_and_dutch_pages() {
     );
     let nl = get_lang(&app, "/plan", "nl-NL").await;
     assert!(nl.contains("Noodplan") && nl.contains("Drinkwater"));
+}
+
+#[tokio::test]
+async fn household_page_adds_edits_and_removes_people_and_pets() {
+    let (app, st) = app();
+    let (s, body) = get(&app, "/household").await;
+    assert_eq!(s, StatusCode::OK);
+    assert!(
+        body.contains("Adult 1") && body.contains("Adult 2"),
+        "{body}"
+    );
+
+    let r = post(
+        &app,
+        "/household",
+        "kind=person&type=child&name=Mia+%3Cb%3E&need=vegetarian&need=allergies",
+        "same-origin",
+    )
+    .await;
+    assert!(r.headers()["location"].to_str().unwrap().contains("Added"));
+    post(&app, "/household", "kind=pet&type=dog&name=", "same-origin").await;
+    assert_eq!(st.store.household_counts().unwrap(), (3, 1));
+    let (_, body) = get(&app, "/household").await;
+    assert!(
+        body.contains("Mia &#60;b&#62;") || body.contains("Mia &lt;b&gt;"),
+        "names are escaped"
+    );
+    assert!(!body.contains("Mia <b>"));
+    assert!(body.contains("vegetarian, allergies"));
+    assert!(body.contains("Dog 1"));
+    assert!(body.contains("No public body gives amounts for pets"));
+
+    // The plan page shows the household and the new scaling modes.
+    let (_, body) = get(&app, "/plan").await;
+    assert!(body.contains("3 people"), "{body}");
+    assert!(body.contains("1 pet"));
+    assert!(body.contains("per pet per day"));
+
+    let mia = st
+        .store
+        .members()
+        .unwrap()
+        .into_iter()
+        .find(|m| m.name.as_deref() == Some("Mia <b>"))
+        .unwrap();
+    post(
+        &app,
+        &format!("/household/{}", mia.id),
+        "type=teen&name=Mia",
+        "same-origin",
+    )
+    .await;
+    let m = st.store.members().unwrap();
+    let mia = m.iter().find(|m| m.id == mia.id).unwrap();
+    assert_eq!((mia.r#type.as_str(), mia.needs.len()), ("teen", 0));
+
+    let r = post(&app, "/household", "kind=person&type=wizard", "same-origin").await;
+    assert!(r.headers()["location"].to_str().unwrap().contains("Not"));
+
+    post(
+        &app,
+        &format!("/household/{}", mia.id),
+        "delete=1",
+        "same-origin",
+    )
+    .await;
+    assert_eq!(st.store.household_counts().unwrap(), (2, 1));
+
+    // Cross-site writes are refused like everywhere else.
+    let r = post(&app, "/household", "kind=pet&type=cat", "cross-site").await;
+    assert_eq!(r.status(), StatusCode::FORBIDDEN);
+    assert_eq!(st.store.household_counts().unwrap(), (2, 1));
+}
+
+#[tokio::test]
+async fn household_page_in_german() {
+    let (app, st) = app();
+    st.store.add_member("pet", "cat", "", &[]).unwrap();
+    let body = get_lang(&app, "/household", "de").await;
+    assert!(body.contains("Haushalt"));
+    assert!(body.contains("Erwachsene(r) 1"), "{body}");
+    assert!(body.contains("Katze 1"));
 }

@@ -333,3 +333,42 @@ At your pace, what's here lasts until about {0}.	Bei deinem Verbrauch reicht der
 You buy this about every {0} ({1} purchases).	Du kaufst das etwa alle {0} ({1} Käufe).
 None left. You buy it about every {0}.	Nichts mehr da. Du kaufst es etwa alle {0}.
 At your pace this runs out in about {0} d.	Bei deinem Verbrauch in etwa {0} T. aufgebraucht.
+
+# Household profile (schema v3)
+Add a person	Person hinzufügen
+Add a pet	Haustier hinzufügen
+Age group	Altersgruppe
+Household	Haushalt
+Kind of pet	Art des Haustiers
+Name (optional)	Name (optional)
+Needs	Bedürfnisse
+No people yet.	Noch keine Personen.
+No pets.	Keine Haustiere.
+No public body gives amounts for pets. Add a target per pet per day on the plan page (for example pet food and water) with the amounts your pets need.	Für Haustiere nennt keine Behörde Mengen. Lege auf der Plan-Seite ein Ziel pro Haustier und Tag an (zum Beispiel Futter und Wasser), mit den Mengen, die deine Tiere brauchen.
+Pets	Haustiere
+pets	Haustiere
+Who the emergency plan is for. Targets per person count everyone here; targets per pet count the pets.	Für wen der Notfallplan gilt. Ziele pro Person zählen alle hier, Ziele pro Haustier zählen die Haustiere.
+Added to the household	Zum Haushalt hinzugefügt
+Removed from the household	Aus dem Haushalt entfernt
+child	Kind
+teen	Jugendliche(r)
+adult	Erwachsene(r)
+older adult	ältere Person
+dog	Hund
+cat	Katze
+small animal	Kleintier
+bird	Vogel
+other pet	anderes Haustier
+pregnant or breastfeeding	schwanger oder stillend
+vegetarian	vegetarisch
+vegan	vegan
+halal	halal
+kosher	koscher
+gluten-free	glutenfrei
+allergies	Allergien
+care needs	Pflegebedarf
+glasses	Brille
+hearing aid	Hörgerät
+per person	pro Person
+per pet per day	pro Haustier und Tag
+per pet	pro Haustier

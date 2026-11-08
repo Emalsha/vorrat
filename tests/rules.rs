@@ -260,7 +260,8 @@ fn coverage_ignores_dimension_mismatch() {
 #[test]
 fn weakest_days_follows_the_scarcest_essential() {
     let s = store();
-    s.set_setting("people", "1").unwrap();
+    let first = s.members().unwrap()[0].id;
+    s.delete_member(first).unwrap();
     for (cat, unit, qty) in [("water", "L", 20.0), ("grains", "kg", 0.7)] {
         let i = item_with(
             &s,
@@ -315,4 +316,49 @@ fn power_cut_eats_the_fridge_first() {
     assert_eq!(pc.fridge[0].days_left, Some(2), "soonest first");
     assert_eq!(pc.freezer.len(), 1, "a drawer inside the freezer counts");
     assert_eq!(pc.freezer[0].batch.item_name, "Peas");
+}
+
+#[test]
+fn plan_scales_with_people_and_pets() {
+    let s = store(); // two adults, 14 days
+    s.set_setting("days", "10").unwrap();
+    s.add_member("person", "baby", "", &[]).unwrap();
+    s.add_target("Pet food", "pet", "per_pet_day", 0.1, "kg")
+        .unwrap();
+    s.add_target("Blanket", "other", "per_person", 1.0, "pcs")
+        .unwrap();
+    s.add_target("Radio", "tools", "fixed", 1.0, "pcs").unwrap();
+    let line = |p: &rules::Plan, label: &str| {
+        p.lines
+            .iter()
+            .find(|c| c.target.label == label)
+            .unwrap()
+            .clone()
+    };
+    let p = rules::coverage(&s, today()).unwrap();
+    assert_eq!((p.people, p.pets), (3, 0));
+    assert_eq!(line(&p, "Drinking water & drinks").need, 2.0 * 3.0 * 10.0);
+    assert_eq!(line(&p, "Pet food").need, 0.0, "no pets, nothing needed");
+    assert_eq!(line(&p, "Pet food").days, None);
+    assert_eq!(line(&p, "Blanket").need, 3.0);
+    assert_eq!(line(&p, "Radio").need, 1.0);
+
+    s.add_member("pet", "dog", "Rex", &[]).unwrap();
+    s.add_member("pet", "cat", "", &[]).unwrap();
+    let food = item_with(
+        &s,
+        NewItem {
+            name: "Dry food".into(),
+            category: Some("pet".into()),
+            unit: Some("kg".into()),
+            ..Default::default()
+        },
+    );
+    s.add_batch(food, 1.0, None, None, None).unwrap();
+    let p = rules::coverage(&s, today()).unwrap();
+    assert_eq!(p.pets, 2);
+    let pf = line(&p, "Pet food");
+    assert_eq!(pf.need, 2.0);
+    assert_eq!(pf.days, Some(5.0), "1 kg for two pets at 0.1 kg each a day");
+    assert_eq!(p.weakest_days, Some(0.0));
 }

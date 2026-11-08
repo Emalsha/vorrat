@@ -69,7 +69,7 @@ than Grocy: one job, done very well.
 |---|---|---|
 | Language | Rust (2021 edition, MSRV 1.88) | Speed, memory safety, one static binary |
 | Web | axum + tokio | Mature, small, async |
-| Storage | SQLite via rusqlite (bundled) | One file, zero ops, easy backup; the schema (v2) is stable |
+| Storage | SQLite via rusqlite (bundled) | One file, zero ops, easy backup; schema v3, older files upgrade on start |
 | Pages | Askama templates, compiled into the binary | Type-checked, auto-escaped HTML; works without JavaScript |
 | JS | Progressive enhancement only (barcode scanner, quick date entry) | Core works with JS off; strict CSP |
 | API | JSON under `/api/v1` | For a future mobile app and integrations (Home Assistant) |
@@ -102,9 +102,11 @@ history and monthly spend, conservative learned hints, daily ntfy digest,
 nightly backup, iCal feed, JSON API with optional token, CSV/JSON/SQLite export
 and CSV import, offline service worker, optional household password, demo mode,
 English, German, French and Dutch, CI with a 64-bit ARM build.
+Household profile (schema v3): people by age group with needs, and pets; plan
+targets per person, per pet, per day or once per household.
 
 **Next.**
-1. **Household profile: people and pets** (see below).
+1. ~~Household profile: people and pets~~ (done: schema v3 and the household page).
 2. **Suggestions and quick-add from the profile** (see below).
 3. **Medicine and other essentials** (see below).
 4. **Official guidance in the project:** EU and national emergency-preparedness

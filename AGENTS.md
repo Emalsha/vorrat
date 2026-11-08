@@ -53,13 +53,13 @@ offline behaviour are rules below, not nice-to-haves.
 | `src/demo.rs` | Sample household for `VORRAT_DEMO` |
 | `templates/` | Askama HTML templates, compiled into the binary |
 | `static/` | CSS, scanner script, service worker, icons (compiled in) |
-| `tests/` | Integration tests; `tests/fixtures/schema-v2.db` is a schema v2 database with synthetic data |
+| `tests/` | Integration tests; `tests/fixtures/schema-v2.db` is a schema v2 database with synthetic data (tests the upgrade to v3) |
 
 ## Rules that must hold
 
 Each of these has a reason; a change that breaks one needs Emalsha's decision first.
 
-1. **The database format stays compatible (schema v2).** Existing households'
+1. **The database format stays compatible (schema v3).** Existing households'
    databases must open unchanged. Never
    change existing tables or columns. New indexes use `CREATE INDEX IF NOT
    EXISTS` outside the version chain. A new table needs a new schema version

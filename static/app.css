@@ -176,3 +176,6 @@ body.offline form button { opacity: .5; pointer-events: none; }
 /* Demo banner */
 .demo-note { padding: 8px 16px; background: #2f4f6f; color: #fff; font-size: 14px; text-align: center; }
 @media print { .demo-note { display: none; } }
+fieldset.needs { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px 14px; }
+fieldset.needs label.need { display: flex; gap: 6px; align-items: center; font-weight: normal; }
+fieldset.needs input { width: auto; }

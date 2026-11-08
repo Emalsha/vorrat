@@ -5,10 +5,15 @@ use vorrat::db::{ItemQuery, NewItem, Store};
 #[test]
 fn fresh_db_is_seeded() {
     let s = store();
-    assert_eq!(s.schema_version().unwrap(), 2);
+    assert_eq!(s.schema_version().unwrap(), 3);
     assert_eq!(s.targets().unwrap().len(), 10);
     assert_eq!(s.locations().unwrap().len(), 7);
     assert_eq!(s.setting_int("people", 0), 2);
+    assert_eq!(
+        s.household_counts().unwrap(),
+        (2, 0),
+        "starts with two adults"
+    );
     assert_eq!(s.setting_int("days", 0), 14);
 }
 
@@ -35,7 +40,11 @@ fn opens_a_schema_v2_database() {
     let p = dir.path().join("vorrat.db");
     std::fs::copy("tests/fixtures/schema-v2.db", &p).unwrap();
     let s = Store::open(&p).unwrap();
-    assert_eq!(s.schema_version().unwrap(), 2);
+    // Upgraded to v3: the "people" setting (2) became two adults.
+    assert_eq!(s.schema_version().unwrap(), 3);
+    let m = s.members().unwrap();
+    assert_eq!(m.len(), 2);
+    assert!(m.iter().all(|m| m.kind == "person" && m.r#type == "adult"));
     let water = s.item_by_barcode("4001234567890").unwrap().unwrap();
     assert_eq!(water.total, 10.0);
     let rice = s
@@ -422,4 +431,58 @@ fn similar_items_share_a_word() {
         s.similar_items("UHT", 5).unwrap().is_empty(),
         "short words don't count"
     );
+}
+
+#[test]
+fn v2_upgrade_turns_the_people_count_into_adults() {
+    let dir = tempfile::tempdir().unwrap();
+    let p = dir.path().join("vorrat.db");
+    std::fs::copy("tests/fixtures/schema-v2.db", &p).unwrap();
+    {
+        let c = rusqlite::Connection::open(&p).unwrap();
+        c.execute("UPDATE settings SET value = '5' WHERE key = 'people'", [])
+            .unwrap();
+    }
+    let s = Store::open(&p).unwrap();
+    assert_eq!(s.household_counts().unwrap(), (5, 0));
+}
+
+#[test]
+fn household_members_add_edit_remove() {
+    let s = store();
+    let kid = s
+        .add_member("person", "child", " Mia ", &["vegetarian".into()])
+        .unwrap();
+    let cat = s.add_member("pet", "cat", "", &[]).unwrap();
+    assert_eq!(s.household_counts().unwrap(), (3, 1));
+    assert_eq!(s.setting_int("people", 0), 3, "old setting kept in sync");
+    let m = s.members().unwrap();
+    let mia = m.iter().find(|m| m.id == kid).unwrap();
+    assert_eq!(mia.name.as_deref(), Some("Mia"));
+    assert_eq!(mia.needs, vec!["vegetarian"]);
+    assert!(m.iter().find(|m| m.id == cat).unwrap().name.is_none());
+
+    s.update_member(kid, "teen", "Mia", &[]).unwrap();
+    assert!(s
+        .members()
+        .unwrap()
+        .iter()
+        .any(|m| m.id == kid && m.r#type == "teen" && m.needs.is_empty()));
+
+    // Wrong combinations are refused.
+    assert!(s.add_member("person", "dog", "", &[]).is_err());
+    assert!(s.add_member("pet", "cat", "", &["vegan".into()]).is_err());
+    assert!(s
+        .add_member("person", "adult", "", &["telepathy".into()])
+        .is_err());
+    assert!(s.add_member("robot", "adult", "", &[]).is_err());
+    assert!(
+        s.update_member(cat, "teen", "", &[]).is_err(),
+        "a pet can't become a teen"
+    );
+
+    s.delete_member(cat).unwrap();
+    s.delete_member(kid).unwrap();
+    assert_eq!(s.household_counts().unwrap(), (2, 0));
+    assert_eq!(s.setting_int("people", 0), 2);
 }

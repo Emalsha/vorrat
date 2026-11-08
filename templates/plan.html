@@ -3,8 +3,11 @@
 {% block heading %}{{ "Emergency plan"|t }}{% endblock %}
 {% block content %}
   <form method="post" action="/plan/settings" class="card pad mt">
-    <div class="grid3" style="align-items:end">
-      <label>{{ "People"|t }} <input name="people" inputmode="numeric" value="{{ people }}"></label>
+    <a href="/household" class="flex" style="justify-content:space-between">
+      <span><b>{{ "Household"|t }}</b> <span class="muted">{{ people }} {% if people == 1 %}{{ "person"|t }}{% else %}{{ "people"|t }}{% endif %}{% if pets > 0 %} · {{ pets }} {% if pets == 1 %}{{ "pet"|t }}{% else %}{{ "pets"|t }}{% endif %}{% endif %}</span></span>
+      <span class="muted small">{{ "Edit"|t }} ›</span>
+    </a>
+    <div class="grid2 mt" style="align-items:end">
       <label>{{ "Days"|t }} <input name="days" inputmode="numeric" value="{{ days }}"></label>
       <button class="btn">{{ "Update"|t }}</button>
     </div>
@@ -15,7 +18,7 @@
     <div class="muted small">{{ "Common recommendations. They set the days; the targets stay yours."|t }}</div>
     <div class="flex mt" style="flex-wrap:wrap">
       {% for (d, label) in presets %}
-      <form method="post" action="/plan/settings"><input type="hidden" name="people" value="{{ people }}"><button class="btn small{% if days == *d %} primary{% endif %}" name="days" value="{{ d }}">{{ label|t }}</button></form>
+      <form method="post" action="/plan/settings"><button class="btn small{% if days == *d %} primary{% endif %}" name="days" value="{{ d }}">{{ label|t }}</button></form>
       {% endfor %}
     </div>
   </div>
@@ -36,7 +39,7 @@
         <input name="label" value="{{ c.label }}" aria-label="{{ "Label"|t }}">
         <div class="grid2">
           <select name="category" aria-label="{{ "Category"|t }}">{% for k in categories %}<option value="{{ k }}" {% if c.category == **k %}selected{% endif %}>{{ k|t }}</option>{% endfor %}</select>
-          <select name="mode" aria-label="{{ "Mode"|t }}"><option value="per_person_day" {% if c.mode == "per_person_day" %}selected{% endif %}>{{ "per person per day"|t }}</option><option value="fixed" {% if c.mode == "fixed" %}selected{% endif %}>{{ "fixed total"|t }}</option></select>
+          <select name="mode" aria-label="{{ "Mode"|t }}">{% for (v, l) in modes %}<option value="{{ v }}" {% if c.mode == **v %}selected{% endif %}>{{ l|t }}</option>{% endfor %}</select>
         </div>
         <div class="grid2">
           <input name="amount" inputmode="decimal" value="{{ c.amount }}" aria-label="{{ "Amount"|t }}">
@@ -56,7 +59,7 @@
     <input name="label" placeholder="{{ "e.g. Medicines, Cash, Power bank"|t }}" required aria-label="{{ "Label"|t }}">
     <div class="grid2">
       <select name="category" aria-label="{{ "Category"|t }}">{% for k in categories %}<option value="{{ k }}">{{ k|t }}</option>{% endfor %}</select>
-      <select name="mode" aria-label="{{ "Mode"|t }}"><option value="fixed">{{ "fixed total"|t }}</option><option value="per_person_day">{{ "per person per day"|t }}</option></select>
+      <select name="mode" aria-label="{{ "Mode"|t }}">{% for (v, l) in modes %}<option value="{{ v }}" {% if *v == "fixed" %}selected{% endif %}>{{ l|t }}</option>{% endfor %}</select>
     </div>
     <div class="grid2">
       <input name="amount" inputmode="decimal" placeholder="{{ "Amount"|t }}" required aria-label="{{ "Amount"|t }}">
