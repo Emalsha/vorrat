@@ -6,6 +6,7 @@ pub mod backup;
 pub mod config;
 pub mod db;
 pub mod demo;
+pub mod essentials;
 pub mod files;
 pub mod i18n;
 pub mod lookup;

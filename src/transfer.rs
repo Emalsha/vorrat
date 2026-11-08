@@ -19,13 +19,24 @@ pub fn export_json(store: &Store, now: &str) -> Result<serde_json::Value> {
             serde_json::Value::Array(rows.into_iter().map(Into::into).collect()),
         );
     }
-    Ok(serde_json::json!({
+    // Medicines and health needs are the most private part: say so in the file.
+    let health = ["doses", "members"].iter().any(|t| {
+        tables[*t].as_array().is_some_and(|rows| {
+            rows.iter()
+                .any(|r| *t == "doses" || r["needs"].as_str().is_some_and(|n| !n.is_empty()))
+        })
+    });
+    let mut doc = serde_json::json!({
         "format": "vorrat-export",
-        "schema": 2,
+        "schema": store.schema_version()?,
         "version": env!("CARGO_PKG_VERSION"),
         "exported_at": now,
         "tables": tables,
-    }))
+    });
+    if health {
+        doc["private"] = "Contains medicines and health needs. Keep this file private.".into();
+    }
+    Ok(doc)
 }
 
 pub const CSV_COLUMNS: &[&str] = &[

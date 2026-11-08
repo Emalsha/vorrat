@@ -69,7 +69,7 @@ than Grocy: one job, done very well.
 |---|---|---|
 | Language | Rust (2021 edition, MSRV 1.88) | Speed, memory safety, one static binary |
 | Web | axum + tokio | Mature, small, async |
-| Storage | SQLite via rusqlite (bundled) | One file, zero ops, easy backup; schema v3, older files upgrade on start |
+| Storage | SQLite via rusqlite (bundled) | One file, zero ops, easy backup; schema v4, older files upgrade on start |
 | Pages | Askama templates, compiled into the binary | Type-checked, auto-escaped HTML; works without JavaScript |
 | JS | Progressive enhancement only (barcode scanner, quick date entry) | Core works with JS off; strict CSP |
 | API | JSON under `/api/v1` | For a future mobile app and integrations (Home Assistant) |
@@ -104,11 +104,15 @@ and CSV import, offline service worker, optional household password, demo mode,
 English, German, French and Dutch, CI with a 64-bit ARM build.
 Household profile (schema v3): people by age group with needs, and pets; plan
 targets per person, per pet, per day or once per household.
+Medicine and essentials (schema v4): medicines with a daily dose per person or
+pet, days of stock, reminders before they run out or the prescription needs
+renewing; first-aid kit and household essentials checklists from the verified
+official guides.
 
 **Next.**
 1. ~~Household profile: people and pets~~ (done: schema v3 and the household page).
 2. **Suggestions and quick-add from the profile** (see below).
-3. **Medicine and other essentials** (see below).
+3. ~~Medicine and other essentials~~ (done: schema v4 and the medicine and essentials page).
 4. **Official guidance in the project:** EU and national emergency-preparedness
    advice, with sources, in `docs/` and as country presets.
 5. More languages (Polish, Swedish, Italian, Spanish) and more country presets.

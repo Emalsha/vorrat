@@ -58,6 +58,7 @@ async fn every_page_renders() {
         "/sw.js",
         "/plan/print",
         "/plan/power-cut",
+        "/essentials",
         "/static/zxing-0.23.0.min.js",
         "/healthz",
         "/static/app.css",
@@ -1088,4 +1089,189 @@ async fn household_page_in_german() {
     assert!(body.contains("Haushalt"));
     assert!(body.contains("Erwachsene(r) 1"), "{body}");
     assert!(body.contains("Katze 1"));
+}
+
+#[tokio::test]
+async fn medicine_page_adds_a_medicine_and_its_dose() {
+    let (app, st) = app();
+    let (s, body) = get(&app, "/essentials").await;
+    assert_eq!(s, StatusCode::OK);
+    assert!(body.contains("never suggests a medicine or a dose"));
+    assert!(body.contains("No medicines yet"));
+    let who = st.store.members().unwrap()[0].id;
+
+    let r = post(
+        &app,
+        "/essentials/medicine",
+        &format!("name=Pill+%3Cx%3E&member_id={who}&form=tablet&strength=5+mg&unit=pcs&per_day=2&renew_on="),
+        "same-origin",
+    )
+    .await;
+    let to = loc(&r);
+    assert!(
+        to.starts_with("/items/") && to.contains("Medicine+added")
+            || to.contains("Medicine%20added"),
+        "{to}"
+    );
+    let id: i64 = to["/items/".len()..]
+        .split('?')
+        .next()
+        .unwrap()
+        .parse()
+        .unwrap();
+    st.store.add_batch(id, 28.0, None, None, None).unwrap();
+
+    let (_, body) = get(&app, "/essentials").await;
+    assert!(body.contains("Adult 1"));
+    assert!(body.contains("Pill &#60;x&#62;") || body.contains("Pill &lt;x&gt;"));
+    assert!(!body.contains("Pill <x>"));
+    assert!(body.contains("lasts 14 days"), "{body}");
+    assert!(body.contains("5 mg · tablet"));
+
+    // The item page carries the dose form; changing and removing it.
+    let (_, body) = get(&app, &format!("/items/{id}")).await;
+    assert!(body.contains("Daily dose") && body.contains("Remove daily dose"));
+    post(
+        &app,
+        &format!("/items/{id}/dose"),
+        "per_day=4&form=&strength=&member_id=",
+        "same-origin",
+    )
+    .await;
+    assert_eq!(st.store.dose(id).unwrap().unwrap().per_day, 4.0);
+    let r = post(
+        &app,
+        &format!("/items/{id}/dose"),
+        "per_day=0",
+        "same-origin",
+    )
+    .await;
+    assert!(loc(&r).contains("Not"));
+    post(
+        &app,
+        &format!("/items/{id}/dose"),
+        "delete=1",
+        "same-origin",
+    )
+    .await;
+    assert!(st.store.dose(id).unwrap().is_none());
+    let (_, body) = get(&app, "/essentials").await;
+    assert!(
+        body.contains("without a daily dose"),
+        "still in the medicine category"
+    );
+
+    // Bad input and cross-site posts add nothing.
+    let n = st.store.all_items().unwrap().len();
+    let r = post(
+        &app,
+        "/essentials/medicine",
+        "name=X&per_day=1&form=potion",
+        "same-origin",
+    )
+    .await;
+    assert!(loc(&r).starts_with("/essentials?msg=Not"));
+    let r = post(
+        &app,
+        "/essentials/medicine",
+        "name=X&per_day=1",
+        "cross-site",
+    )
+    .await;
+    assert_eq!(r.status(), StatusCode::FORBIDDEN);
+    assert_eq!(st.store.all_items().unwrap().len(), n);
+}
+
+#[tokio::test]
+async fn checklists_add_link_and_shop() {
+    let (app, st) = app();
+    let (_, body) = get(&app, "/essentials").await;
+    assert!(
+        body.contains("First-aid kit") && body.contains("0 / 11"),
+        "{body}"
+    );
+    assert!(body.contains("Battery or wind-up radio"));
+    assert!(body.contains("Named by: BE, HR"));
+
+    let r = post(
+        &app,
+        "/essentials/check/es-radio",
+        "action=add",
+        "same-origin",
+    )
+    .await;
+    let to = loc(&r);
+    let id: i64 = to["/items/".len()..]
+        .split('?')
+        .next()
+        .unwrap()
+        .parse()
+        .unwrap();
+    let it = st.store.item(id).unwrap().unwrap();
+    assert_eq!(
+        (it.preset.as_deref(), it.category.as_deref()),
+        (Some("es-radio"), Some("radio"))
+    );
+    let (_, body) = get(&app, &format!("/items/{id}")).await;
+    assert!(body.contains("Counts for the checklist entry"));
+    st.store.add_batch(id, 1.0, None, None, None).unwrap();
+
+    // Link an item the household already has.
+    let t = st
+        .store
+        .add_item(vorrat::db::NewItem {
+            name: "Old thermometer".into(),
+            category: Some("first aid".into()),
+            ..Default::default()
+        })
+        .unwrap();
+    let (_, body) = get(&app, "/essentials").await;
+    assert!(body.contains("Old thermometer"));
+    post(
+        &app,
+        "/essentials/check/fa-thermometer",
+        &format!("action=link&item_id={t}"),
+        "same-origin",
+    )
+    .await;
+    assert_eq!(
+        st.store.item(t).unwrap().unwrap().preset.as_deref(),
+        Some("fa-thermometer")
+    );
+    post(&app, &format!("/items/{t}/preset"), "", "same-origin").await;
+    assert!(st.store.item(t).unwrap().unwrap().preset.is_none());
+
+    post(
+        &app,
+        "/essentials/check/es-cash",
+        "action=shop",
+        "same-origin",
+    )
+    .await;
+    assert!(st
+        .store
+        .shopping()
+        .unwrap()
+        .iter()
+        .any(|e| e.label == "Cash in small notes"));
+
+    assert_eq!(
+        post(&app, "/essentials/check/nope", "action=add", "same-origin")
+            .await
+            .status(),
+        StatusCode::NOT_FOUND
+    );
+
+    let (_, body) = get(&app, "/plan").await;
+    assert!(body.contains("Medicine and essentials"));
+    assert!(body.contains("essentials 1/15"), "{body}");
+}
+
+#[tokio::test]
+async fn medicine_page_in_german() {
+    let (app, _) = app();
+    let body = get_lang(&app, "/essentials", "de").await;
+    assert!(body.contains("Medizin und Notwendiges"));
+    assert!(body.contains("Verbandkasten"));
+    assert!(body.contains("Batterie- oder Kurbelradio"));
 }

@@ -372,3 +372,90 @@ hearing aid	appareil auditif
 per person	par personne
 per pet per day	par animal et par jour
 per pet	par animal
+
+# Medicine and essentials (schema v4)
+Medicine and essentials	Médicaments et essentiels
+medicine lasts	médicaments pour
+first-aid kit	trousse de premiers secours
+essentials	essentiels
+Vorrat never suggests a medicine or a dose. Enter what your doctor, pharmacist or vet told you. This stays on your own device.	Vorrat ne propose jamais de médicament ni de dose. Indiquez ce que votre médecin, pharmacien ou vétérinaire vous a dit. Cela reste sur votre propre appareil.
+Vorrat never suggests a medicine or a dose. Enter what your doctor, pharmacist or vet told you.	Vorrat ne propose jamais de médicament ni de dose. Indiquez ce que votre médecin, pharmacien ou vétérinaire vous a dit.
+Medicine	Médicaments
+lasts	dure
+expires	expire le
+Renew prescription by	Renouveler l’ordonnance avant le
+No medicines yet. Add the ones someone in your household takes every day.	Aucun médicament pour l’instant. Ajoutez ceux que quelqu’un du foyer prend chaque jour.
+The bar compares each medicine with your plan of	La barre compare chaque médicament à votre plan de
+Official guides advise personal medicines for at least 3 days (Belgium, Denmark) to 10 days (Germany), and a month of long-term prescriptions (Sweden).	Les guides officiels conseillent des médicaments personnels pour au moins 3 jours (Belgique, Danemark) à 10 jours (Allemagne), et un mois pour les traitements de longue durée (Suède).
+In the medicine category without a daily dose:	Dans la catégorie médicaments sans dose journalière :
+Add a medicine	Ajouter un médicament
+Name, as on the pack	Nom, comme sur la boîte
+For	Pour
+Form	Forme
+Strength	Dosage
+e.g. 50 mg	p. ex. 50 mg
+ml	ml
+g	g
+Daily dose	Dose journalière
+Add medicine	Ajouter le médicament
+Household essentials	Essentiels du foyer
+Each entry is named by the official guides of the countries listed (see docs/guidance in the source code). Ticked when you have at least one in stock that has not expired, or one per person for blankets.	Chaque entrée figure dans les guides officiels des pays indiqués (voir docs/guidance dans le code source). Cochée quand vous en avez au moins un en stock non périmé, ou un par personne pour les couvertures.
+Counts for the checklist entry	Compte pour l’entrée de la liste
+Unlink	Dissocier
+Remove daily dose	Retirer la dose journalière
+have	présent
+missing	manquant
+Some has expired	Une partie est périmée
+Named by	Cité par
+To the shopping list	Sur la liste de courses
+I already have it	Je l’ai déjà
+That's it	C’est celui-ci
+cash	espèces
+cooking	cuisine
+radio	radio
+warmth	chaleur
+Not assigned to anyone	Attribué à personne
+{0} a day	{0} par jour
+{0} days left	encore {0} jours
+overdue	en retard
+medicine running out	médicament bientôt épuisé
+prescription to renew	ordonnance à renouveler
+Medicine running out	Médicaments bientôt épuisés
+Prescription to renew	Ordonnance à renouveler
+Medicine added. Now add the stock you have.	Médicament ajouté. Indiquez maintenant ce que vous avez en stock.
+Added. Now add the stock you have.	Ajouté. Indiquez maintenant ce que vous avez en stock.
+Daily dose removed	Dose journalière retirée
+Added to the shopping list	Ajouté à la liste de courses
+tablet	comprimé
+capsule	gélule
+liquid	liquide
+drops	gouttes
+inhaler	inhalateur
+injection	injection
+patch	patch
+cream	crème
+other form	autre forme
+Plasters	Pansements adhésifs
+Bandages and dressings	Bandes et pansements
+Gauze or compresses	Gaze ou compresses
+Wound disinfectant	Désinfectant pour plaies
+Disposable gloves	Gants jetables
+Thermometer	Thermomètre
+Scissors	Ciseaux
+Tweezers	Pince à épiler
+Rescue blanket	Couverture de survie
+Face masks	Masques
+First-aid instructions	Instructions de premiers secours
+Spare batteries	Piles de rechange
+Power bank	Batterie externe
+Candles and matches	Bougies et allumettes
+Camping stove with fuel	Réchaud de camping avec combustible
+Can opener	Ouvre-boîte
+Cash in small notes	Espèces en petites coupures
+Copies of important documents	Copies des documents importants
+Phone numbers on paper	Numéros de téléphone sur papier
+Blanket or sleeping bag	Couverture ou sac de couchage
+Toilet paper	Papier toilette
+Soap or hand gel	Savon ou gel hydroalcoolique
+Menstrual products	Protections périodiques
+Rubbish bags	Sacs poubelle
