@@ -379,9 +379,7 @@ pub struct ItemRow {
     pub initial: String,
     pub sub: String,
     pub low: bool,
-    /// The one pill a list shows: "expired", "low", "urgent", "soon" or "".
     pub status: &'static str,
-    /// When the next batch expires ("3d", "2d ago").
     pub when: String,
 }
 
@@ -431,9 +429,7 @@ pub struct PlanLine {
     pub bar: &'static str,
     pub covered: bool,
     pub contributors: String,
-    /// "ok", "warn" or "crit", for the status icon and colour.
     pub status: &'static str,
-    /// "Covered" or "Missing 12 L"
     pub status_text: String,
 }
 
@@ -587,15 +583,12 @@ struct HomeT {
     undo: Option<String>,
     expiring: Vec<BatchRow>,
     low: Vec<ItemRow>,
-    /// Rows under "Needs attention".
     attention: usize,
     plan_pct: u32,
     plan_bar: &'static str,
     people: i64,
     pets: i64,
-    /// How long the weakest essential lasts, capped at the planned days.
     ready_days: Option<String>,
-    /// "of 14 days"
     ready_of: String,
     gaps: Vec<String>,
     recent: Vec<String>,
@@ -672,11 +665,8 @@ struct ItemsT {
     kind: String,
     kinds: &'static [(&'static str, &'static str)],
     items: Vec<ItemRow>,
-    /// "Shown: 12"
     shown: String,
-    /// Only items below their minimum.
     low: bool,
-    /// "name" or "expiry"
     sort: &'static str,
 }
 

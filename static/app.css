@@ -2,7 +2,6 @@
    See docs/ui-guideline.md before changing this file. Colours, sizes and
    spacing only come from the tokens below; tests/ui.rs checks their contrast. */
 
-/* @tokens light */
 :root {
   --bg: #f5f4f0; --surface: #ffffff; --ink: #1d1c1a; --ink-2: #5c5851;
   --line: #e4e1da; --field: #8c877e; --track: #d6d2ca;
@@ -10,13 +9,11 @@
   --warn: #8a5a00; --warn-soft: #fff3d6;
   --crit: #b3261e; --crit-soft: #fbe9e7;
   --focus: #1f5fa8; --banner: #2f4f6f; --banner-ink: #ffffff;
-  /* @end */
   --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px;
   --radius: 14px; --radius-sm: 10px; --target: 44px; --measure: 720px; --tabbar: 64px;
   --t-sm: .875rem; --t-xs: .75rem; --t-lg: 1.25rem; --t-xl: 2.25rem;
   color-scheme: light;
 }
-/* @tokens dark */
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #121311; --surface: #1c1d1b; --ink: #ecebe7; --ink-2: #a8a49c;
@@ -28,13 +25,10 @@
     color-scheme: dark;
   }
 }
-/* @end */
 
-/* -- Base ------------------------------------------------------------------ */
 * { box-sizing: border-box; }
 html {
   -webkit-text-size-adjust: 100%;
-  /* WCAG 2.4.11: keep the focused element clear of the sticky header and tab bar. */
   scroll-padding-top: 72px;
   scroll-padding-bottom: calc(var(--tabbar) + env(safe-area-inset-bottom) + var(--s4));
 }
@@ -60,7 +54,6 @@ svg.i { width: 1.15em; height: 1.15em; flex: none; vertical-align: -.2em; }
 .skip:focus { top: var(--s2); }
 [hidden] { display: none !important; }
 
-/* -- Shell: header, banners, notice, tab bar -------------------------------- */
 header.top {
   position: sticky; top: 0; z-index: 10; background: var(--bg);
   padding: calc(env(safe-area-inset-top) + var(--s3)) var(--s4) var(--s2); border-bottom: 1px solid var(--line);
@@ -87,7 +80,6 @@ nav.tabs a[aria-current] { color: var(--accent); }
 nav.tabs a[aria-current] span { text-decoration: underline; text-underline-offset: 3px; }
 nav.tabs a.scan svg { width: 32px; height: 32px; }
 
-/* -- Surfaces and lists ----------------------------------------------------- */
 .card { display: block; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); color: inherit; }
 a.card:hover { text-decoration: none; border-color: var(--field); }
 .pad { padding: var(--s3) var(--s4); }
@@ -114,7 +106,6 @@ summary::-webkit-details-marker { display: none; }
 summary .chev { transition: none; }
 details[open] > summary .chev { transform: rotate(90deg); }
 
-/* -- Status ----------------------------------------------------------------- */
 .status { display: inline-flex; align-items: center; gap: var(--s1); font-weight: 650; }
 .status.ok { color: var(--accent); }
 .status.warn { color: var(--warn); }
@@ -137,7 +128,6 @@ progress.bar.crit { color: var(--crit); }
 progress.bar.crit::-webkit-progress-value { background: var(--crit); }
 progress.bar.crit::-moz-progress-bar { background: var(--crit); }
 
-/* Readiness: the big "N of D days" card on Home and Plan. */
 .ready { padding: var(--s4); }
 .ready .label { font-size: var(--t-sm); font-weight: 650; color: var(--ink-2); }
 .ready .big { font-size: var(--t-xl); font-weight: 750; line-height: 1.1; margin: var(--s1) 0 0; }
@@ -146,7 +136,6 @@ progress.bar.crit::-moz-progress-bar { background: var(--crit); }
                font-size: var(--t-sm); color: var(--ink-2); }
 .ready .gaps { margin: var(--s3) 0 0; font-size: var(--t-sm); }
 
-/* -- Controls --------------------------------------------------------------- */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid transparent;
        border-radius: var(--radius-sm); padding: var(--s2) var(--s4); font: inherit; font-weight: 650; cursor: pointer;
        background: var(--accent-soft); color: var(--accent); min-height: var(--target); text-align: center; }
@@ -162,8 +151,7 @@ form.stack, .stack { display: grid; gap: var(--s3); }
 label { display: grid; gap: var(--s1); font-size: var(--t-sm); color: var(--ink-2); font-weight: 600; }
 label.check-label { display: flex; align-items: center; gap: var(--s2); font-weight: 500; }
 input, select, textarea {
-  font: inherit; font-size: 16px; /* 16px or more stops iOS zooming into fields */
-  width: 100%; padding: 10px var(--s3); border-radius: var(--radius-sm); border: 1px solid var(--field);
+  font: inherit; font-size: 16px;  width: 100%; padding: 10px var(--s3); border-radius: var(--radius-sm); border: 1px solid var(--field);
   background: var(--surface); color: var(--ink); min-height: var(--target);
 }
 input[type="checkbox"], input[type="radio"] { min-height: 0; width: 22px; height: 22px; margin: 0; accent-color: var(--accent); }
@@ -183,7 +171,6 @@ input.qty-wide { max-width: 8em; }
 .done .tick .box { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .done .tick .label { text-decoration: line-through; color: var(--ink-2); }
 
-/* -- Layout helpers --------------------------------------------------------- */
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3); }
 .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--s3); }
 @media (max-width: 380px) { .grid3 { grid-template-columns: 1fr 1fr; } }
@@ -202,7 +189,6 @@ input.qty-wide { max-width: 8em; }
 .float-right { float: right; margin: 0 0 var(--s2) var(--s3); }
 .form-pic { width: 64px; height: 64px; object-fit: cover; border-radius: var(--radius-sm); flex: none; }
 
-/* -- Scanner ---------------------------------------------------------------- */
 .scanner { position: relative; border-radius: var(--radius); overflow: hidden; background: #000; aspect-ratio: 3 / 4; max-height: 60vh; width: 100%; }
 .scanner video { width: 100%; height: 100%; object-fit: cover; display: block; }
 .scanner .frame { position: absolute; inset: 30% 10%; border: 3px solid rgba(255,255,255,.85); border-radius: 16px; box-shadow: 0 0 0 999px rgba(0,0,0,.35); }
@@ -211,11 +197,9 @@ input.qty-wide { max-width: 8em; }
                   background: rgba(0,0,0,.45); color: #fff; display: grid; place-items: center; cursor: pointer; }
 .scanner .torch[aria-pressed="true"] { background: #ffd54a; color: #222; }
 
-/* -- Household form --------------------------------------------------------- */
 fieldset.needs { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px 14px; }
 fieldset.needs label.need { display: flex; gap: 6px; align-items: center; font-weight: normal; }
 
-/* -- Printable checklist ---------------------------------------------------- */
 table.check { width: 100%; border-collapse: collapse; }
 table.check th, table.check td { text-align: left; padding: 6px 4px; border-bottom: 1px solid var(--line); }
 table.check .num { text-align: right; white-space: nowrap; }
@@ -224,7 +208,6 @@ ul.checks { list-style: none; padding: 0; columns: 2; }
 ul.checks li { padding: 3px 0; break-inside: avoid; }
 p.lines { border-bottom: 1px solid var(--line); padding-bottom: 18px; }
 
-/* -- User preferences ------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }

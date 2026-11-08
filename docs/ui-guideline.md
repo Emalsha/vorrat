@@ -104,6 +104,8 @@ no internet at all.
 - **No inline styles.** The content security policy is `style-src 'self'`, so
   a `style="…"` attribute does nothing. Use a class. `tests/ui.rs` fails on
   inline styles.
+- **Comments only at the top** of a file, function or struct. None inside
+  CSS rules, templates or attributes, and no pull request or issue numbers.
 - **Native elements over custom widgets:** `<progress>` for bars, `<details>`
   for things to open, `<select>` and `<input type="date">` for choices.
 - **Print** works for the plan and checklist, so the paper copy exists before

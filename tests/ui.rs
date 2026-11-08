@@ -5,13 +5,18 @@ use std::collections::HashMap;
 
 const CSS: &str = include_str!("../static/app.css");
 
-/// The `--name: #rrggbb` tokens between `/* @tokens <theme> */` and `/* @end */`.
+/// The `--name: #rrggbb` tokens of a theme: light from the first `:root`
+/// rule, dark from the `:root` rule inside `prefers-color-scheme: dark`.
 fn tokens(theme: &str) -> HashMap<String, [u8; 3]> {
-    let start = CSS
-        .find(&format!("/* @tokens {theme} */"))
-        .unwrap_or_else(|| panic!("no @tokens {theme} block in app.css"));
-    let block = &CSS[start..];
-    let block = &block[..block.find("/* @end */").expect("@end after @tokens")];
+    let from = match theme {
+        "light" => 0,
+        _ => CSS
+            .find("@media (prefers-color-scheme: dark)")
+            .expect("a dark theme in app.css"),
+    };
+    let block = &CSS[from..];
+    let block = &block[block.find(":root {").expect(":root rule")..];
+    let block = &block[..block.find('}').expect("end of :root rule")];
     let re = regex::Regex::new(r"--([a-z0-9-]+):\s*#([0-9a-fA-F]{6})\b").unwrap();
     let t: HashMap<String, [u8; 3]> = re
         .captures_iter(block)
@@ -108,7 +113,6 @@ fn both_themes_define_the_same_colours() {
 #[test]
 fn contrast_formula_matches_wcag() {
     assert!((contrast([0, 0, 0], [255, 255, 255]) - 21.0).abs() < 0.01);
-    // #767676 on white is the well-known 4.54:1.
     assert!((contrast([0x76; 3], [255; 3]) - 4.54).abs() < 0.01);
 }
 
