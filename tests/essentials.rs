@@ -174,7 +174,11 @@ fn checklists_tick_from_linked_stock() {
 #[test]
 fn checklist_keys_are_unique_and_sourced() {
     let mut keys = std::collections::HashSet::new();
-    for c in es::FIRST_AID.iter().chain(es::ESSENTIALS) {
+    for c in es::FIRST_AID
+        .iter()
+        .chain(es::ESSENTIALS)
+        .chain(es::SUGGESTIONS)
+    {
         assert!(keys.insert(c.key), "duplicate key {}", c.key);
         assert!(!c.named_by.is_empty(), "{} names no source", c.key);
         assert!(
@@ -194,7 +198,11 @@ fn checklist_keys_are_unique_and_sourced() {
         .filter(|s| s["status"] == "verified")
         .filter_map(|s| s["code"].as_str())
         .collect();
-    for c in es::FIRST_AID.iter().chain(es::ESSENTIALS) {
+    for c in es::FIRST_AID
+        .iter()
+        .chain(es::ESSENTIALS)
+        .chain(es::SUGGESTIONS)
+    {
         for code in c.named_by {
             assert!(verified.contains(code), "{}: {code} is not verified", c.key);
         }
@@ -212,4 +220,56 @@ fn export_marks_health_data_private() {
     let doc = vorrat::transfer::export_json(&s, "now").unwrap();
     assert!(doc["private"].as_str().unwrap().contains("medicines"));
     assert_eq!(doc["tables"]["doses"].as_array().unwrap().len(), 1);
+}
+
+#[test]
+fn suggestions_follow_the_profile() {
+    let s = store();
+    let keys = |s: &vorrat::db::Store| -> Vec<&'static str> {
+        let dismissed = s.dismissed(&today().to_string()).unwrap();
+        es::suggestions(&s.members().unwrap(), &snap(s), &dismissed)
+            .iter()
+            .map(|g| g.state.check.key)
+            .collect()
+    };
+    assert!(keys(&s).is_empty(), "two adults: nothing extra");
+
+    s.add_member("person", "baby", "", &[]).unwrap();
+    s.add_member("pet", "dog", "Rex", &[]).unwrap();
+    s.add_member("person", "adult", "", &["glasses".into()])
+        .unwrap();
+    let k = keys(&s);
+    for want in [
+        "sg-baby-food",
+        "sg-nappies",
+        "sg-play",
+        "sg-pet-food",
+        "sg-lead",
+        "sg-glasses",
+    ] {
+        assert!(k.contains(&want), "{want} missing from {k:?}");
+    }
+    assert!(!k.contains(&"sg-aid-batteries"), "nobody has a hearing aid");
+    assert!(!k.contains(&"sg-child-id"), "no child");
+    let g = es::suggestions(&s.members().unwrap(), &snap(&s), &Default::default());
+    let food = g
+        .iter()
+        .find(|g| g.state.check.key == "sg-pet-food")
+        .unwrap();
+    assert_eq!(food.who, vec!["Rex".to_string()]);
+
+    // Having it in stock or saying "not needed" hides it.
+    let n = item(&s, "Nappies size 2");
+    s.set_preset(n, Some("sg-nappies")).unwrap();
+    s.add_batch(n, 30.0, None, None, None).unwrap();
+    s.dismiss(&es::dismiss_key("sg-play"), "9999-12-31")
+        .unwrap();
+    let k = keys(&s);
+    assert!(
+        !k.contains(&"sg-nappies") && !k.contains(&"sg-play"),
+        "{k:?}"
+    );
+
+    // No suggestion is a medicine.
+    assert!(es::SUGGESTIONS.iter().all(|c| c.category != "medicine"));
 }

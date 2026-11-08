@@ -22,6 +22,7 @@ fn every_marked_text_has_a_german_translation() {
     let checks = vorrat::essentials::FIRST_AID
         .iter()
         .chain(vorrat::essentials::ESSENTIALS)
+        .chain(vorrat::essentials::SUGGESTIONS)
         .map(|c| &c.label);
     for k in vorrat::db::KINDS
         .iter()

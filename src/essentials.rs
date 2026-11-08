@@ -29,6 +29,8 @@ pub struct Check {
     pub per_person: bool,
     /// Country codes of the verified official guides that name it.
     pub named_by: &'static [&'static str],
+    /// Suggestions only: the person or pet types and needs that switch it on.
+    pub applies_to: &'static [&'static str],
 }
 
 const fn c(
@@ -43,8 +45,120 @@ const fn c(
         category,
         per_person: false,
         named_by,
+        applies_to: &[],
     }
 }
+
+/// A suggestion: a checklist entry that only some households need.
+const fn sg(
+    key: &'static str,
+    label: &'static str,
+    category: &'static str,
+    applies_to: &'static [&'static str],
+    named_by: &'static [&'static str],
+) -> Check {
+    Check {
+        applies_to,
+        ..c(key, label, category, named_by)
+    }
+}
+
+const PETS: &[&str] = &["dog", "cat", "small animal", "bird", "other pet"];
+
+/// Suggested from the household profile: what the verified guides name for
+/// babies, children, pets, older people and some needs. As with the other
+/// lists there are no amounts and no medicines (iodine tablets, which two
+/// guides name for pregnancy, are left out on purpose).
+pub const SUGGESTIONS: &[Check] = &[
+    sg(
+        "sg-baby-food",
+        "Baby food or formula",
+        "baby",
+        &["baby"],
+        &["BE", "DK", "EE", "FR", "IE", "LV", "NL", "SE", "CH"],
+    ),
+    sg(
+        "sg-nappies",
+        "Nappies",
+        "baby",
+        &["baby"],
+        &["BE", "DK", "PL", "SI", "SE"],
+    ),
+    sg(
+        "sg-play",
+        "Toys, a book or a game",
+        "other",
+        &["baby", "child"],
+        &["BE", "CZ"],
+    ),
+    sg(
+        "sg-child-id",
+        "ID tag with name and phone number",
+        "documents",
+        &["child"],
+        &["PL"],
+    ),
+    sg(
+        "sg-pet-food",
+        "Pet food",
+        "pet",
+        PETS,
+        &[
+            "BE", "HR", "CZ", "DK", "FI", "FR", "DE", "IE", "LV", "NL", "PL", "SI", "SE", "CH",
+        ],
+    ),
+    sg(
+        "sg-pet-water",
+        "Water for pets",
+        "pet",
+        PETS,
+        &["BE", "DK", "FI", "LV", "PL", "SI", "SE"],
+    ),
+    sg(
+        "sg-pet-carrier",
+        "Pet carrier or cage",
+        "pet",
+        PETS,
+        &["BE", "CZ", "PL", "SE"],
+    ),
+    sg(
+        "sg-pet-papers",
+        "Pet passport and vaccination records",
+        "documents",
+        PETS,
+        &["BE", "PL"],
+    ),
+    sg("sg-lead", "Lead", "pet", &["dog"], &["BE", "CZ", "PL"]),
+    sg("sg-waste-bags", "Dog waste bags", "pet", &["dog"], &["BE"]),
+    sg(
+        "sg-glasses",
+        "Spare glasses",
+        "other",
+        &["glasses"],
+        &["HR", "CZ", "FR"],
+    ),
+    sg(
+        "sg-aid-batteries",
+        "Batteries for hearing aids",
+        "batteries",
+        &["hearing aid"],
+        &["PL", "SI"],
+    ),
+    sg(
+        "sg-med-plan",
+        "Written list of medicines",
+        "documents",
+        &["older adult", "care needs"],
+        &["DE"],
+    ),
+    sg(
+        "sg-care",
+        "Extra care supplies",
+        "other",
+        &["older adult", "care needs"],
+        &["DK"],
+    ),
+];
 
 pub const FIRST_AID: &[Check] = &[
     c(
@@ -209,7 +323,11 @@ pub const ESSENTIALS: &[Check] = &[
 
 /// The checklist entry with this key.
 pub fn find(key: &str) -> Option<&'static Check> {
-    FIRST_AID.iter().chain(ESSENTIALS).find(|c| c.key == key)
+    FIRST_AID
+        .iter()
+        .chain(ESSENTIALS)
+        .chain(SUGGESTIONS)
+        .find(|c| c.key == key)
 }
 
 /// Where a checklist entry stands in this household.
@@ -345,4 +463,46 @@ pub fn member_labels(members: &[Member]) -> HashMap<i64, String> {
         out.insert(m.id, label);
     }
     out
+}
+
+/// A suggestion for this household, and who it is for.
+#[derive(Debug, Clone, Serialize)]
+pub struct Suggestion {
+    pub state: CheckState,
+    /// Labels of the people and pets that switched it on ("Baby 1", "Rex").
+    pub who: Vec<String>,
+}
+
+/// The key under which "not needed" is remembered.
+pub fn dismiss_key(key: &str) -> String {
+    format!("suggest:{key}")
+}
+
+/// Suggestions the profile switches on, leaving out the ones the household
+/// already has or said it doesn't need.
+pub fn suggestions(
+    members: &[Member],
+    snap: &Snapshot,
+    dismissed: &std::collections::HashSet<String>,
+) -> Vec<Suggestion> {
+    let labels = member_labels(members);
+    let people = members.iter().filter(|m| m.kind == "person").count() as i64;
+    checklist(SUGGESTIONS, snap, people)
+        .into_iter()
+        .filter(|c| !c.ok() && !dismissed.contains(&dismiss_key(c.check.key)))
+        .filter_map(|state| {
+            let who: Vec<String> = members
+                .iter()
+                .filter(|m| {
+                    state
+                        .check
+                        .applies_to
+                        .iter()
+                        .any(|t| *t == m.r#type || m.needs.iter().any(|n| n == t))
+                })
+                .map(|m| labels[&m.id].clone())
+                .collect();
+            (!who.is_empty()).then_some(Suggestion { state, who })
+        })
+        .collect()
 }

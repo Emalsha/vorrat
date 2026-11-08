@@ -107,11 +107,13 @@ targets per person, per pet, per day or once per household.
 Medicine and essentials (schema v4): medicines with a daily dose per person or
 pet, days of stock, reminders before they run out or the prescription needs
 renewing; first-aid kit and household essentials checklists from the verified
-official guides.
+official guides. Suggestions on the plan page for babies, children, pets,
+older people and some needs, from the same guides, with add, shopping list
+and "not needed".
 
 **Next.**
 1. ~~Household profile: people and pets~~ (done: schema v3 and the household page).
-2. **Suggestions and quick-add from the profile** (see below).
+2. ~~Suggestions and quick-add from the profile~~ (done: "Suggested for your household" on the plan page).
 3. ~~Medicine and other essentials~~ (done: schema v4 and the medicine and essentials page).
 4. **Official guidance in the project:** EU and national emergency-preparedness
    advice, with sources, in `docs/` and as country presets.
