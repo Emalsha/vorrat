@@ -14,6 +14,11 @@
     <p class="muted small" style="margin:10px 0 0">{{ pct }}% {{ "covered"|t }}{% if let Some(w) = weakest %} · {{ "weakest essential lasts"|t }} {{ w }} {{ "days"|t }}{% endif %}. {{ "Targets start from the German civil-protection (BBK) checklist; edit them to fit your household. Stock counts by category; expired stock doesn't count."|t }}</p>
   </form>
 
+  <a href="/essentials" class="card pad mt flex" style="justify-content:space-between;display:flex">
+    <span><b>{{ "Medicine and essentials"|t }}</b><br><span class="muted small">{% if let Some(m) = medicine_days %}{{ "medicine lasts"|t }} {{ m }} {{ "days"|t }} · {% endif %}{{ "first-aid kit"|t }} {{ first_aid.0 }}/{{ first_aid.1 }} · {{ "essentials"|t }} {{ essentials.0 }}/{{ essentials.1 }}</span></span>
+    <span class="muted small">›</span>
+  </a>
+
   <div class="card pad mt">
     <div class="muted small">{{ "Common recommendations. They set the days; the targets stay yours."|t }}</div>
     <div class="flex mt" style="flex-wrap:wrap">

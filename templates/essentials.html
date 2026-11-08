@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}{{ "Medicine and essentials"|t }} · Vorrat{% endblock %}
+{% block heading %}{{ "Medicine and essentials"|t }}{% endblock %}
+{% block content %}
+  <p class="muted small mt">{{ "Vorrat never suggests a medicine or a dose. Enter what your doctor, pharmacist or vet told you. This stays on your own device."|t }} <a href="/plan">{{ "Back to the plan"|t }}</a></p>
+
+  <h2>{{ "Medicine"|t }}</h2>
+  {% for g in groups %}
+  <div class="muted small mt">{{ g.who }}</div>
+  <div class="card"><ul class="list">
+    {% for m in g.meds %}
+    <li><a class="row" href="/items/{{ m.id }}" style="display:block">
+      <div class="flex" style="justify-content:space-between">
+        <b>{{ m.name }}</b>
+        <span class="small">{{ "lasts"|t }} {{ m.days }} {{ "days"|t }}</span>
+      </div>
+      <div class="bar {{ m.bar }}"><i style="width:{{ m.pct }}%"></i></div>
+      <div class="muted small mt">{% if !m.detail.is_empty() %}{{ m.detail }} · {% endif %}{{ m.stock }}{% if let Some(e) = m.expiry %} · {{ "expires"|t }} {{ e }}{% endif %}</div>
+      {% if let Some((d, soon)) = m.renew %}<div class="small {% if !soon %}muted{% endif %}">{% if *soon %}<b>{% endif %}{{ "Renew prescription by"|t }} {{ d }}{% if *soon %}</b>{% endif %}</div>{% endif %}
+    </a></li>
+    {% endfor %}
+  </ul></div>
+  {% else %}
+  <div class="card"><ul class="list"><li class="empty">{{ "No medicines yet. Add the ones someone in your household takes every day."|t }}</li></ul></div>
+  {% endfor %}
+  <p class="muted small">{{ "The bar compares each medicine with your plan of"|t }} {{ plan_days }} {{ "days"|t }}. {{ "Official guides advise personal medicines for at least 3 days (Belgium, Denmark) to 10 days (Germany), and a month of long-term prescriptions (Sweden)."|t }}</p>
+
+  {% if !undosed.is_empty() %}
+  <div class="card pad small">{{ "In the medicine category without a daily dose:"|t }}
+    {% for (id, name) in undosed %}<a href="/items/{{ id }}#dose">{{ name }}</a>{% if !loop.last %}, {% endif %}{% endfor %}
+  </div>
+  {% endif %}
+
+  <details class="card pad mt">
+    <summary><b>{{ "Add a medicine"|t }}</b></summary>
+    <form method="post" action="/essentials/medicine" class="stack mt">
+      <input name="name" required maxlength="120" placeholder="{{ "Name, as on the pack"|t }}" aria-label="{{ "Name"|t }}">
+      <div class="grid2">
+        <label>{{ "For"|t }} <select name="member_id"><option value="">—</option>{% for (id, label) in members %}<option value="{{ id }}">{{ label }}</option>{% endfor %}</select></label>
+        <label>{{ "Form"|t }} <select name="form"><option value="">—</option>{% for x in forms %}<option value="{{ x }}">{{ x|t }}</option>{% endfor %}</select></label>
+      </div>
+      <div class="grid2">
+        <label>{{ "Strength"|t }} <input name="strength" maxlength="40" placeholder="{{ "e.g. 50 mg"|t }}"></label>
+        <label>{{ "Counted in"|t }} <select name="unit"><option value="pcs">{{ "pcs"|t }}</option><option value="ml">{{ "ml"|t }}</option><option value="g">{{ "g"|t }}</option></select></label>
+      </div>
+      <div class="grid2">
+        <label>{{ "Daily dose"|t }} <input name="per_day" inputmode="decimal" required></label>
+        <label>{{ "Renew prescription by"|t }} <input type="date" name="renew_on"></label>
+      </div>
+      <button class="btn primary block">{{ "Add medicine"|t }}</button>
+    </form>
+  </details>
+
+  <h2>{{ "First-aid kit"|t }} <span class="muted small">{{ first_aid_ok }} / {{ first_aid.len() }}</span></h2>
+  {% let rows = first_aid %}{% include "_checklist.html" %}
+
+  <h2>{{ "Household essentials"|t }} <span class="muted small">{{ essentials_ok }} / {{ essentials.len() }}</span></h2>
+  {% let rows = essentials %}{% include "_checklist.html" %}
+  <p class="muted small">{{ "Each entry is named by the official guides of the countries listed (see docs/guidance in the source code). Ticked when you have at least one in stock that has not expired, or one per person for blankets."|t }}</p>
+{% endblock %}

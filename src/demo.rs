@@ -204,7 +204,34 @@ pub fn seed(store: &Store, today: NaiveDate) -> Result<()> {
             });
             store.add_batch(id, *qty, exp, Some(loc(place)?), None)?;
         }
+        let preset = match *name {
+            "AA batteries" => Some("es-batteries"),
+            "Torch" => Some("es-torch"),
+            _ => None,
+        };
+        if preset.is_some() {
+            store.set_preset(id, preset)?;
+        }
     }
+    // A medicine someone takes every day, without naming a real one.
+    let adult = store.members()?.into_iter().find(|m| m.kind == "person");
+    let renew = today + Days::new(30);
+    let med = store.add_medicine(
+        "Daily tablets",
+        "pcs",
+        adult.map(|m| m.id),
+        "tablet",
+        "",
+        1.0,
+        Some(renew),
+    )?;
+    store.add_batch(
+        med,
+        20.0,
+        Some(today + Days::new(400)),
+        Some(loc("Kitchen")?),
+        None,
+    )?;
     Ok(())
 }
 

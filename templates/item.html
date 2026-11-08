@@ -16,6 +16,30 @@
     {% endif %}
   </div>
 
+  {% if let Some(p) = preset %}
+  <form method="post" action="/items/{{ item.id }}/preset" class="card pad flex mt small">
+    <span class="grow">{{ "Counts for the checklist entry"|t }} <a href="/essentials">{{ p|t }}</a></span>
+    <button class="btn small">{{ "Unlink"|t }}</button>
+  </form>
+  {% endif %}
+
+  {% if show_dose %}
+  <h2 id="dose">{{ "Daily dose"|t }}{% if has_dose %} <span class="muted small">· {{ "lasts"|t }} {{ dose.days }} {{ "days"|t }}</span>{% endif %}</h2>
+  <form method="post" action="/items/{{ item.id }}/dose" class="card pad stack">
+    <p class="muted small" style="margin:0">{{ "Vorrat never suggests a medicine or a dose. Enter what your doctor, pharmacist or vet told you."|t }}</p>
+    <div class="grid2">
+      <label>{{ "For"|t }} <select name="member_id"><option value="">—</option>{% for (id, label, sel) in members %}<option value="{{ id }}" {% if *sel %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+      <label>{{ "Form"|t }} <select name="form"><option value="">—</option>{% for x in forms %}<option value="{{ x }}" {% if dose.form == **x %}selected{% endif %}>{{ x|t }}</option>{% endfor %}</select></label>
+    </div>
+    <div class="grid2">
+      <label>{{ "Strength"|t }} <input name="strength" maxlength="40" value="{{ dose.strength }}" placeholder="{{ "e.g. 50 mg"|t }}"></label>
+      <label>{{ "Daily dose"|t }} ({{ item.unit|t }}) <input name="per_day" inputmode="decimal" required value="{{ dose.per_day }}"></label>
+    </div>
+    <label>{{ "Renew prescription by"|t }} <input type="date" name="renew_on" value="{{ dose.renew_on }}"></label>
+    <div class="flex"><button class="btn small primary">{{ "Save"|t }}</button>{% if has_dose %}<button class="btn small danger" name="delete" value="1" formnovalidate>{{ "Remove daily dose"|t }}</button>{% endif %}</div>
+  </form>
+  {% endif %}
+
   {% if !insights.is_empty() %}<div class="card pad mt small">{% for i in insights %}<div>{{ i }}</div>{% endfor %}</div>{% endif %}
 
   <h2>{{ "Batches"|t }}</h2>

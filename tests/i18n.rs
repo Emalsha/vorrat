@@ -19,7 +19,16 @@ fn every_marked_text_has_a_german_translation() {
             }
         }
     }
-    for k in vorrat::db::KINDS.iter().chain(vorrat::db::CATEGORIES) {
+    let checks = vorrat::essentials::FIRST_AID
+        .iter()
+        .chain(vorrat::essentials::ESSENTIALS)
+        .map(|c| &c.label);
+    for k in vorrat::db::KINDS
+        .iter()
+        .chain(vorrat::db::CATEGORIES)
+        .chain(vorrat::db::MED_FORMS)
+        .chain(checks)
+    {
         if !de().contains_key(k) {
             missing.push(format!("db: {k}"));
         }

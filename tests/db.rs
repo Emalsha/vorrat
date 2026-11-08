@@ -5,7 +5,7 @@ use vorrat::db::{ItemQuery, NewItem, Store};
 #[test]
 fn fresh_db_is_seeded() {
     let s = store();
-    assert_eq!(s.schema_version().unwrap(), 3);
+    assert_eq!(s.schema_version().unwrap(), 4);
     assert_eq!(s.targets().unwrap().len(), 10);
     assert_eq!(s.locations().unwrap().len(), 7);
     assert_eq!(s.setting_int("people", 0), 2);
@@ -40,8 +40,10 @@ fn opens_a_schema_v2_database() {
     let p = dir.path().join("vorrat.db");
     std::fs::copy("tests/fixtures/schema-v2.db", &p).unwrap();
     let s = Store::open(&p).unwrap();
-    // Upgraded to v3: the "people" setting (2) became two adults.
-    assert_eq!(s.schema_version().unwrap(), 3);
+    // Upgraded to v4: the "people" setting (2) became two adults.
+    assert_eq!(s.schema_version().unwrap(), 4);
+    assert!(s.doses().unwrap().is_empty());
+    assert!(s.all_items().unwrap().iter().all(|i| i.preset.is_none()));
     let m = s.members().unwrap();
     assert_eq!(m.len(), 2);
     assert!(m.iter().all(|m| m.kind == "person" && m.r#type == "adult"));

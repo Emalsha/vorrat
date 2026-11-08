@@ -1,7 +1,6 @@
 //! HTTP layer: server-rendered pages (no JavaScript needed) plus a JSON API
 //! under `/api/v1` for future native or third-party clients.
 
-use std::collections::HashMap;
 use std::sync::Arc;
 
 use askama::Template;
@@ -88,6 +87,11 @@ pub fn router(state: Arc<AppState>) -> Router {
         .route("/plan/settings", post(plan_settings))
         .route("/household", get(household_page).post(add_member))
         .route("/household/{id}", post(edit_member))
+        .route("/essentials", get(essentials_page))
+        .route("/essentials/medicine", post(add_medicine))
+        .route("/essentials/check/{key}", post(check_action))
+        .route("/items/{id}/dose", post(set_dose))
+        .route("/items/{id}/preset", post(clear_preset))
         .route("/plan/targets", post(add_target))
         .route("/plan/targets/{id}", post(edit_target))
         .route("/plan/to-shopping", post(plan_to_shopping))
@@ -671,6 +675,27 @@ struct ItemT {
     expiry_hint: Option<(String, String)>,
     /// Where the batch buttons return to (used by `_batch_row.html`).
     back_to: String,
+    /// Medicines: the daily dose form is shown for the medicine category or
+    /// when a dose is set.
+    show_dose: bool,
+    has_dose: bool,
+    dose: DoseView,
+    /// (id, label, chosen) for the "for" select.
+    members: Vec<(i64, String, bool)>,
+    forms: &'static [&'static str],
+    /// The checklist entry this item counts for.
+    preset: Option<&'static str>,
+}
+
+#[derive(Default)]
+struct DoseView {
+    member_id: Option<i64>,
+    form: String,
+    strength: String,
+    per_day: String,
+    renew_on: String,
+    /// "lasts 14 days"
+    days: String,
 }
 
 async fn item_page(State(s): St, Path(id): Path<i64>, Query(f): Query<Flash>) -> Res<Response> {
@@ -691,11 +716,48 @@ async fn item_page(State(s): St, Path(id): Path<i64>, Query(f): Query<Flash>) ->
             format!("{} · {}{q}{d}", e.ts.replace('T', " "), tr(&e.action))
         })
         .collect();
+    let dose = s.store.dose(id)?.map(|d| {
+        let usable: f64 = batches
+            .iter()
+            .filter(|b| b.status != Status::Expired)
+            .map(|b| b.batch.qty)
+            .sum();
+        DoseView {
+            days: fmt_qty((usable / d.per_day * 10.0).floor() / 10.0),
+            member_id: d.member_id,
+            form: d.form,
+            strength: d.strength,
+            per_day: fmt_qty(d.per_day),
+            renew_on: d.renew_on.unwrap_or_default(),
+        }
+    });
+    let has_dose = dose.is_some();
+    let dose = dose.unwrap_or_default();
+    let show_dose = has_dose || item.category.as_deref() == Some("medicine");
+    let members = if show_dose {
+        let ms = s.store.members()?;
+        let labels = crate::essentials::member_labels(&ms);
+        ms.iter()
+            .map(|m| (m.id, labels[&m.id].clone(), dose.member_id == Some(m.id)))
+            .collect()
+    } else {
+        Vec::new()
+    };
     Ok(render(ItemT {
         msg: f.msg,
         tab: "items",
         undo: f.undo,
         back_to: format!("/items/{id}"),
+        show_dose,
+        has_dose,
+        dose,
+        members,
+        forms: db::MED_FORMS,
+        preset: item
+            .preset
+            .as_deref()
+            .and_then(crate::essentials::find)
+            .map(|c| c.label),
         total: fmt_qty(item.total),
         min_qty: fmt_qty(item.min_qty),
         batches: batches.iter().map(BatchRow::from).collect(),
@@ -1564,6 +1626,10 @@ struct PlanT {
     units: &'static [&'static str],
     presets: &'static [(i64, &'static str)],
     modes: &'static [(&'static str, &'static str)],
+    medicine_days: Option<String>,
+    /// (have, of) for the first-aid kit and the household essentials.
+    first_aid: (usize, usize),
+    essentials: (usize, usize),
 }
 
 /// How a target scales, with the text the plan page shows for it.
@@ -1576,7 +1642,13 @@ const MODE_LABELS: &[(&str, &str)] = &[
 ];
 
 async fn plan_page(State(s): St, Query(f): Query<Flash>) -> Res<Html<String>> {
-    let plan = rules::coverage(&s.store, db::today())?;
+    use crate::essentials as es;
+    let snap = rules::Snapshot::load(&s.store, db::today())?;
+    let plan = rules::coverage_of(&s.store, &snap)?;
+    let count = |list| {
+        let c = es::checklist(list, &snap, plan.people);
+        (c.iter().filter(|x| x.ok()).count(), c.len())
+    };
     let has_gaps = plan.gaps().next().is_some();
     render(PlanT {
         msg: f.msg,
@@ -1593,6 +1665,9 @@ async fn plan_page(State(s): St, Query(f): Query<Flash>) -> Res<Html<String>> {
         units: UNITS,
         presets: PLAN_PRESETS,
         modes: MODE_LABELS,
+        medicine_days: plan.medicine_days.map(fmt_qty),
+        first_aid: count(es::FIRST_AID),
+        essentials: count(es::ESSENTIALS),
     })
 }
 
@@ -1741,34 +1816,21 @@ struct MemberRow {
 
 async fn household_page(State(s): St, Query(f): Query<Flash>) -> Res<Html<String>> {
     let members = s.store.members()?;
-    let row = |m: &db::Member, n: usize| MemberRow {
-        id: m.id,
-        label: m.name.clone().unwrap_or_else(|| {
-            let t = tr(&m.r#type);
-            let mut c = t.chars();
-            let t = c
-                .next()
-                .map(|f| f.to_uppercase().chain(c).collect::<String>())
-                .unwrap_or_default();
-            format!("{t} {n}")
-        }),
-        name: m.name.clone().unwrap_or_default(),
-        r#type: m.r#type.clone(),
-        needs_text: m.needs.iter().map(|x| tr(x)).collect::<Vec<_>>().join(", "),
-        needs: db::NEEDS
-            .iter()
-            .map(|n| (*n, m.needs.iter().any(|x| x == n)))
-            .collect(),
-    };
+    let labels = crate::essentials::member_labels(&members);
     let rows = |kind: &str| -> Vec<MemberRow> {
-        let mut seen: HashMap<String, usize> = HashMap::new();
         members
             .iter()
             .filter(|m| m.kind == kind)
-            .map(|m| {
-                let n = seen.entry(m.r#type.clone()).or_default();
-                *n += 1;
-                row(m, *n)
+            .map(|m| MemberRow {
+                id: m.id,
+                label: labels[&m.id].clone(),
+                name: m.name.clone().unwrap_or_default(),
+                r#type: m.r#type.clone(),
+                needs_text: m.needs.iter().map(|x| tr(x)).collect::<Vec<_>>().join(", "),
+                needs: db::NEEDS
+                    .iter()
+                    .map(|n| (*n, m.needs.iter().any(|x| x == n)))
+                    .collect(),
             })
             .collect()
     };
@@ -1839,6 +1901,293 @@ async fn edit_member(
                 .update_member(id, &r#type, &name, &needs)
                 .map(|_| "Saved".into())
         },
+    )
+}
+
+// -- medicine and essentials ------------------------------------------------------
+
+#[derive(Template)]
+#[template(path = "essentials.html")]
+struct EssentialsT {
+    msg: Option<String>,
+    tab: &'static str,
+    undo: Option<String>,
+    plan_days: i64,
+    /// One group per person or pet who takes something, then "not assigned".
+    groups: Vec<MedGroup>,
+    /// Medicine-category items without a daily dose.
+    undosed: Vec<(i64, String)>,
+    first_aid: Vec<CheckRow>,
+    first_aid_ok: usize,
+    essentials: Vec<CheckRow>,
+    essentials_ok: usize,
+    members: Vec<(i64, String)>,
+    forms: &'static [&'static str],
+}
+
+struct MedGroup {
+    who: String,
+    meds: Vec<MedRow>,
+}
+
+struct MedRow {
+    id: i64,
+    name: String,
+    /// "400 mg · tablet", translated form.
+    detail: String,
+    /// "28 pcs · 2 a day"
+    stock: String,
+    days: String,
+    pct: u32,
+    bar: &'static str,
+    /// "Renew prescription by 12 Dec", with whether it is soon or overdue.
+    renew: Option<(String, bool)>,
+    expiry: Option<String>,
+}
+
+struct CheckRow {
+    key: &'static str,
+    label: &'static str,
+    ok: bool,
+    expired: bool,
+    /// "1 / 3" for per-person entries; empty otherwise.
+    count: String,
+    items: Vec<(i64, String)>,
+    named_by: String,
+    /// Items that could stand for it: same category, not linked yet.
+    candidates: Vec<(i64, String)>,
+}
+
+fn check_rows(
+    states: Vec<crate::essentials::CheckState>,
+    items: &[db::Item],
+) -> (Vec<CheckRow>, usize) {
+    let ok = states.iter().filter(|c| c.ok()).count();
+    let rows = states
+        .into_iter()
+        .map(|c| CheckRow {
+            key: c.check.key,
+            label: c.check.label,
+            ok: c.ok(),
+            expired: c.expired,
+            count: if c.check.per_person {
+                format!("{} / {}", fmt_qty(c.have), fmt_qty(c.need))
+            } else {
+                String::new()
+            },
+            named_by: c.check.named_by.join(", "),
+            candidates: items
+                .iter()
+                .filter(|i| i.preset.is_none() && i.category.as_deref() == Some(c.check.category))
+                .map(|i| (i.id, i.name.clone()))
+                .collect(),
+            items: c.items,
+        })
+        .collect();
+    (rows, ok)
+}
+
+async fn essentials_page(State(s): St, Query(f): Query<Flash>) -> Res<Html<String>> {
+    use crate::essentials as es;
+    let today = db::today();
+    let snap = rules::Snapshot::load(&s.store, today)?;
+    let members = s.store.members()?;
+    let labels = es::member_labels(&members);
+    let plan_days = s.store.setting_int("days", 14).max(1);
+    let meds = es::medicines(&s.store, &snap)?;
+    let mut groups: Vec<MedGroup> = Vec::new();
+    let mut order: Vec<Option<i64>> = members.iter().map(|m| Some(m.id)).collect();
+    order.push(None);
+    for who in order {
+        let rows: Vec<MedRow> = meds
+            .iter()
+            .filter(|m| m.dose.member_id.filter(|id| labels.contains_key(id)) == who)
+            .map(|m| {
+                let ratio = m.days / plan_days as f64;
+                let detail = [m.dose.strength.clone(), tr(&m.dose.form)]
+                    .into_iter()
+                    .filter(|x| !x.is_empty())
+                    .collect::<Vec<_>>()
+                    .join(" · ");
+                MedRow {
+                    id: m.item.id,
+                    name: m.item.name.clone(),
+                    detail,
+                    stock: format!(
+                        "{} {} · {}",
+                        fmt_qty(m.have),
+                        tr(&m.item.unit),
+                        crate::i18n::trf("{0} a day", &[&fmt_qty(m.dose.per_day)])
+                    ),
+                    days: fmt_qty(m.days),
+                    pct: pct(ratio),
+                    bar: bar_class(ratio),
+                    renew: m.dose.renew_on.as_deref().map(|d| {
+                        (
+                            hdate(Some(d)),
+                            m.renew_in.is_some_and(|r| r <= es::MED_REMIND_DAYS),
+                        )
+                    }),
+                    expiry: m.next_expiry.as_deref().map(|d| hdate(Some(d))),
+                }
+            })
+            .collect();
+        if rows.is_empty() {
+            continue;
+        }
+        groups.push(MedGroup {
+            who: match who {
+                Some(id) => labels[&id].clone(),
+                None => tr("Not assigned to anyone"),
+            },
+            meds: rows,
+        });
+    }
+    let dosed: std::collections::HashSet<i64> = meds.iter().map(|m| m.item.id).collect();
+    let undosed = snap
+        .items
+        .iter()
+        .filter(|i| i.category.as_deref() == Some("medicine") && !dosed.contains(&i.id))
+        .map(|i| (i.id, i.name.clone()))
+        .collect();
+    let people = members.iter().filter(|m| m.kind == "person").count() as i64;
+    let (first_aid, first_aid_ok) =
+        check_rows(es::checklist(es::FIRST_AID, &snap, people), &snap.items);
+    let (essentials, essentials_ok) =
+        check_rows(es::checklist(es::ESSENTIALS, &snap, people), &snap.items);
+    render(EssentialsT {
+        msg: f.msg,
+        tab: "plan",
+        undo: None,
+        plan_days,
+        groups,
+        undosed,
+        first_aid,
+        first_aid_ok,
+        essentials,
+        essentials_ok,
+        members: members
+            .iter()
+            .map(|m| (m.id, labels[&m.id].clone()))
+            .collect(),
+        forms: db::MED_FORMS,
+    })
+}
+
+#[derive(Deserialize)]
+struct DoseForm {
+    name: Option<String>,
+    unit: Option<String>,
+    member_id: Option<String>,
+    form: Option<String>,
+    strength: Option<String>,
+    per_day: Option<String>,
+    renew_on: Option<String>,
+    delete: Option<String>,
+}
+
+async fn add_medicine(State(s): St, Form(f): Form<DoseForm>) -> Response {
+    let r = (|| {
+        let per_day = opt_f64(&f.per_day)?.unwrap_or(0.0);
+        s.store.add_medicine(
+            f.name.as_deref().unwrap_or(""),
+            f.unit.as_deref().unwrap_or("pcs"),
+            opt_i64(&f.member_id),
+            f.form.as_deref().unwrap_or(""),
+            f.strength.as_deref().unwrap_or(""),
+            per_day,
+            opt_date(&f.renew_on)?,
+        )
+    })();
+    match r {
+        // Next: how much is in the cupboard, and until when it keeps.
+        Ok(id) => back(
+            &format!("/items/{id}"),
+            "Medicine added. Now add the stock you have.",
+        )
+        .into_response(),
+        Err(e) => back("/essentials", format!("Not saved: {e}")),
+    }
+}
+
+async fn set_dose(State(s): St, Path(id): Path<i64>, Form(f): Form<DoseForm>) -> Response {
+    done(
+        &format!("/items/{id}"),
+        (|| {
+            if f.delete.is_some() {
+                s.store.delete_dose(id)?;
+                return Ok("Daily dose removed".into());
+            }
+            s.store.set_dose(
+                id,
+                opt_i64(&f.member_id),
+                f.form.as_deref().unwrap_or(""),
+                f.strength.as_deref().unwrap_or(""),
+                opt_f64(&f.per_day)?.unwrap_or(0.0),
+                opt_date(&f.renew_on)?,
+            )?;
+            Ok("Saved".into())
+        })(),
+    )
+}
+
+#[derive(Deserialize)]
+struct CheckForm {
+    /// `add`, `shop` or `link` (with `item_id`).
+    action: String,
+    item_id: Option<String>,
+}
+
+async fn check_action(State(s): St, Path(key): Path<String>, Form(f): Form<CheckForm>) -> Response {
+    let Some(c) = crate::essentials::find(&key) else {
+        return not_found();
+    };
+    let label = tr(c.label);
+    match f.action.as_str() {
+        "add" => {
+            let r = s.store.add_item(NewItem {
+                name: label,
+                kind: Some(
+                    if c.category == "documents" {
+                        "document"
+                    } else {
+                        "supply"
+                    }
+                    .into(),
+                ),
+                category: Some(c.category.into()),
+                ..Default::default()
+            });
+            match r.and_then(|id| s.store.set_preset(id, Some(c.key)).map(|_| id)) {
+                Ok(id) => back(
+                    &format!("/items/{id}"),
+                    "Added. Now add the stock you have.",
+                ),
+                Err(e) => back("/essentials", format!("Not saved: {e}")),
+            }
+        }
+        "shop" => done(
+            "/essentials",
+            s.store
+                .add_shopping(&label, None, None)
+                .map(|_| "Added to the shopping list".into()),
+        ),
+        "link" => done(
+            "/essentials",
+            (|| {
+                let id = opt_i64(&f.item_id).ok_or_else(|| anyhow::anyhow!("pick an item"))?;
+                s.store.set_preset(id, Some(c.key))?;
+                Ok("Saved".into())
+            })(),
+        ),
+        _ => not_found(),
+    }
+}
+
+async fn clear_preset(State(s): St, Path(id): Path<i64>) -> Response {
+    done(
+        &format!("/items/{id}"),
+        s.store.set_preset(id, None).map(|_| "Saved".into()),
     )
 }
 

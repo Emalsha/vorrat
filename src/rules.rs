@@ -93,6 +93,7 @@ pub fn annotate(batches: Vec<Batch>, today: NaiveDate) -> Vec<Dated> {
 pub struct Snapshot {
     pub batches: Vec<Dated>,
     pub items: Vec<Item>,
+    pub today: NaiveDate,
 }
 
 impl Snapshot {
@@ -100,6 +101,7 @@ impl Snapshot {
         Ok(Self {
             batches: annotate(store.batches(None)?, today),
             items: store.all_items()?,
+            today,
         })
     }
 
@@ -180,8 +182,11 @@ pub struct Plan {
     pub lines: Vec<Coverage>,
     /// Average coverage across targets, 0..=1.
     pub ratio: f64,
-    /// Days the household gets through on its weakest essential (per-person line).
+    /// Days the household gets through on its weakest essential (per-day
+    /// line or medicine).
     pub weakest_days: Option<f64>,
+    /// Days until the first medicine runs out, when anyone takes one.
+    pub medicine_days: Option<f64>,
 }
 
 impl Plan {
@@ -265,7 +270,13 @@ pub fn coverage_of(store: &Store, snap: &Snapshot) -> Result<Plan> {
     } else {
         lines.iter().map(|c| c.ratio).sum::<f64>() / lines.len() as f64
     };
-    let weakest_days = lines.iter().filter_map(|c| c.days).reduce(f64::min);
+    let medicine_days =
+        crate::essentials::medicine_days(&crate::essentials::medicines(store, snap)?);
+    let weakest_days = lines
+        .iter()
+        .filter_map(|c| c.days)
+        .chain(medicine_days)
+        .reduce(f64::min);
     Ok(Plan {
         people,
         pets,
@@ -273,6 +284,7 @@ pub fn coverage_of(store: &Store, snap: &Snapshot) -> Result<Plan> {
         lines,
         ratio,
         weakest_days,
+        medicine_days,
     })
 }
 
@@ -310,10 +322,26 @@ pub struct Digest {
     /// Crossed the first mark (14 days, 90 for documents).
     pub soon: Vec<Dated>,
     pub low: Vec<Item>,
+    /// Medicines that last fewer than `MED_REMIND_DAYS` days.
+    pub medicine: Vec<MedAlert>,
+    /// Prescriptions to renew within `MED_REMIND_DAYS` days.
+    pub renew: Vec<MedAlert>,
     #[serde(skip)]
     marks: Vec<(i64, Vec<i64>)>,
     #[serde(skip)]
     low_marks: Vec<i64>,
+    #[serde(skip)]
+    dose_marks: Vec<(i64, &'static str)>,
+}
+
+/// A medicine reminder: which one, for whom, and how many days are left.
+#[derive(Debug, Clone, Serialize)]
+pub struct MedAlert {
+    pub item_id: i64,
+    pub name: String,
+    pub who: Option<String>,
+    /// Days of stock left, or days to the renewal date.
+    pub days: f64,
 }
 
 impl Digest {
@@ -322,6 +350,8 @@ impl Digest {
             && self.week.is_empty()
             && self.soon.is_empty()
             && self.low.is_empty()
+            && self.medicine.is_empty()
+            && self.renew.is_empty()
     }
 
     pub fn title(&self) -> String {
@@ -331,6 +361,8 @@ impl Digest {
             (self.week.len(), "expiring this week"),
             (self.soon.len(), "expiring soon"),
             (self.low.len(), "running low"),
+            (self.medicine.len(), "medicine running out"),
+            (self.renew.len(), "prescription to renew"),
         ] {
             if n > 0 {
                 parts.push(format!("{n} {}", crate::i18n::tr(what)));
@@ -389,6 +421,29 @@ impl Digest {
                 low.join("; ")
             ));
         }
+        for (label, rows, fmt) in [
+            ("Medicine running out", &self.medicine, "{0} days left"),
+            ("Prescription to renew", &self.renew, "in {0}d"),
+        ] {
+            if rows.is_empty() {
+                continue;
+            }
+            let txt: Vec<String> = rows
+                .iter()
+                .map(|m| {
+                    let days = if m.days < 0.0 {
+                        crate::i18n::tr("overdue")
+                    } else {
+                        crate::i18n::trf(fmt, &[&fmt_qty(m.days)])
+                    };
+                    match &m.who {
+                        Some(w) => format!("{} ({w}, {days})", m.name),
+                        None => format!("{} ({days})", m.name),
+                    }
+                })
+                .collect();
+            lines.push(format!("{}: {}", crate::i18n::tr(label), txt.join("; ")));
+        }
         lines.join("\n")
     }
 }
@@ -443,6 +498,36 @@ pub fn build_digest(store: &Store, today: NaiveDate, remind: &RemindDays) -> Res
             dg.low.push(it);
         }
     }
+    // Medicines: once when the stock gets short (again after a restock), once
+    // per renewal date.
+    let snap = Snapshot::load(store, today)?;
+    let meds = crate::essentials::medicines(store, &snap)?;
+    let sent = store.dose_marks()?;
+    let who = crate::essentials::member_labels(&store.members()?);
+    let remind = crate::essentials::MED_REMIND_DAYS;
+    for m in meds {
+        let alert = |days: f64| MedAlert {
+            item_id: m.item.id,
+            name: m.item.name.clone(),
+            who: m.dose.member_id.and_then(|id| who.get(&id).cloned()),
+            days,
+        };
+        let low_sent = sent.contains(&(m.item.id, "low".to_string()));
+        if m.days < remind as f64 {
+            if !low_sent {
+                dg.medicine.push(alert(m.days));
+                dg.dose_marks.push((m.item.id, "low"));
+            }
+        } else if low_sent {
+            store.clear_dose_mark(m.item.id, "low")?;
+        }
+        if let Some(d) = m.renew_in.filter(|d| *d <= remind) {
+            if !sent.contains(&(m.item.id, "renew".to_string())) {
+                dg.renew.push(alert(d as f64));
+                dg.dose_marks.push((m.item.id, "renew"));
+            }
+        }
+    }
     Ok(dg)
 }
 
@@ -453,6 +538,9 @@ pub fn commit_digest(store: &Store, dg: &Digest) -> Result<()> {
     }
     for iid in &dg.low_marks {
         store.mark_low(*iid)?;
+    }
+    for (iid, mark) in &dg.dose_marks {
+        store.mark_dose(*iid, mark)?;
     }
     Ok(())
 }

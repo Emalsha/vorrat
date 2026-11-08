@@ -372,3 +372,90 @@ hearing aid	Hörgerät
 per person	pro Person
 per pet per day	pro Haustier und Tag
 per pet	pro Haustier
+
+# Medicine and essentials (schema v4)
+Medicine and essentials	Medizin und Notwendiges
+medicine lasts	Medizin reicht
+first-aid kit	Verbandkasten
+essentials	Notwendiges
+Vorrat never suggests a medicine or a dose. Enter what your doctor, pharmacist or vet told you. This stays on your own device.	Vorrat schlägt nie ein Medikament oder eine Dosis vor. Trage ein, was Ärztin, Apotheke oder Tierarzt gesagt haben. Das bleibt auf deinem eigenen Gerät.
+Vorrat never suggests a medicine or a dose. Enter what your doctor, pharmacist or vet told you.	Vorrat schlägt nie ein Medikament oder eine Dosis vor. Trage ein, was Ärztin, Apotheke oder Tierarzt gesagt haben.
+Medicine	Medizin
+lasts	reicht
+expires	läuft ab
+Renew prescription by	Rezept erneuern bis
+No medicines yet. Add the ones someone in your household takes every day.	Noch keine Medikamente. Trage die ein, die jemand im Haushalt täglich nimmt.
+The bar compares each medicine with your plan of	Der Balken vergleicht jedes Medikament mit deinem Plan von
+Official guides advise personal medicines for at least 3 days (Belgium, Denmark) to 10 days (Germany), and a month of long-term prescriptions (Sweden).	Amtliche Ratgeber empfehlen persönliche Medikamente für mindestens 3 Tage (Belgien, Dänemark) bis 10 Tage (Deutschland) und einen Monat bei Dauermedikation (Schweden).
+In the medicine category without a daily dose:	In der Kategorie Medizin ohne Tagesdosis:
+Add a medicine	Medikament hinzufügen
+Name, as on the pack	Name, wie auf der Packung
+For	Für
+Form	Form
+Strength	Stärke
+e.g. 50 mg	z. B. 50 mg
+ml	ml
+g	g
+Daily dose	Tagesdosis
+Add medicine	Medikament hinzufügen
+Household essentials	Notwendiges für den Haushalt
+Each entry is named by the official guides of the countries listed (see docs/guidance in the source code). Ticked when you have at least one in stock that has not expired, or one per person for blankets.	Jeder Eintrag steht in den amtlichen Ratgebern der genannten Länder (siehe docs/guidance im Quellcode). Abgehakt, wenn mindestens eines vorrätig und nicht abgelaufen ist, bei Decken eines pro Person.
+Counts for the checklist entry	Zählt für den Listeneintrag
+Unlink	Lösen
+Remove daily dose	Tagesdosis entfernen
+have	vorhanden
+missing	fehlt
+Some has expired	Einiges ist abgelaufen
+Named by	Genannt von
+To the shopping list	Auf die Einkaufsliste
+I already have it	Habe ich schon
+That's it	Das ist es
+cash	Bargeld
+cooking	Kochen
+radio	Radio
+warmth	Wärme
+Not assigned to anyone	Niemandem zugeordnet
+{0} a day	{0} pro Tag
+{0} days left	noch {0} Tage
+overdue	überfällig
+medicine running out	Medizin geht aus
+prescription to renew	Rezept zu erneuern
+Medicine running out	Medizin geht aus
+Prescription to renew	Rezept erneuern
+Medicine added. Now add the stock you have.	Medikament hinzugefügt. Trage jetzt ein, wie viel du hast.
+Added. Now add the stock you have.	Hinzugefügt. Trage jetzt ein, wie viel du hast.
+Daily dose removed	Tagesdosis entfernt
+Added to the shopping list	Auf die Einkaufsliste gesetzt
+tablet	Tablette
+capsule	Kapsel
+liquid	Saft oder Lösung
+drops	Tropfen
+inhaler	Inhalator
+injection	Spritze
+patch	Pflaster
+cream	Salbe oder Creme
+other form	andere Form
+Plasters	Pflaster
+Bandages and dressings	Binden und Verbandmaterial
+Gauze or compresses	Mull oder Kompressen
+Wound disinfectant	Wunddesinfektion
+Disposable gloves	Einmalhandschuhe
+Thermometer	Fieberthermometer
+Scissors	Schere
+Tweezers	Pinzette
+Rescue blanket	Rettungsdecke
+Face masks	Atemschutzmasken
+First-aid instructions	Erste-Hilfe-Anleitung
+Spare batteries	Ersatzbatterien
+Power bank	Powerbank
+Candles and matches	Kerzen und Streichhölzer
+Camping stove with fuel	Campingkocher mit Brennstoff
+Can opener	Dosenöffner
+Cash in small notes	Bargeld in kleinen Scheinen
+Copies of important documents	Kopien wichtiger Dokumente
+Phone numbers on paper	Telefonnummern auf Papier
+Blanket or sleeping bag	Decke oder Schlafsack
+Toilet paper	Toilettenpapier
+Soap or hand gel	Seife oder Handgel
+Menstrual products	Menstruationsartikel
+Rubbish bags	Müllbeutel

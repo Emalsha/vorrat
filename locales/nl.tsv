@@ -372,3 +372,90 @@ hearing aid	hoortoestel
 per person	per persoon
 per pet per day	per huisdier per dag
 per pet	per huisdier
+
+# Medicine and essentials (schema v4)
+Medicine and essentials	Medicijnen en benodigdheden
+medicine lasts	medicijnen voor
+first-aid kit	EHBO-doos
+essentials	benodigdheden
+Vorrat never suggests a medicine or a dose. Enter what your doctor, pharmacist or vet told you. This stays on your own device.	Vorrat stelt nooit een medicijn of dosis voor. Vul in wat je arts, apotheker of dierenarts heeft gezegd. Dit blijft op je eigen apparaat.
+Vorrat never suggests a medicine or a dose. Enter what your doctor, pharmacist or vet told you.	Vorrat stelt nooit een medicijn of dosis voor. Vul in wat je arts, apotheker of dierenarts heeft gezegd.
+Medicine	Medicijnen
+lasts	genoeg voor
+expires	verloopt
+Renew prescription by	Recept vernieuwen voor
+No medicines yet. Add the ones someone in your household takes every day.	Nog geen medicijnen. Voeg toe wat iemand in je huishouden elke dag neemt.
+The bar compares each medicine with your plan of	De balk vergelijkt elk medicijn met je plan van
+Official guides advise personal medicines for at least 3 days (Belgium, Denmark) to 10 days (Germany), and a month of long-term prescriptions (Sweden).	Officiële gidsen raden persoonlijke medicijnen aan voor minstens 3 dagen (België, Denemarken) tot 10 dagen (Duitsland), en een maand bij langdurige recepten (Zweden).
+In the medicine category without a daily dose:	In de categorie medicijnen zonder dagdosis:
+Add a medicine	Medicijn toevoegen
+Name, as on the pack	Naam, zoals op de verpakking
+For	Voor
+Form	Vorm
+Strength	Sterkte
+e.g. 50 mg	bijv. 50 mg
+ml	ml
+g	g
+Daily dose	Dagdosis
+Add medicine	Medicijn toevoegen
+Household essentials	Benodigdheden voor het huishouden
+Each entry is named by the official guides of the countries listed (see docs/guidance in the source code). Ticked when you have at least one in stock that has not expired, or one per person for blankets.	Elk punt staat in de officiële gidsen van de genoemde landen (zie docs/guidance in de broncode). Afgevinkt als je er minstens één op voorraad hebt die niet verlopen is, of één per persoon voor dekens.
+Counts for the checklist entry	Telt voor het lijstpunt
+Unlink	Ontkoppelen
+Remove daily dose	Dagdosis verwijderen
+have	aanwezig
+missing	ontbreekt
+Some has expired	Een deel is verlopen
+Named by	Genoemd door
+To the shopping list	Op het boodschappenlijstje
+I already have it	Heb ik al
+That's it	Dat is het
+cash	contant geld
+cooking	koken
+radio	radio
+warmth	warmte
+Not assigned to anyone	Aan niemand toegewezen
+{0} a day	{0} per dag
+{0} days left	nog {0} dagen
+overdue	te laat
+medicine running out	medicijn raakt op
+prescription to renew	recept te vernieuwen
+Medicine running out	Medicijnen raken op
+Prescription to renew	Recept vernieuwen
+Medicine added. Now add the stock you have.	Medicijn toegevoegd. Vul nu in hoeveel je hebt.
+Added. Now add the stock you have.	Toegevoegd. Vul nu in hoeveel je hebt.
+Daily dose removed	Dagdosis verwijderd
+Added to the shopping list	Op het boodschappenlijstje gezet
+tablet	tablet
+capsule	capsule
+liquid	drank
+drops	druppels
+inhaler	inhalator
+injection	injectie
+patch	pleister
+cream	zalf of crème
+other form	andere vorm
+Plasters	Pleisters
+Bandages and dressings	Verband en zwachtels
+Gauze or compresses	Gaas of kompressen
+Wound disinfectant	Wondontsmetting
+Disposable gloves	Wegwerphandschoenen
+Thermometer	Thermometer
+Scissors	Schaar
+Tweezers	Pincet
+Rescue blanket	Reddingsdeken
+Face masks	Mondkapjes
+First-aid instructions	EHBO-instructies
+Spare batteries	Reservebatterijen
+Power bank	Powerbank
+Candles and matches	Kaarsen en lucifers
+Camping stove with fuel	Kampeerbrander met brandstof
+Can opener	Blikopener
+Cash in small notes	Contant geld in kleine biljetten
+Copies of important documents	Kopieën van belangrijke documenten
+Phone numbers on paper	Telefoonnummers op papier
+Blanket or sleeping bag	Deken of slaapzak
+Toilet paper	Toiletpapier
+Soap or hand gel	Zeep of handgel
+Menstrual products	Menstruatieproducten
+Rubbish bags	Vuilniszakken
