@@ -3,8 +3,8 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 
 use common::*;
-use vorrat::notify::{send_digest, Notifier};
-use vorrat::rules::RemindDays;
+use vorrat::jobs::digest::RemindDays;
+use vorrat::jobs::notify::{send_digest, Notifier};
 
 type Sent = Arc<Mutex<Vec<(String, String)>>>;
 
@@ -108,7 +108,7 @@ fn backup_writes_a_consistent_copy_and_prunes() {
     f.set_modified(std::time::SystemTime::now() - std::time::Duration::from_secs(30 * 86_400))
         .unwrap();
 
-    let p = vorrat::backup::run_backup(&s, &files, &out, 7, today()).unwrap();
+    let p = vorrat::jobs::backup::run_backup(&s, &files, &out, 7, today()).unwrap();
     let copy = vorrat::db::Store::open(&p).unwrap();
     assert_eq!(copy.all_items().unwrap()[0].name, "Rice");
     assert!(out
@@ -125,7 +125,7 @@ async fn digest_in_german_when_set() {
     let s = common::store();
     let id = common::item(&s, "Milch");
     s.add_batch(id, 1.0, common::d(-1), None, None).unwrap();
-    let dg = vorrat::rules::build_digest(&s, common::today(), &Default::default()).unwrap();
+    let dg = vorrat::jobs::digest::build_digest(&s, common::today(), &Default::default()).unwrap();
     let (title, body) = vorrat::i18n::LANG
         .scope(vorrat::i18n::Lang::De, async { (dg.title(), dg.body()) })
         .await;

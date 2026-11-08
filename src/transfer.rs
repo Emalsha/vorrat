@@ -6,7 +6,9 @@ use std::collections::HashMap;
 use anyhow::{bail, Result};
 use chrono::NaiveDate;
 
-use crate::db::{NewItem, Store, EXPORT_TABLES};
+use crate::db::{Store, EXPORT_TABLES};
+use crate::stock;
+use crate::stock::queries::{Item, NewItem};
 
 /// Everything the household entered, one JSON document. Attachments are
 /// listed by file name; the files themselves are in the backup archive.
@@ -62,8 +64,8 @@ pub fn export_csv(store: &Store) -> Result<String> {
     push_row(&mut out, CSV_COLUMNS.iter().map(|s| s.to_string()));
     let batches = store.batches(None)?;
     let items = store.all_items()?;
-    let by_id: HashMap<i64, &crate::db::Item> = items.iter().map(|i| (i.id, i)).collect();
-    let num = |v: f64| crate::rules::fmt_qty(v);
+    let by_id: HashMap<i64, &Item> = items.iter().map(|i| (i.id, i)).collect();
+    let num = |v: f64| stock::rules::fmt_qty(v);
     let mut stocked = std::collections::HashSet::new();
     for b in &batches {
         let Some(it) = by_id.get(&b.item_id) else {

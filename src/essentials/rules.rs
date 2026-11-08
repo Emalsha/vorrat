@@ -13,8 +13,11 @@ use anyhow::Result;
 use chrono::NaiveDate;
 use serde::Serialize;
 
-use crate::db::{Dose, Item, Member, Store};
-use crate::rules::{Dated, Snapshot, Status};
+use crate::db::Store;
+use crate::essentials::queries::Dose;
+use crate::household::queries::Member;
+use crate::stock::queries::Item;
+use crate::stock::rules::{Dated, Snapshot, Status};
 
 /// One entry of a checklist.
 ///

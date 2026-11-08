@@ -1216,7 +1216,7 @@ async fn checklists_add_link_and_shop() {
 
     let t = st
         .store
-        .add_item(vorrat::db::NewItem {
+        .add_item(vorrat::stock::queries::NewItem {
             name: "Old thermometer".into(),
             category: Some("first aid".into()),
             ..Default::default()

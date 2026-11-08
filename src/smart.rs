@@ -12,7 +12,10 @@ use anyhow::Result;
 use chrono::{Days, NaiveDate};
 use serde::Serialize;
 
-use crate::db::{Item, Location, Store};
+use crate::db::Store;
+use crate::locations::queries::Location;
+use crate::stock;
+use crate::stock::queries::Item;
 
 pub const SHELF_MIN_SAMPLES: usize = 2;
 pub const SHELF_MAX_SPREAD: f64 = 0.2;
@@ -35,7 +38,7 @@ pub fn human_days(days: f64) -> String {
     if d >= 330.0 {
         trf(
             "{0} yr",
-            &[&crate::rules::fmt_qty((d / 365.0 * 10.0).round() / 10.0)],
+            &[&stock::rules::fmt_qty((d / 365.0 * 10.0).round() / 10.0)],
         )
     } else if d >= 50.0 {
         trf("{0} mo", &[&(d / 30.4).round()])

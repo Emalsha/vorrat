@@ -5,7 +5,7 @@ use std::path::PathBuf;
 
 use anyhow::{bail, Context, Result};
 
-use crate::rules::RemindDays;
+use crate::jobs::digest::RemindDays;
 
 /// Settings for one run, read from `VORRAT_*` variables.
 ///

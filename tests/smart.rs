@@ -1,8 +1,9 @@
 mod common;
 use chrono::Days;
 use common::*;
-use vorrat::db::{NewItem, Store};
+use vorrat::db::Store;
 use vorrat::smart;
+use vorrat::stock::queries::NewItem;
 
 fn file_store() -> (tempfile::TempDir, Store, rusqlite::Connection) {
     let dir = tempfile::tempdir().unwrap();

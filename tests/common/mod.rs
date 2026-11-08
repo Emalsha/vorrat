@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 use chrono::{Days, NaiveDate};
-use vorrat::db::{NewItem, Store};
+use vorrat::db::Store;
+use vorrat::stock::queries::NewItem;
 
 pub fn today() -> NaiveDate {
     vorrat::db::today()

@@ -5,36 +5,53 @@ fn de() -> &'static HashMap<&'static str, &'static str> {
     Lang::De.table()
 }
 
+/// Every template under `templates/`, with its path and text.
+fn templates() -> Vec<(String, String)> {
+    let mut out = Vec::new();
+    let mut dirs = vec![std::path::PathBuf::from("templates")];
+    while let Some(d) = dirs.pop() {
+        for e in std::fs::read_dir(&d).unwrap() {
+            let p = e.unwrap().path();
+            if p.is_dir() {
+                dirs.push(p);
+            } else {
+                let text = std::fs::read_to_string(&p).unwrap();
+                out.push((p.display().to_string(), text));
+            }
+        }
+    }
+    out.sort();
+    out
+}
+
 #[test]
 fn every_marked_text_has_a_german_translation() {
     let re = regex::Regex::new(r#""((?:[^"\\]|\\.)*)"\|t"#).unwrap();
     let mut missing = Vec::new();
-    for e in std::fs::read_dir("templates").unwrap() {
-        let p = e.unwrap().path();
-        let text = std::fs::read_to_string(&p).unwrap();
+    for (p, text) in templates() {
         for c in re.captures_iter(&text) {
             let k = c[1].replace("\\\"", "\"");
             if !de().contains_key(k.as_str()) {
-                missing.push(format!("{}: {k}", p.display()));
+                missing.push(format!("{p}: {k}"));
             }
         }
     }
-    let checks = vorrat::essentials::FIRST_AID
+    let checks = vorrat::essentials::rules::FIRST_AID
         .iter()
-        .chain(vorrat::essentials::ESSENTIALS)
-        .chain(vorrat::essentials::SUGGESTIONS)
+        .chain(vorrat::essentials::rules::ESSENTIALS)
+        .chain(vorrat::essentials::rules::SUGGESTIONS)
         .map(|c| &c.label);
-    for k in vorrat::db::KINDS
+    for k in vorrat::stock::queries::KINDS
         .iter()
-        .chain(vorrat::db::CATEGORIES)
-        .chain(vorrat::db::MED_FORMS)
+        .chain(vorrat::stock::queries::CATEGORIES)
+        .chain(vorrat::essentials::queries::MED_FORMS)
         .chain(checks)
     {
         if !de().contains_key(k) {
             missing.push(format!("db: {k}"));
         }
     }
-    for (label, ..) in vorrat::db::DEFAULT_TARGETS {
+    for (label, ..) in vorrat::db::schema::DEFAULT_TARGETS {
         if !de().contains_key(label) {
             missing.push(format!("target: {label}"));
         }

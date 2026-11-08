@@ -1,8 +1,10 @@
 mod common;
 use common::*;
-use vorrat::db::NewItem;
-use vorrat::essentials::{self as es, checklist, medicines};
-use vorrat::rules::{self, RemindDays, Snapshot};
+use vorrat::essentials::rules::{self as es, checklist, medicines};
+use vorrat::jobs::digest::{self, RemindDays};
+use vorrat::plan::rules as plan;
+use vorrat::stock::queries::NewItem;
+use vorrat::stock::rules::Snapshot;
 
 fn snap(s: &vorrat::db::Store) -> Snapshot {
     Snapshot::load(s, today()).unwrap()
@@ -72,7 +74,7 @@ fn medicine_days_count_usable_stock_and_join_the_plan() {
     let m = medicines(&s, &snap(&s)).unwrap();
     assert_eq!(m.len(), 1);
     assert_eq!((m[0].have, m[0].days), (10.0, 5.0));
-    let plan = rules::coverage(&s, today()).unwrap();
+    let plan = plan::coverage(&s, today()).unwrap();
     assert_eq!(plan.medicine_days, Some(5.0));
     assert_eq!(
         plan.weakest_days,
@@ -80,7 +82,7 @@ fn medicine_days_count_usable_stock_and_join_the_plan() {
         "nothing else stocked yet, so food is weakest"
     );
     s.delete_dose(id).unwrap();
-    assert_eq!(rules::coverage(&s, today()).unwrap().medicine_days, None);
+    assert_eq!(plan::coverage(&s, today()).unwrap().medicine_days, None);
 }
 
 /// After a restock it stays quiet, and the next shortage alerts again.
@@ -92,7 +94,7 @@ fn medicine_reminders_once_until_restocked() {
         .add_medicine("Insulin", "ml", Some(who), "injection", "", 1.0, d(10))
         .unwrap();
     s.add_batch(id, 5.0, None, None, None).unwrap();
-    let dg = rules::build_digest(&s, today(), &RemindDays::default()).unwrap();
+    let dg = digest::build_digest(&s, today(), &RemindDays::default()).unwrap();
     assert_eq!(dg.medicine.len(), 1);
     assert_eq!(dg.renew.len(), 1);
     assert_eq!(dg.medicine[0].who.as_deref(), Some("Adult 1"));
@@ -109,19 +111,19 @@ fn medicine_reminders_once_until_restocked() {
     assert!(dg
         .body()
         .contains("Prescription to renew: Insulin (Adult 1, in 10d)"));
-    rules::commit_digest(&s, &dg).unwrap();
-    assert!(rules::build_digest(&s, today(), &RemindDays::default())
+    digest::commit_digest(&s, &dg).unwrap();
+    assert!(digest::build_digest(&s, today(), &RemindDays::default())
         .unwrap()
         .is_empty());
 
     s.add_batch(id, 100.0, None, None, None).unwrap();
-    assert!(rules::build_digest(&s, today(), &RemindDays::default())
+    assert!(digest::build_digest(&s, today(), &RemindDays::default())
         .unwrap()
         .medicine
         .is_empty());
     s.consume(id, 100.0, None, false).unwrap();
     assert_eq!(
-        rules::build_digest(&s, today(), &RemindDays::default())
+        digest::build_digest(&s, today(), &RemindDays::default())
             .unwrap()
             .medicine
             .len(),
@@ -182,7 +184,7 @@ fn checklist_keys_are_unique_and_sourced() {
         assert!(keys.insert(c.key), "duplicate key {}", c.key);
         assert!(!c.named_by.is_empty(), "{} names no source", c.key);
         assert!(
-            vorrat::db::CATEGORIES.contains(&c.category),
+            vorrat::stock::queries::CATEGORIES.contains(&c.category),
             "{}: unknown category",
             c.key
         );

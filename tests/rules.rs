@@ -1,7 +1,9 @@
 mod common;
 use common::*;
-use vorrat::db::NewItem;
-use vorrat::rules::{self, RemindDays, Status};
+use vorrat::jobs::digest::{self, RemindDays};
+use vorrat::plan::rules as plan;
+use vorrat::stock::queries::NewItem;
+use vorrat::stock::rules::{self as stock, Status};
 
 fn rd() -> RemindDays {
     RemindDays::default()
@@ -24,7 +26,7 @@ fn expiring_window() {
     s.add_batch(i, 1.0, d(3), None, None).unwrap();
     s.add_batch(i, 1.0, d(20), None, None).unwrap();
     s.add_batch(i, 1.0, d(-2), None, None).unwrap();
-    let days: Vec<i64> = rules::expiring(&s, today(), 14)
+    let days: Vec<i64> = stock::expiring(&s, today(), 14)
         .unwrap()
         .iter()
         .map(|b| b.days_left.unwrap())
@@ -54,7 +56,7 @@ fn low_stock() {
     );
     s.add_batch(b, 3.0, None, None, None).unwrap();
     item(&s, "Salt");
-    let names: Vec<String> = rules::low_stock(&s)
+    let names: Vec<String> = stock::low_stock(&s)
         .unwrap()
         .into_iter()
         .map(|i| i.name)
@@ -67,21 +69,21 @@ fn digest_sends_each_mark_once() {
     let s = store();
     let i = item(&s, "Beans");
     let b = s.add_batch(i, 2.0, d(10), None, None).unwrap();
-    let dg = rules::build_digest(&s, today(), &rd()).unwrap();
+    let dg = digest::build_digest(&s, today(), &rd()).unwrap();
     assert_eq!(
         dg.soon.iter().map(|x| x.batch.id).collect::<Vec<_>>(),
         vec![b]
     );
     assert!(dg.week.is_empty());
-    rules::commit_digest(&s, &dg).unwrap();
-    assert!(rules::build_digest(&s, today(), &rd()).unwrap().is_empty());
-    let dg2 = rules::build_digest(&s, d(4).unwrap(), &rd()).unwrap();
+    digest::commit_digest(&s, &dg).unwrap();
+    assert!(digest::build_digest(&s, today(), &rd()).unwrap().is_empty());
+    let dg2 = digest::build_digest(&s, d(4).unwrap(), &rd()).unwrap();
     assert_eq!(
         dg2.week.iter().map(|x| x.batch.id).collect::<Vec<_>>(),
         vec![b]
     );
-    rules::commit_digest(&s, &dg2).unwrap();
-    let dg3 = rules::build_digest(&s, d(11).unwrap(), &rd()).unwrap();
+    digest::commit_digest(&s, &dg2).unwrap();
+    let dg3 = digest::build_digest(&s, d(11).unwrap(), &rd()).unwrap();
     assert_eq!(
         dg3.expired.iter().map(|x| x.batch.id).collect::<Vec<_>>(),
         vec![b]
@@ -93,10 +95,10 @@ fn digest_skips_marks_already_passed() {
     let s = store();
     let i = item(&s, "Bread");
     let b = s.add_batch(i, 1.0, d(3), None, None).unwrap();
-    let dg = rules::build_digest(&s, today(), &rd()).unwrap();
+    let dg = digest::build_digest(&s, today(), &rd()).unwrap();
     assert_eq!(dg.week.len(), 1);
     assert!(dg.soon.is_empty());
-    rules::commit_digest(&s, &dg).unwrap();
+    digest::commit_digest(&s, &dg).unwrap();
     assert_eq!(
         s.notified_thresholds(b).unwrap(),
         [14, 7].into_iter().collect()
@@ -115,7 +117,7 @@ fn documents_use_longer_marks() {
         },
     );
     s.add_batch(p, 1.0, d(60), None, None).unwrap();
-    let dg = rules::build_digest(&s, today(), &rd()).unwrap();
+    let dg = digest::build_digest(&s, today(), &rd()).unwrap();
     assert_eq!(
         dg.soon
             .iter()
@@ -137,15 +139,15 @@ fn low_stock_alerts_once_until_restocked() {
         },
     );
     s.add_batch(i, 1.0, None, None, None).unwrap();
-    let dg = rules::build_digest(&s, today(), &rd()).unwrap();
+    let dg = digest::build_digest(&s, today(), &rd()).unwrap();
     assert_eq!(dg.low.len(), 1);
-    rules::commit_digest(&s, &dg).unwrap();
-    assert!(rules::build_digest(&s, today(), &rd()).unwrap().is_empty());
+    digest::commit_digest(&s, &dg).unwrap();
+    assert!(digest::build_digest(&s, today(), &rd()).unwrap().is_empty());
     s.add_batch(i, 5.0, None, None, None).unwrap();
-    rules::build_digest(&s, today(), &rd()).unwrap();
+    digest::build_digest(&s, today(), &rd()).unwrap();
     s.consume(i, 5.0, None, false).unwrap();
     assert_eq!(
-        rules::build_digest(&s, today(), &rd()).unwrap().low.len(),
+        digest::build_digest(&s, today(), &rd()).unwrap().low.len(),
         1
     );
 }
@@ -162,7 +164,7 @@ fn digest_text() {
         },
     );
     s.add_batch(i, 1.0, d(2), None, None).unwrap();
-    let dg = rules::build_digest(&s, today(), &rd()).unwrap();
+    let dg = digest::build_digest(&s, today(), &rd()).unwrap();
     assert_eq!(dg.title(), "Vorrat: 1 expiring this week");
     assert!(dg.body().contains("Milk (1 L, in 2d)"), "{}", dg.body());
 }
@@ -203,7 +205,7 @@ fn coverage_units_and_sizes() {
         },
     );
     s.add_batch(old, 10.0, d(-1), None, None).unwrap();
-    let plan = rules::coverage(&s, today()).unwrap();
+    let plan = plan::coverage(&s, today()).unwrap();
     let w = plan
         .lines
         .iter()
@@ -226,7 +228,7 @@ fn coverage_fixed_targets() {
         },
     );
     s.add_batch(bat, 8.0, None, None, None).unwrap();
-    let plan = rules::coverage(&s, today()).unwrap();
+    let plan = plan::coverage(&s, today()).unwrap();
     let c = plan
         .lines
         .iter()
@@ -248,7 +250,7 @@ fn coverage_ignores_dimension_mismatch() {
         },
     );
     s.add_batch(tins, 5.0, None, None, None).unwrap();
-    let plan = rules::coverage(&s, today()).unwrap();
+    let plan = plan::coverage(&s, today()).unwrap();
     assert_eq!(
         plan.lines
             .iter()
@@ -277,23 +279,20 @@ fn weakest_days_follows_the_scarcest_essential() {
         );
         s.add_batch(i, qty, None, None, None).unwrap();
     }
-    assert_eq!(
-        rules::coverage(&s, today()).unwrap().weakest_days,
-        Some(0.0)
-    );
+    assert_eq!(plan::coverage(&s, today()).unwrap().weakest_days, Some(0.0));
 }
 
 #[test]
 fn fmt_qty_matches_python_g() {
-    assert_eq!(rules::fmt_qty(1.0), "1");
-    assert_eq!(rules::fmt_qty(0.5), "0.5");
-    assert_eq!(rules::fmt_qty(18.5), "18.5");
-    assert_eq!(rules::fmt_qty(0.036), "0.036");
+    assert_eq!(stock::fmt_qty(1.0), "1");
+    assert_eq!(stock::fmt_qty(0.5), "0.5");
+    assert_eq!(stock::fmt_qty(18.5), "18.5");
+    assert_eq!(stock::fmt_qty(0.036), "0.036");
 }
 
 #[test]
 fn power_cut_eats_the_fridge_first() {
-    use vorrat::rules::{cold_kind, power_cut, Cold};
+    use vorrat::plan::rules::{cold_kind, power_cut, Cold};
     assert_eq!(cold_kind("Tiefkühltruhe"), Some(Cold::Freezer));
     assert_eq!(cold_kind("Kühlschrank"), Some(Cold::Fridge));
     assert_eq!(cold_kind("Kitchen"), None);
@@ -331,14 +330,14 @@ fn plan_scales_with_people_and_pets() {
     s.add_target("Blanket", "other", "per_person", 1.0, "pcs")
         .unwrap();
     s.add_target("Radio", "tools", "fixed", 1.0, "pcs").unwrap();
-    let line = |p: &rules::Plan, label: &str| {
+    let line = |p: &plan::Plan, label: &str| {
         p.lines
             .iter()
             .find(|c| c.target.label == label)
             .unwrap()
             .clone()
     };
-    let p = rules::coverage(&s, today()).unwrap();
+    let p = plan::coverage(&s, today()).unwrap();
     assert_eq!((p.people, p.pets), (3, 0));
     assert_eq!(line(&p, "Drinking water & drinks").need, 2.0 * 3.0 * 10.0);
     assert_eq!(line(&p, "Pet food").need, 0.0, "no pets, nothing needed");
@@ -358,7 +357,7 @@ fn plan_scales_with_people_and_pets() {
         },
     );
     s.add_batch(food, 1.0, None, None, None).unwrap();
-    let p = rules::coverage(&s, today()).unwrap();
+    let p = plan::coverage(&s, today()).unwrap();
     assert_eq!(p.pets, 2);
     let pf = line(&p, "Pet food");
     assert_eq!(pf.need, 2.0);

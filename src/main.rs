@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use anyhow::Result;
 use tracing_subscriber::EnvFilter;
-use vorrat::{config::Config, db::Store, scheduler, web};
+use vorrat::{config::Config, db::Store, jobs::scheduler, web};
 
 #[tokio::main]
 async fn main() -> Result<()> {

@@ -2,7 +2,8 @@
 
 Read this before changing anything in this folder. It is the implementation
 authority: what Vorrat is, how it is built, the rules every change must keep,
-and how to check your work. `docs/PLAN.md` is the work list.
+and how to check your work. `docs/PLAN.md` is the work list and
+`docs/ARCHITECTURE.md` explains the folder layout.
 
 ## How work arrives
 
@@ -40,20 +41,26 @@ offline behaviour are rules below, not nice-to-haves.
 | Path | What it is |
 |---|---|
 | `src/main.rs` | Start-up, signals, server |
+| `src/lib.rs` | Module list |
 | `src/config.rs` | Every `VORRAT_*` environment variable, with defaults |
-| `src/db.rs` | SQLite schema (`SCHEMA`, version via `PRAGMA user_version`), `Store` (one writer, pooled readers) and all queries |
-| `src/rules.rs` | Pure logic: expiry status, low stock, plan coverage, digest, power cut |
-| `src/smart.rs` | Learned hints from history (shelf life, usual quantity, location guess, suggestions) |
-| `src/web.rs` | Router, security middleware, sign-in, every page handler and the JSON API |
+| `src/db/` | `Store` (one writer, pooled readers), settings, backup, export; `schema.rs` holds `SCHEMA` (version via `PRAGMA user_version`) and the migrations |
+| `src/web/` | App state, the router that merges every feature's routes, security and language middleware, static files; `respond.rs`, `form.rs`, `view.rs` are helpers for pages |
+| `src/auth/` | Optional household password, sessions, the sign-in pages |
 | `src/i18n.rs` + `locales/*.tsv` | Translations (English text is the key) |
-| `src/auth.rs` | Optional household password, sessions |
-| `src/notify.rs`, `src/scheduler.rs`, `src/backup.rs` | ntfy push, daily jobs, nightly backup |
+| `src/files.rs` | Safe generated file names on the data volume |
+| `src/home/`, `src/stock/`, `src/locations/`, `src/plan/`, `src/household/`, `src/essentials/`, `src/shopping/`, `src/settings/` | One folder per feature: `mod.rs` (routes), `pages.rs` (handlers, forms, templates), `queries.rs` (its `impl Store` block), `rules.rs` (its logic) |
+| `src/api/` | The JSON API under `/api/v1`, on top of the features' queries and rules |
+| `src/jobs/` | ntfy push and the daily digest, nightly backup, the scheduler |
+| `src/smart.rs` | Learned hints from history (shelf life, usual quantity, location guess, suggestions) |
 | `src/lookup.rs` | Open Food Facts barcode lookup (the only outbound call) |
 | `src/transfer.rs` | CSV/JSON export, CSV import |
 | `src/demo.rs` | Sample household for `VORRAT_DEMO` |
-| `templates/` | Askama HTML templates, compiled into the binary |
+| `templates/` | Askama HTML templates, compiled into the binary: one folder per feature, shared layout and partials at the top |
 | `static/` | CSS, scanner script, service worker, icons (compiled in) |
 | `tests/` | Integration tests; `tests/fixtures/schema-v2.db` is a schema v2 database with synthetic data (tests the upgrade to v4) |
+
+A new feature is a new folder like the others; `docs/ARCHITECTURE.md` has the
+layout and its rules.
 
 ## Rules that must hold
 
@@ -71,7 +78,7 @@ Each of these has a reason; a change that breaks one needs Emalsha's decision fi
    `script-src 'self'`; JavaScript lives in `static/` and gets text from
    `data-*` attributes.
 4. **Every write is a POST behind the same-origin check** (`security` in
-   `web.rs`). Redirect targets go through `safe_back`/`safe_next`. Uploads are
+   `web/mod.rs`). Redirect targets go through `safe_back`/`safe_next`. Uploads are
    checked by their bytes, not their name or type; only generated file names
    are served from `/files/`.
 5. **Escape everything.** Askama escapes by default; never use `|safe` on data

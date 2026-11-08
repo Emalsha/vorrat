@@ -5,7 +5,9 @@ use std::time::Duration;
 
 use chrono::{Local, NaiveDateTime, NaiveTime};
 
-use crate::{backup, db, notify, web::AppState};
+use crate::db;
+use crate::jobs::{backup, notify};
+use crate::web::AppState;
 
 /// Next time `hm` (local) strictly after `now`.
 pub fn next_run(now: NaiveDateTime, hm: (u32, u32)) -> NaiveDateTime {
