@@ -10,7 +10,7 @@ use crate::plan::rules;
 use crate::plan::rules::{Coverage, Plan};
 use crate::stock::pages::BatchRow;
 use crate::stock::queries::{CATEGORIES, UNITS};
-use crate::stock::rules::{fmt_qty, Snapshot};
+use crate::stock::rules::fmt_qty;
 use crate::web::form::{opt_f64, opt_i64};
 use crate::web::respond::{done, render, Flash, Res};
 use crate::web::view::{bar_class, filters, pct};
@@ -160,8 +160,8 @@ const MODE_LABELS: &[(&str, &str)] = &[
 
 pub(super) async fn plan_page(State(s): St, Query(f): Query<Flash>) -> Res<Html<String>> {
     use crate::essentials::rules as es;
-    let snap = Snapshot::load(&s.store, db::today())?;
-    let plan = rules::coverage_of(&s.store, &snap)?;
+    let snap = s.store.snapshot(db::today())?;
+    let plan = s.store.plan_for(&snap)?;
     let count = |list| {
         let c = es::checklist(list, &snap, plan.people);
         (c.iter().filter(|x| x.ok()).count(), c.len())
@@ -259,9 +259,9 @@ const PRINT_EXTRAS: &[&str] = &[
 
 pub(super) async fn plan_print(State(s): St) -> Res<Html<String>> {
     let today = db::today();
-    let plan = rules::coverage(&s.store, today)?;
+    let plan = s.store.plan(today)?;
     let unit = |v: f64, u: &str| format!("{} {u}", fmt_qty(v));
-    let soon = stock::rules::expiring(&s.store, today, plan.days)?
+    let soon = stock::rules::expiring(s.store.batches(None)?, today, plan.days)
         .into_iter()
         .filter(|b| b.days_left.is_some_and(|d| d >= 0))
         .map(|b| PrintBatch {
@@ -373,7 +373,7 @@ pub(super) async fn plan_to_shopping(State(s): St) -> Response {
     done(
         "/shopping",
         (|| {
-            let plan = rules::coverage(&s.store, db::today())?;
+            let plan = s.store.plan(db::today())?;
             let open: Vec<String> = s
                 .store
                 .shopping()?
@@ -413,8 +413,8 @@ struct PowerCutT {
 
 pub(super) async fn power_cut_page(State(s): St, Query(f): Query<Flash>) -> Res<Html<String>> {
     let today = db::today();
-    let pc = rules::power_cut(&s.store, today)?;
-    let plan = rules::coverage(&s.store, today)?;
+    let pc = rules::power_cut(&s.store.locations()?, s.store.batches(None)?, today);
+    let plan = s.store.plan(today)?;
     let water_days = plan
         .lines
         .iter()

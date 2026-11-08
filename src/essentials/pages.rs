@@ -11,7 +11,7 @@ use crate::essentials::rules;
 use crate::essentials::rules::CheckState;
 use crate::i18n::tr;
 use crate::stock::queries::{Item, NewItem};
-use crate::stock::rules::{fmt_qty, Snapshot};
+use crate::stock::rules::fmt_qty;
 use crate::web::form::{opt_date, opt_f64, opt_i64};
 use crate::web::respond::{back, done, not_found, render, Flash, Res};
 use crate::web::view::{bar_class, filters, hdate, pct};
@@ -104,11 +104,11 @@ fn check_rows(states: Vec<CheckState>, items: &[Item]) -> (Vec<CheckRow>, usize)
 pub(super) async fn essentials_page(State(s): St, Query(f): Query<Flash>) -> Res<Html<String>> {
     use crate::essentials::rules as es;
     let today = db::today();
-    let snap = Snapshot::load(&s.store, today)?;
+    let snap = s.store.snapshot(today)?;
     let members = s.store.members()?;
     let labels = es::member_labels(&members);
     let plan_days = s.store.setting_int("days", 14).max(1);
-    let meds = es::medicines(&s.store, &snap)?;
+    let meds = es::medicines(s.store.doses()?, &snap);
     let mut groups: Vec<MedGroup> = Vec::new();
     let mut order: Vec<Option<i64>> = members.iter().map(|m| Some(m.id)).collect();
     order.push(None);

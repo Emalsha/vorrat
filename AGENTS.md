@@ -60,7 +60,7 @@ offline behaviour are rules below, not nice-to-haves.
 | `tests/` | Integration tests; `tests/fixtures/schema-v2.db` is a schema v2 database with synthetic data (tests the upgrade to v4) |
 
 A new feature is a new folder like the others; `docs/ARCHITECTURE.md` has the
-layout and its rules.
+layout and its rules, and `cargo test --test layout` checks them.
 
 ## Rules that must hold
 

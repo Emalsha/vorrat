@@ -2,12 +2,11 @@ mod common;
 use common::*;
 use vorrat::essentials::rules::{self as es, checklist, medicines};
 use vorrat::jobs::digest::{self, RemindDays};
-use vorrat::plan::rules as plan;
 use vorrat::stock::queries::NewItem;
 use vorrat::stock::rules::Snapshot;
 
 fn snap(s: &vorrat::db::Store) -> Snapshot {
-    Snapshot::load(s, today()).unwrap()
+    s.snapshot(today()).unwrap()
 }
 
 fn adult(s: &vorrat::db::Store) -> i64 {
@@ -71,10 +70,10 @@ fn medicine_days_count_usable_stock_and_join_the_plan() {
         .unwrap();
     s.add_batch(id, 10.0, d(100), None, None).unwrap();
     s.add_batch(id, 50.0, d(-1), None, None).unwrap();
-    let m = medicines(&s, &snap(&s)).unwrap();
+    let m = medicines(s.doses().unwrap(), &snap(&s));
     assert_eq!(m.len(), 1);
     assert_eq!((m[0].have, m[0].days), (10.0, 5.0));
-    let plan = plan::coverage(&s, today()).unwrap();
+    let plan = s.plan(today()).unwrap();
     assert_eq!(plan.medicine_days, Some(5.0));
     assert_eq!(
         plan.weakest_days,
@@ -82,7 +81,7 @@ fn medicine_days_count_usable_stock_and_join_the_plan() {
         "nothing else stocked yet, so food is weakest"
     );
     s.delete_dose(id).unwrap();
-    assert_eq!(plan::coverage(&s, today()).unwrap().medicine_days, None);
+    assert_eq!(s.plan(today()).unwrap().medicine_days, None);
 }
 
 /// After a restock it stays quiet, and the next shortage alerts again.

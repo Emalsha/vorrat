@@ -10,10 +10,10 @@ use serde::Deserialize;
 use crate::plan::rules::Plan;
 use crate::shopping::queries::ShoppingEntry;
 use crate::stock::queries::{Item, ItemQuery, NewItem, Sort};
-use crate::stock::rules::{Dated, Snapshot};
+use crate::stock::rules::Dated;
 use crate::web::respond::{not_found, AppError, Res};
 use crate::web::St;
-use crate::{db, jobs, plan, stock};
+use crate::{db, jobs, stock};
 
 #[derive(Deserialize)]
 pub(super) struct ApiItemsQ {
@@ -48,14 +48,14 @@ pub(super) struct WithinQ {
 
 pub(super) async fn api_expiring(State(s): St, Query(p): Query<WithinQ>) -> Res<Json<Vec<Dated>>> {
     Ok(Json(stock::rules::expiring(
-        &s.store,
+        s.store.batches(None)?,
         db::today(),
         p.within.unwrap_or(14).clamp(0, 3650),
-    )?))
+    )))
 }
 
 pub(super) async fn api_plan(State(s): St) -> Res<Json<Plan>> {
-    Ok(Json(plan::rules::coverage(&s.store, db::today())?))
+    Ok(Json(s.store.plan(db::today())?))
 }
 
 /// Preview of what today's reminder would say. Does not mark anything as sent.
@@ -72,13 +72,13 @@ pub(super) async fn api_digest(State(s): St) -> Res<Json<serde_json::Value>> {
 
 pub(super) async fn api_summary(State(s): St) -> Res<Json<serde_json::Value>> {
     let today = db::today();
-    let snap = Snapshot::load(&s.store, today)?;
+    let snap = s.store.snapshot(today)?;
     let soon = snap.expiring(7);
     let expired = soon
         .iter()
         .filter(|b| b.days_left.is_some_and(|d| d < 0))
         .count();
-    let plan = plan::rules::coverage_of(&s.store, &snap)?;
+    let plan = s.store.plan_for(&snap)?;
     Ok(Json(serde_json::json!({
         "items": snap.items.len(),
         "in_stock": snap.items.iter().filter(|i| i.total > 0.0).count(),

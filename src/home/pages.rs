@@ -4,14 +4,14 @@ use askama::Template;
 use axum::extract::{Query, State};
 use axum::response::Html;
 
+use crate::db;
 use crate::i18n::{tr, trf};
 use crate::plan::pages::{gap_labels, ready_days};
 use crate::stock::pages::{BatchRow, ItemRow};
-use crate::stock::rules::{fmt_qty, Snapshot};
+use crate::stock::rules::fmt_qty;
 use crate::web::respond::{render, Flash, Res};
 use crate::web::view::{bar_class, filters, money, pct};
 use crate::web::St;
-use crate::{db, plan};
 
 #[derive(Template)]
 #[template(path = "home/home.html")]
@@ -36,7 +36,7 @@ struct HomeT {
 /// The home page.
 pub(super) async fn home(State(s): St, Query(f): Query<Flash>) -> Res<Html<String>> {
     let today = db::today();
-    let snap = Snapshot::load(&s.store, today)?;
+    let snap = s.store.snapshot(today)?;
     let month = today.format("%Y-%m-01").to_string();
     let (spent, wasted) = (s.store.spending(&month)?, s.store.wasted(&month)?);
     let month_note = match (spent > 0.0, wasted > 0) {
@@ -56,7 +56,7 @@ pub(super) async fn home(State(s): St, Query(f): Query<Flash>) -> Res<Html<Strin
     };
     let expiring: Vec<BatchRow> = snap.expiring(14).iter().map(BatchRow::from).collect();
     let low: Vec<ItemRow> = snap.low_stock().iter().map(ItemRow::from).collect();
-    let plan = plan::rules::coverage_of(&s.store, &snap)?;
+    let plan = s.store.plan_for(&snap)?;
     let recent = s
         .store
         .recent(8)?

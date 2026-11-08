@@ -2,15 +2,14 @@
 
 use std::collections::{BTreeMap, HashMap};
 
-use anyhow::Result;
 use chrono::NaiveDate;
 use serde::Serialize;
 
-use crate::db::Store;
 use crate::essentials;
+use crate::essentials::queries::Dose;
 use crate::locations::queries::Location;
 use crate::plan::queries::Target;
-use crate::stock::queries::Item;
+use crate::stock::queries::{Batch, Item};
 use crate::stock::rules::{annotate, item_amount, to_base, Dated, Snapshot, Status};
 
 /// What one item adds to a plan line.
@@ -62,17 +61,27 @@ impl Plan {
     }
 }
 
-/// Emergency plan: per target, what we need vs. what we have. Expired batches
-/// don't count. Items match a target by category.
-pub fn coverage(store: &Store, today: NaiveDate) -> Result<Plan> {
-    coverage_of(store, &Snapshot::load(store, today)?)
+/// What the plan needs besides the stock: the household, the plan length in
+/// days, the targets and the medicine doses.
+pub struct PlanInput {
+    pub people: i64,
+    pub pets: i64,
+    pub days: i64,
+    pub targets: Vec<Target>,
+    pub doses: Vec<Dose>,
 }
 
-/// [`coverage`] from an already loaded snapshot.
-/// Each target's mode says who it is for and whether it is needed every day.
-pub fn coverage_of(store: &Store, snap: &Snapshot) -> Result<Plan> {
-    let (people, pets) = store.household_counts()?;
-    let days = store.setting_int("days", 14).max(1);
+/// Emergency plan: per target, what we need vs. what we have. Expired batches
+/// don't count. Items match a target by category. Each target's mode says who
+/// it is for and whether it is needed every day.
+pub fn coverage(snap: &Snapshot, input: PlanInput) -> Plan {
+    let PlanInput {
+        people,
+        pets,
+        days,
+        targets,
+        doses,
+    } = input;
     let batches: Vec<&Dated> = snap
         .batches
         .iter()
@@ -80,7 +89,7 @@ pub fn coverage_of(store: &Store, snap: &Snapshot) -> Result<Plan> {
         .collect();
     let items: HashMap<i64, &Item> = snap.items.iter().map(|i| (i.id, i)).collect();
     let mut lines = Vec::new();
-    for t in store.targets()? {
+    for t in targets {
         let (count, per_day) = match t.mode.as_str() {
             "per_person_day" => (people, true),
             "per_person" => (people, false),
@@ -138,13 +147,13 @@ pub fn coverage_of(store: &Store, snap: &Snapshot) -> Result<Plan> {
         lines.iter().map(|c| c.ratio).sum::<f64>() / lines.len() as f64
     };
     let medicine_days =
-        essentials::rules::medicine_days(&essentials::rules::medicines(store, snap)?);
+        essentials::rules::medicine_days(&essentials::rules::medicines(doses, snap));
     let weakest_days = lines
         .iter()
         .filter_map(|c| c.days)
         .chain(medicine_days)
         .reduce(f64::min);
-    Ok(Plan {
+    Plan {
         people,
         pets,
         days,
@@ -152,7 +161,7 @@ pub fn coverage_of(store: &Store, snap: &Snapshot) -> Result<Plan> {
         ratio,
         weakest_days,
         medicine_days,
-    })
+    }
 }
 
 fn round3(v: f64) -> f64 {
@@ -203,8 +212,7 @@ pub struct PowerCut {
 
 /// Sorts food into fridge and freezer. A location counts as cold through its
 /// parents too, so a box inside the freezer is in the freezer.
-pub fn power_cut(store: &Store, today: NaiveDate) -> Result<PowerCut> {
-    let locs = store.locations()?;
+pub fn power_cut(locs: &[Location], batches: Vec<Batch>, today: NaiveDate) -> PowerCut {
     let by_id: std::collections::HashMap<i64, &Location> = locs.iter().map(|l| (l.id, l)).collect();
     let kind_of = |mut id: Option<i64>| {
         for _ in 0..16 {
@@ -218,7 +226,7 @@ pub fn power_cut(store: &Store, today: NaiveDate) -> Result<PowerCut> {
     };
     let mut fridge = Vec::new();
     let mut freezer = Vec::new();
-    for d in annotate(store.batches(None)?, today) {
+    for d in annotate(batches, today) {
         if d.batch.kind != "food" {
             continue;
         }
@@ -235,5 +243,5 @@ pub fn power_cut(store: &Store, today: NaiveDate) -> Result<PowerCut> {
     };
     fridge.sort_by(soonest);
     freezer.sort_by(soonest);
-    Ok(PowerCut { fridge, freezer })
+    PowerCut { fridge, freezer }
 }
