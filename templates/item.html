@@ -3,13 +3,13 @@
 {% block heading %}{{ item.name }}{% endblock %}
 {% block content %}
   <div class="card pad mt">
-    {% if let Some(img) = item.image %}<img class="form-pic" src="/files/{{ img }}" alt="" style="float:right">{% endif %}
+    {% if let Some(img) = item.image %}<img class="form-pic float-right" src="/files/{{ img }}" alt="">{% endif %}
     <b>{{ total }} {{ item.unit }}</b> {{ "in stock"|t }}
     <a href="/items/{{ item.id }}/edit" class="small">{{ "Edit"|t }}</a>
     <span class="muted small">· {{ item.kind|t }}{% if let Some(c) = item.category %} · {{ c|t }}{% endif %}{% if let Some(bc) = item.barcode %} · {{ bc }}{% endif %}</span>
     {% if item.kind != "document" %}
     <form method="post" action="/items/{{ item.id }}/use" class="flex mt">
-      <input name="qty" inputmode="decimal" value="1" aria-label="{{ "Quantity"|t }}" style="max-width:6em">
+      <input name="qty" inputmode="decimal" value="1" aria-label="{{ "Quantity"|t }}" class="qty">
       <button class="btn">{{ "Use"|t }}</button>
       <button class="btn danger" name="waste" value="1">{{ "Thrown away"|t }}</button>
     </form>
@@ -26,7 +26,7 @@
   {% if show_dose %}
   <h2 id="dose">{{ "Daily dose"|t }}{% if has_dose %} <span class="muted small">· {{ "lasts"|t }} {{ dose.days }} {{ "days"|t }}</span>{% endif %}</h2>
   <form method="post" action="/items/{{ item.id }}/dose" class="card pad stack">
-    <p class="muted small" style="margin:0">{{ "Vorrat never suggests a medicine or a dose. Enter what your doctor, pharmacist or vet told you."|t }}</p>
+    <p class="muted small m0">{{ "Vorrat never suggests a medicine or a dose. Enter what your doctor, pharmacist or vet told you."|t }}</p>
     <div class="grid2">
       <label>{{ "For"|t }} <select name="member_id"><option value="">—</option>{% for (id, label, sel) in members %}<option value="{{ id }}" {% if *sel %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
       <label>{{ "Form"|t }} <select name="form"><option value="">—</option>{% for x in forms %}<option value="{{ x }}" {% if dose.form == **x %}selected{% endif %}>{{ x|t }}</option>{% endfor %}</select></label>
@@ -45,7 +45,7 @@
   <h2>{{ "Batches"|t }}</h2>
   <div class="card"><ul class="list">
     {% for b in batches %}<li>{% include "_batch_row.html" %}
-      <div class="flex pad" style="padding-top:0">
+      <div class="flex pad pt0">
         <form method="post" action="/batches/{{ b.id }}/open" class="inline"><button class="btn small">{{ "Opened"|t }}</button></form>
         <form method="post" action="/batches/{{ b.id }}/delete" class="inline"><input type="hidden" name="back" value="{{ back_to }}"><button class="btn small danger">{{ "Remove batch"|t }}</button></form>
       </div></li>
@@ -58,7 +58,7 @@
       <label>{{ "Quantity"|t }} <input name="qty" inputmode="decimal" value="{{ restock_qty }}"></label>
       <label>{{ "Expires"|t }} <input type="date" name="expires_on"></label>
     </div>
-    {% if let Some((label, date)) = expiry_hint %}<p class="muted small" style="margin:0">{{ "Usually keeps about"|t }} {{ label }}: {{ "around"|t }} {{ date }}.</p>{% endif %}
+    {% if let Some((label, date)) = expiry_hint %}<p class="muted small m0">{{ "Usually keeps about"|t }} {{ label }}: {{ "around"|t }} {{ date }}.</p>{% endif %}
     <div class="grid2">
       <label>{{ "Location"|t }} <select name="location_id"><option value="">—</option>
         {% for l in locations %}<option value="{{ l.id }}" {% if item.default_location_id == Some(l.id.clone()) %}selected{% endif %}>{{ l.path }}</option>{% endfor %}</select></label>
@@ -70,7 +70,7 @@
   {% if item.kind != "document" %}
   <h2>{{ "Minimum"|t }}</h2>
   <form method="post" action="/items/{{ item.id }}/minimum" class="card pad flex">
-    <input name="min_qty" inputmode="decimal" value="{{ min_qty }}" aria-label="{{ "Minimum quantity"|t }}" style="max-width:8em">
+    <input name="min_qty" inputmode="decimal" value="{{ min_qty }}" aria-label="{{ "Minimum quantity"|t }}" class="qty-wide">
     <span class="muted small grow">{{ "Warn me when stock drops below this."|t }}</span>
     <button class="btn">{{ "Save"|t }}</button>
   </form>
@@ -84,7 +84,7 @@
   </ul></div>
   <form method="post" action="/items/{{ item.id }}/attachments" enctype="multipart/form-data" class="card pad stack mt">
     <input type="file" name="file" accept="image/jpeg,image/png,image/webp,application/pdf" required aria-label="{{ "File"|t }}">
-    <label class="small flex" style="align-items:center"><input type="checkbox" name="as_picture" value="1" style="width:auto;margin:0"> {{ "Use as the item's picture"|t }}</label>
+    <label class="small flex"><input type="checkbox" name="as_picture" value="1"> {{ "Use as the item's picture"|t }}</label>
     <button class="btn block">{{ "Upload"|t }}</button>
   </form>
 

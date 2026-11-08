@@ -2,7 +2,7 @@
   <a class="row" href="/items/{{ b.item_id }}">
     {% let t = b %}{% include "_thumb.html" %}
     <div class="grow"><div class="title">{{ b.name }}</div><div class="sub">{{ b.sub }}</div></div>
-    <span class="pill {{ b.status }}">{{ b.when }}</span>
+    <span class="pill {{ b.status }}">{% if b.status == "expired" %}{% let icon = "crit" %}{% include "_icon.html" %}<span class="vh">{{ "Expired"|t }}</span>{% else if b.status == "urgent" || b.status == "soon" %}{% let icon = "warn" %}{% include "_icon.html" %}<span class="vh">{{ "Expires soon"|t }}</span>{% endif %}{{ b.when }}</span>
   </a>
   {% if b.can_use && (b.status == "expired" || b.status == "urgent") %}
   <div class="row-actions">

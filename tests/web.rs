@@ -1344,3 +1344,29 @@ async fn plan_suggests_from_the_household() {
     let body = get_lang(&app, "/plan", "de").await;
     assert!(body.contains("Vorschläge für deinen Haushalt") && body.contains("Wasser für Tiere"));
 }
+
+#[tokio::test]
+async fn stock_filters_and_home_attention() {
+    let (app, st) = app();
+    let low = common::item(&st.store, "Lentils");
+    st.store.set_min_qty(low, 3.0).unwrap();
+    st.store
+        .add_batch(low, 1.0, common::d(90), None, None)
+        .unwrap();
+    let fine = common::item(&st.store, "Rice");
+    st.store
+        .add_batch(fine, 5.0, common::d(300), None, None)
+        .unwrap();
+
+    let (_, all) = get(&app, "/items").await;
+    assert!(all.contains("Lentils") && all.contains("Rice"));
+    let (_, only_low) = get(&app, "/items?low=1").await;
+    assert!(only_low.contains("Lentils") && !only_low.contains(">Rice<"));
+    let (_, none) = get(&app, "/items?q=nothing-like-this").await;
+    assert!(none.contains("Nothing matches."));
+
+    let (_, home) = get(&app, "/").await;
+    assert!(home.contains("Needs attention"));
+    assert!(home.contains("Lentils"), "running low is on Home");
+    assert!(home.contains("aria-current=\"page\""), "current tab marked");
+}
