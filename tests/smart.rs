@@ -24,6 +24,7 @@ fn backdate(raw: &rusqlite::Connection, item: i64, days_ago: u64) {
     .unwrap();
 }
 
+/// A wildly different date makes the history inconsistent: say nothing.
 #[test]
 fn shelf_life_needs_agreeing_purchases() {
     let (_d, s, raw) = file_store();
@@ -37,7 +38,6 @@ fn shelf_life_needs_agreeing_purchases() {
     s.add_batch(i, 1.0, d(104), None, None).unwrap();
     let sl = smart::shelf_life(&s, i).unwrap().unwrap();
     assert_eq!((sl.days, sl.n), (102, 2));
-    // A wildly different date makes it inconsistent: say nothing.
     s.add_batch(i, 1.0, d(400), None, None).unwrap();
     assert_eq!(smart::shelf_life(&s, i).unwrap(), None);
     drop(raw);
@@ -111,6 +111,7 @@ fn usual_qty_when_last_two_agree() {
     assert_eq!(smart::usual_qty(&s, i).unwrap(), None);
 }
 
+/// While the item is still in stock there is no suggestion yet.
 #[test]
 fn buy_pattern_and_suggestion() {
     let (_d, s, raw) = file_store();
@@ -121,7 +122,6 @@ fn buy_pattern_and_suggestion() {
     }
     let bp = smart::buy_pattern(&s, i, today()).unwrap().unwrap();
     assert_eq!((bp.every, bp.n), (7.0, 4));
-    // Still in stock: no suggestion yet.
     assert!(smart::shopping_suggestions(&s, today()).unwrap().is_empty());
     s.consume(i, 4.0, None, false).unwrap();
     let sug = smart::shopping_suggestions(&s, today()).unwrap();

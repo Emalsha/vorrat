@@ -34,6 +34,7 @@ function key(url) {
   return u.toString();
 }
 
+// Fixed files: cache first. Pages: network first, the saved copy when offline.
 self.addEventListener("fetch", (e) => {
   const req = e.request;
   const url = new URL(req.url);
@@ -41,7 +42,6 @@ self.addEventListener("fetch", (e) => {
   if (SKIP.some((p) => url.pathname.startsWith(p))) return;
 
   if (url.pathname.startsWith("/static/") || url.pathname.startsWith("/files/")) {
-    // Fixed files: cache first.
     e.respondWith(
       caches.match(req).then((hit) => hit || fetch(req).then((res) => {
         if (res.ok) {
@@ -54,7 +54,6 @@ self.addEventListener("fetch", (e) => {
     return;
   }
 
-  // Pages: network first, the saved copy when offline.
   e.respondWith(
     fetch(req)
       .then((res) => {

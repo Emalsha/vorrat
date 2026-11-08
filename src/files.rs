@@ -35,7 +35,8 @@ pub fn random_hex(bytes: usize) -> String {
     b.iter().map(|x| format!("{x:02x}")).collect()
 }
 
-/// Random bytes from the OS.
+/// Random bytes from the OS. Without `/dev/urandom` (not Unix) it falls back
+/// to the time mixed with an address: names only need to be unique.
 fn getrandom(buf: &mut [u8]) {
     use std::io::Read;
     if let Ok(mut f) = std::fs::File::open("/dev/urandom") {
@@ -43,7 +44,6 @@ fn getrandom(buf: &mut [u8]) {
             return;
         }
     }
-    // Fallback (non-Unix): time + address entropy; names only need to be unique.
     let seed = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_nanos())

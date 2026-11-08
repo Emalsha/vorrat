@@ -170,8 +170,10 @@ const SAMPLES: &[Sample] = &[
     ),
 ];
 
+/// Fills the store with a sample household: two adults (the default), a child
+/// and a cat, stock in several places, and a daily medicine that names no real
+/// product.
 pub fn seed(store: &Store, today: NaiveDate) -> Result<()> {
-    // A household of two adults (the default), a child and a cat.
     if store.household_counts()?.1 == 0 {
         store.add_member("person", "child", "", &[])?;
         store.add_member("pet", "cat", "", &[])?;
@@ -213,7 +215,6 @@ pub fn seed(store: &Store, today: NaiveDate) -> Result<()> {
             store.set_preset(id, preset)?;
         }
     }
-    // A medicine someone takes every day, without naming a real one.
     let adult = store.members()?.into_iter().find(|m| m.kind == "person");
     let renew = today + Days::new(30);
     let med = store.add_medicine(

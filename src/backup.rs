@@ -12,6 +12,8 @@ use chrono::NaiveDate;
 
 use crate::db::Store;
 
+/// Copies the database and the files folder into `backup_dir`, then removes
+/// copies older than `keep_days` days.
 pub fn run_backup(
     store: &Store,
     files_dir: &Path,
@@ -42,7 +44,6 @@ pub fn run_backup(
     }
     fs::rename(&ftmp, &files_out)?;
 
-    // Keep `keep_days` days of copies.
     let cutoff = SystemTime::now() - Duration::from_secs(u64::from(keep_days) * 86_400);
     for e in fs::read_dir(backup_dir)?.flatten() {
         let name = e.file_name();

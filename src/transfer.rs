@@ -10,6 +10,8 @@ use crate::db::{NewItem, Store, EXPORT_TABLES};
 
 /// Everything the household entered, one JSON document. Attachments are
 /// listed by file name; the files themselves are in the backup archive.
+/// Medicines and health needs are the most private part, so the file says so
+/// when it holds them.
 pub fn export_json(store: &Store, now: &str) -> Result<serde_json::Value> {
     let mut tables = serde_json::Map::new();
     for t in EXPORT_TABLES {
@@ -19,7 +21,6 @@ pub fn export_json(store: &Store, now: &str) -> Result<serde_json::Value> {
             serde_json::Value::Array(rows.into_iter().map(Into::into).collect()),
         );
     }
-    // Medicines and health needs are the most private part: say so in the file.
     let health = ["doses", "members"].iter().any(|t| {
         tables[*t].as_array().is_some_and(|rows| {
             rows.iter()
@@ -109,6 +110,8 @@ pub fn export_csv(store: &Store) -> Result<String> {
     Ok(out)
 }
 
+/// One CSV line. Spreadsheets run cells starting with = + - @ as formulas, so
+/// such cells get a leading quote to keep them text (CSV injection).
 fn push_row(out: &mut String, cells: impl IntoIterator<Item = String>) {
     let mut first = true;
     for c in cells {
@@ -116,8 +119,6 @@ fn push_row(out: &mut String, cells: impl IntoIterator<Item = String>) {
             out.push(',');
         }
         first = false;
-        // Spreadsheets run cells starting with = + - @ as formulas; a leading
-        // quote keeps them text (CSV injection).
         let c = if c.starts_with(['=', '+', '-', '@']) && c.parse::<f64>().is_err() {
             format!("'{c}")
         } else {
@@ -183,12 +184,14 @@ pub fn parse_csv(text: &str) -> Vec<Vec<String>> {
     rows
 }
 
+/// What a CSV import did.
+///
+/// - `skipped`: (line number, why)
 #[derive(Debug, Default, PartialEq)]
 pub struct ImportReport {
     pub rows: usize,
     pub new_items: usize,
     pub batches: usize,
-    /// (line number, why)
     pub skipped: Vec<(usize, String)>,
 }
 

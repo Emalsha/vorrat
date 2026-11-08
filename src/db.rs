@@ -46,8 +46,19 @@ pub const CATEGORIES: &[&str] = &[
     "other",
 ];
 
+/// The schema, one entry per version; `PRAGMA user_version` says how many have
+/// run. Never change an entry, only add one.
+///
+/// - v1: the first tables.
+/// - v2: extra barcodes, open-days shelf life, Nutri-Score, structured expiry on
+///   purchase events, undo, dismissed suggestions.
+/// - v3: the household profile. People and pets, one row each; the plan scales
+///   from it instead of the single "people" setting. Existing households get one
+///   adult per person they had set.
+/// - v4: medicine and essentials. A medicine is an item with a daily dose for one
+///   person or pet; reminders about it are sent once per mark. Items can stand
+///   for an entry of the first-aid or essentials checklist.
 const SCHEMA: &[&str] = &[
-    // v1
     r#"
     CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
     CREATE TABLE locations (
@@ -130,8 +141,6 @@ const SCHEMA: &[&str] = &[
         sent_at TEXT NOT NULL
     );
     "#,
-    // v2: extra barcodes, open-days shelf life, Nutri-Score, structured expiry on
-    // purchase events, undo, dismissed suggestions.
     r#"
     ALTER TABLE items ADD COLUMN open_days INTEGER;
     ALTER TABLE items ADD COLUMN nutriscore TEXT;
@@ -151,9 +160,6 @@ const SCHEMA: &[&str] = &[
     );
     CREATE TABLE dismissed (key TEXT PRIMARY KEY, until TEXT NOT NULL);
     "#,
-    // v3: the household profile. People and pets, one row each; the plan scales
-    // from it instead of the single "people" setting. Existing households get
-    // one adult per person they had set.
     r#"
     CREATE TABLE members (
         id INTEGER PRIMARY KEY,
@@ -172,9 +178,6 @@ const SCHEMA: &[&str] = &[
         )
         SELECT 'person', 'adult', i FROM n;
     "#,
-    // v4: medicine and essentials. A medicine is an item with a daily dose for
-    // one person or pet; reminders about it are sent once per mark. Items can
-    // stand for an entry of the first-aid or essentials checklist.
     r#"
     CREATE TABLE doses (
         item_id INTEGER PRIMARY KEY REFERENCES items(id) ON DELETE CASCADE,
@@ -231,31 +234,34 @@ pub const TARGET_MODES: &[&str] = &[
     "fixed",
 ];
 
+/// A person or pet in the household.
+///
+/// - `kind`: `person` or `pet`.
+/// - `type`: one of [`PERSON_TYPES`] or [`PET_TYPES`].
+/// - `needs`: entries of [`NEEDS`].
 #[derive(Debug, Clone, Serialize)]
 pub struct Member {
     pub id: i64,
-    /// `person` or `pet`.
     pub kind: String,
-    /// One of [`PERSON_TYPES`] or [`PET_TYPES`].
     pub r#type: String,
     pub name: Option<String>,
-    /// Entries of [`NEEDS`].
     pub needs: Vec<String>,
 }
 
 /// A daily dose: what makes an item a medicine someone takes.
+///
+/// - `member_id`: the person or pet it is for; `None` when not set or they were removed.
+/// - `form`: one of [`MED_FORMS`], or empty.
+/// - `strength`: as written on the pack ("400 mg"); free text.
+/// - `per_day`: in the item's unit.
+/// - `renew_on`: when the prescription needs renewing.
 #[derive(Debug, Clone, Serialize)]
 pub struct Dose {
     pub item_id: i64,
-    /// The person or pet it is for; `None` when not set or they were removed.
     pub member_id: Option<i64>,
-    /// One of [`MED_FORMS`], or empty.
     pub form: String,
-    /// As written on the pack ("400 mg"); free text.
     pub strength: String,
-    /// In the item's unit.
     pub per_day: f64,
-    /// When the prescription needs renewing.
     pub renew_on: Option<String>,
 }
 
@@ -345,17 +351,21 @@ pub fn today() -> NaiveDate {
     Local::now().date_naive()
 }
 
-// -- rows ---------------------------------------------------------------------
-
+/// A place where things are kept.
+///
+/// - `path`: breadcrumb, e.g. "Kitchen › Pantry".
 #[derive(Debug, Clone, Serialize)]
 pub struct Location {
     pub id: i64,
     pub name: String,
     pub parent_id: Option<i64>,
-    /// Breadcrumb, e.g. "Kitchen › Pantry".
     pub path: String,
 }
 
+/// Something the household keeps, with its stock.
+///
+/// - `preset`: the checklist entry this item stands for (see `essentials.rs`).
+/// - `total`: sum of all batches.
 #[derive(Debug, Clone, Serialize)]
 pub struct Item {
     pub id: i64,
@@ -373,10 +383,8 @@ pub struct Item {
     pub image: Option<String>,
     pub open_days: Option<i64>,
     pub nutriscore: Option<String>,
-    /// The checklist entry this item stands for (see `essentials.rs`).
     pub preset: Option<String>,
     pub created_at: String,
-    /// Sum of all batches.
     pub total: f64,
     pub next_expiry: Option<String>,
     pub batch_count: i64,
@@ -486,12 +494,14 @@ pub struct Price {
     pub unit_price: Option<f64>,
 }
 
+/// A line of the emergency plan.
+///
+/// - `mode`: one of [`TARGET_MODES`].
 #[derive(Debug, Clone, Serialize)]
 pub struct Target {
     pub id: i64,
     pub label: String,
     pub category: String,
-    /// One of [`TARGET_MODES`].
     pub mode: String,
     pub amount: f64,
     pub unit: String,
@@ -522,6 +532,8 @@ pub struct Event {
 }
 
 /// Fields for a new item. Everything but the name is optional.
+///
+/// - `image`: file name in the data `files/` folder (a picture from the barcode lookup).
 #[derive(Debug, Clone, Default, serde::Deserialize)]
 pub struct NewItem {
     pub name: String,
@@ -536,7 +548,6 @@ pub struct NewItem {
     pub default_location_id: Option<i64>,
     pub notes: Option<String>,
     pub open_days: Option<i64>,
-    /// File name in the data `files/` folder (a picture from the barcode lookup).
     pub image: Option<String>,
     pub nutriscore: Option<String>,
 }
@@ -588,8 +599,6 @@ pub struct ItemQuery<'a> {
     pub in_stock_only: bool,
     pub sort: Sort,
 }
-
-// -- store --------------------------------------------------------------------
 
 /// Thread-safe handle on the database: one connection for writes, and a few
 /// read-only ones so page loads run in parallel (SQLite WAL mode lets readers
@@ -655,12 +664,15 @@ impl Store {
         m.lock().unwrap_or_else(|e| e.into_inner())
     }
 
+    /// The writer connection. A panic while holding the lock leaves SQLite itself
+    /// consistent (statements are atomic), so a poisoned lock is safe to reuse.
     fn c(&self) -> MutexGuard<'_, Connection> {
-        // A panic while holding the lock leaves SQLite itself consistent
-        // (statements are atomic), so a poisoned lock is safe to reuse.
         self.conn.lock().unwrap_or_else(|e| e.into_inner())
     }
 
+    /// Runs the schema versions not yet applied. When settings did not exist yet
+    /// as v3 ran, the household starts with two adults. Indexes are speed-ups, not
+    /// a schema version, so older versions can still open the file.
     fn migrate(&self) -> Result<()> {
         let mut c = self.c();
         let ver: usize = c.query_row("PRAGMA user_version", [], |r| r.get::<_, i64>(0))? as usize;
@@ -688,12 +700,10 @@ impl Store {
                     params![label, cat, mode, amount, unit, i as i64],
                 )?;
             }
-            // Settings didn't exist yet when v3 ran: start with two adults.
             tx.execute_batch(
                 "INSERT INTO members (kind, type, sort) VALUES ('person', 'adult', 1), ('person', 'adult', 2);",
             )?;
         }
-        // Speed-ups. Not a schema version, so older versions can still open the file.
         tx.execute_batch(
             "CREATE INDEX IF NOT EXISTS events_ts ON events(ts);
              CREATE INDEX IF NOT EXISTS batches_expiry ON batches(expires_on);",
@@ -761,8 +771,6 @@ impl Store {
             .query_row("PRAGMA user_version", [], |r| r.get(0))?)
     }
 
-    // -- settings -------------------------------------------------------------
-
     pub fn setting(&self, key: &str) -> Result<Option<String>> {
         Ok(self
             .c()
@@ -779,8 +787,6 @@ impl Store {
             .and_then(|v| v.trim().parse().ok())
             .unwrap_or(default)
     }
-
-    // -- household profile ----------------------------------------------------
 
     pub fn members(&self) -> Result<Vec<Member>> {
         let c = self.r();
@@ -863,8 +869,6 @@ impl Store {
         self.set_setting("people", &people.to_string())
     }
 
-    // -- medicine -------------------------------------------------------------
-
     pub fn doses(&self) -> Result<Vec<Dose>> {
         let c = self.r();
         let mut st = c.prepare(
@@ -887,6 +891,7 @@ impl Store {
     }
 
     /// Add or change the daily dose of an item, which makes it a medicine.
+    /// A new dose or date starts the reminders afresh.
     pub fn set_dose(
         &self,
         item_id: i64,
@@ -916,7 +921,6 @@ impl Store {
         if n == 0 {
             bail!("no such item");
         }
-        // A new dose or date starts the reminders afresh.
         c.execute("DELETE FROM notified_dose WHERE item_id = ?1", [item_id])?;
         Ok(())
     }
@@ -929,6 +933,7 @@ impl Store {
     }
 
     /// A new medicine item with its dose, in one step.
+    /// The dose is checked before the item exists, so a bad form adds nothing.
     #[allow(clippy::too_many_arguments)]
     pub fn add_medicine(
         &self,
@@ -940,7 +945,6 @@ impl Store {
         per_day: f64,
         renew_on: Option<NaiveDate>,
     ) -> Result<i64> {
-        // Check the dose before the item exists, so a bad form adds nothing.
         self.validate_dose(member_id, form, strength, per_day)?;
         let id = self.add_item(NewItem {
             name: name.into(),
@@ -1008,8 +1012,6 @@ impl Store {
         Ok(())
     }
 
-    // -- checklists -----------------------------------------------------------
-
     /// Let an item stand for a checklist entry, or for none.
     pub fn set_preset(&self, item_id: i64, key: Option<&str>) -> Result<()> {
         if let Some(k) = key {
@@ -1035,9 +1037,8 @@ impl Store {
         Ok(())
     }
 
-    // -- locations ------------------------------------------------------------
-
     /// All locations with a breadcrumb path, sorted by path.
+    /// Walking up the tree guards against cycles.
     pub fn locations(&self) -> Result<Vec<Location>> {
         let rows: Vec<(i64, String, Option<i64>)> = {
             let c = self.r();
@@ -1054,7 +1055,6 @@ impl Store {
         let mut out: Vec<Location> = rows
             .iter()
             .map(|(id, name, parent)| {
-                // Walk up the tree, guarding against cycles.
                 let mut parts = vec![name.clone()];
                 let mut seen = HashSet::from([*id]);
                 let mut cur = *parent;
@@ -1096,12 +1096,12 @@ impl Store {
         Ok(c.last_insert_rowid())
     }
 
+    /// A location can't sit inside itself or inside one of its own children.
     pub fn rename_location(&self, id: i64, name: &str, parent_id: Option<i64>) -> Result<()> {
         let name = name.trim();
         if name.is_empty() {
             bail!("location name is empty");
         }
-        // A location can't sit inside itself or inside one of its own children.
         if let Some(p) = parent_id {
             let mut cur = Some(p);
             let mut hops = 0;
@@ -1141,8 +1141,6 @@ impl Store {
             .execute("DELETE FROM locations WHERE id = ?1", [id])?;
         Ok(())
     }
-
-    // -- items ----------------------------------------------------------------
 
     pub fn add_item(&self, f: NewItem) -> Result<i64> {
         let name = f.name.trim();
@@ -1387,8 +1385,6 @@ impl Store {
         Ok(out.into_iter().take(limit).map(|(_, i)| i).collect())
     }
 
-    // -- batches --------------------------------------------------------------
-
     /// Batches, soonest expiry first (FEFO order), undated last.
     pub fn batches(&self, item_id: Option<i64>) -> Result<Vec<Batch>> {
         let c = self.r();
@@ -1561,8 +1557,6 @@ impl Store {
         Ok(None)
     }
 
-    // -- undo -----------------------------------------------------------------
-
     /// Snapshot of an item's stock before an action, so the action can be undone.
     pub fn checkpoint(&self, item_id: i64) -> Result<serde_json::Value> {
         let c = self.c();
@@ -1679,8 +1673,6 @@ impl Store {
         Ok((Some(iid), format!("Undone: {label}")))
     }
 
-    // -- attachments ----------------------------------------------------------
-
     pub fn add_attachment(
         &self,
         item_id: i64,
@@ -1746,8 +1738,6 @@ impl Store {
             .collect())
     }
 
-    // -- targets (emergency plan) ---------------------------------------------
-
     pub fn targets(&self) -> Result<Vec<Target>> {
         let c = self.r();
         let mut st = c.prepare_cached(
@@ -1810,8 +1800,6 @@ impl Store {
         Ok(())
     }
 
-    // -- shopping -------------------------------------------------------------
-
     pub fn shopping(&self) -> Result<Vec<ShoppingEntry>> {
         let c = self.r();
         let mut st = c.prepare_cached(
@@ -1865,8 +1853,6 @@ impl Store {
         Ok(())
     }
 
-    // -- history --------------------------------------------------------------
-
     pub fn log(
         &self,
         item_id: Option<i64>,
@@ -1917,8 +1903,6 @@ impl Store {
             [limit],
         )
     }
-
-    // -- raw history for learned hints ---------------------------------------
 
     /// (timestamp, qty, expires_on) of an item's events of one kind, newest first.
     #[allow(clippy::type_complexity)]
@@ -1974,8 +1958,6 @@ impl Store {
         Ok(v)
     }
 
-    // -- prices ---------------------------------------------------------------
-
     /// Purchases with a price, newest first, with the price per unit.
     pub fn prices(&self, item_id: i64, limit: i64) -> Result<Vec<Price>> {
         let c = self.r();
@@ -2018,8 +2000,6 @@ impl Store {
             |r| r.get(0),
         )?)
     }
-
-    // -- reminder bookkeeping -------------------------------------------------
 
     pub fn notified_thresholds(&self, batch_id: i64) -> Result<HashSet<i64>> {
         let c = self.r();

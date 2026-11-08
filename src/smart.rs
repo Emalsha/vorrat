@@ -3,7 +3,8 @@
 //! hint, so each function returns `None` when the data is thin or inconsistent,
 //! and every suggestion carries a short human reason.
 //!
-//! Nothing here changes data; the web layer decides how to show it.
+//! Nothing here changes data; the web layer decides how to show it. The
+//! thresholds sit together at the top so they are easy to tune.
 
 use std::collections::HashMap;
 
@@ -13,7 +14,6 @@ use serde::Serialize;
 
 use crate::db::{Item, Location, Store};
 
-// Thresholds, in one place so they're easy to tune.
 pub const SHELF_MIN_SAMPLES: usize = 2;
 pub const SHELF_MAX_SPREAD: f64 = 0.2;
 pub const LOCATION_MIN_ITEMS: usize = 3;

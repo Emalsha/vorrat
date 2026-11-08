@@ -34,13 +34,13 @@ fn migrate_is_idempotent() {
     );
 }
 
+/// The upgrade to v4 turns the "people" setting (2) into two adults.
 #[test]
 fn opens_a_schema_v2_database() {
     let dir = tempfile::tempdir().unwrap();
     let p = dir.path().join("vorrat.db");
     std::fs::copy("tests/fixtures/schema-v2.db", &p).unwrap();
     let s = Store::open(&p).unwrap();
-    // Upgraded to v4: the "people" setting (2) became two adults.
     assert_eq!(s.schema_version().unwrap(), 4);
     assert!(s.doses().unwrap().is_empty());
     assert!(s.all_items().unwrap().iter().all(|i| i.preset.is_none()));
@@ -83,13 +83,14 @@ fn location_paths() {
     assert!(paths.contains(&"House › Pantry › Shelf 2".to_string()));
 }
 
+/// Undated stock is used last.
 #[test]
 fn consume_takes_earliest_expiry_first() {
     let s = store();
     let i = item(&s, "Milk");
     let late = s.add_batch(i, 2.0, d(10), None, None).unwrap();
     let early = s.add_batch(i, 1.0, d(2), None, None).unwrap();
-    s.add_batch(i, 5.0, None, None, None).unwrap(); // undated goes last
+    s.add_batch(i, 5.0, None, None, None).unwrap();
     assert_eq!(s.consume(i, 2.0, None, false).unwrap(), 2.0);
     let left: Vec<(i64, f64)> = s
         .batches(Some(i))
@@ -180,6 +181,7 @@ fn barcode_unique_and_blank_allowed() {
     );
 }
 
+/// LIKE wildcards in user input are just characters to search for, not SQL.
 #[test]
 fn search_matches_name_brand_category() {
     let s = store();
@@ -203,7 +205,6 @@ fn search_matches_name_brand_category() {
     assert_eq!(q("basm"), 1);
     assert_eq!(q("grains"), 1);
     assert_eq!(q("zzz"), 0);
-    // LIKE wildcards in user input are just characters to search for, not SQL.
     assert_eq!(q("'; DROP TABLE items; --"), 0);
     assert_eq!(s.all_items().unwrap().len(), 2);
 }
@@ -261,6 +262,7 @@ fn undo_refused_after_later_change() {
     assert!(s.undo(&t).unwrap().1.starts_with("Can't undo"));
 }
 
+/// Opening never moves the date later than the printed one.
 #[test]
 fn open_batch_shortens_date() {
     let s = store();
@@ -279,7 +281,6 @@ fn open_batch_shortens_date() {
         s.notified_thresholds(b).unwrap().is_empty(),
         "reminders restart"
     );
-    // Never later than the printed date.
     let b2 = s.add_batch(i, 1.0, d(2), None, None).unwrap();
     assert_eq!(s.open_batch(b2, today()).unwrap(), None);
 }
@@ -342,6 +343,7 @@ fn locations_cannot_loop() {
     s.rename_location(b, "Bee", None).unwrap();
 }
 
+/// Each read comes straight after its write, through a reader connection.
 #[test]
 fn readers_see_writes_at_once_and_work_in_parallel() {
     let dir = tempfile::tempdir().unwrap();
@@ -349,7 +351,6 @@ fn readers_see_writes_at_once_and_work_in_parallel() {
     for n in 0..50 {
         let i = item(&s, &format!("Item {n}"));
         s.add_batch(i, 1.0, None, None, None).unwrap();
-        // Read straight after the write, through a reader connection.
         assert_eq!(s.item(i).unwrap().unwrap().total, 1.0);
     }
     let handles: Vec<_> = (0..8)
@@ -449,6 +450,7 @@ fn v2_upgrade_turns_the_people_count_into_adults() {
     assert_eq!(s.household_counts().unwrap(), (5, 0));
 }
 
+/// Wrong combinations, such as a person of type dog, are refused.
 #[test]
 fn household_members_add_edit_remove() {
     let s = store();
@@ -471,7 +473,6 @@ fn household_members_add_edit_remove() {
         .iter()
         .any(|m| m.id == kid && m.r#type == "teen" && m.needs.is_empty()));
 
-    // Wrong combinations are refused.
     assert!(s.add_member("person", "dog", "", &[]).is_err());
     assert!(s.add_member("pet", "cat", "", &["vegan".into()]).is_err());
     assert!(s

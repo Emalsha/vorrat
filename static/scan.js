@@ -1,5 +1,6 @@
 // Barcode scanner for /scan. Uses the bundled ZXing build (no CDN). Kept in its
-// own file so the Content-Security-Policy can forbid inline scripts.
+// own file so the Content-Security-Policy can forbid inline scripts. iOS grants
+// the camera only after a tap, so the choice is remembered for next time.
 (function () {
   var box = document.getElementById('scanner');
   if (!box || !window.ZXing) return;
@@ -83,6 +84,5 @@
     try { sessionStorage.setItem('vorrat-cam', '1'); } catch (e) {}
     start();
   });
-  // iOS grants the camera only after a tap, but remember the choice for next time.
   try { if (sessionStorage.getItem('vorrat-cam') === '1') start(); } catch (e) {}
 })();

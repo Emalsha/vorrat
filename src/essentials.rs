@@ -17,19 +17,20 @@ use crate::db::{Dose, Item, Member, Store};
 use crate::rules::{Dated, Snapshot, Status};
 
 /// One entry of a checklist.
+///
+/// - `key`: stored in `items.preset`; never change one.
+/// - `label`: english; translated on the page. Also the name of an item made from it.
+/// - `category`: the category an item made from it gets.
+/// - `per_person`: one for each person instead of one for the home.
+/// - `named_by`: country codes of the verified official guides that name it.
+/// - `applies_to`: suggestions only: the person or pet types and needs that switch it on.
 #[derive(Debug, Clone, Copy, Serialize)]
 pub struct Check {
-    /// Stored in `items.preset`; never change one.
     pub key: &'static str,
-    /// English; translated on the page. Also the name of an item made from it.
     pub label: &'static str,
-    /// The category an item made from it gets.
     pub category: &'static str,
-    /// One for each person instead of one for the home.
     pub per_person: bool,
-    /// Country codes of the verified official guides that name it.
     pub named_by: &'static [&'static str],
-    /// Suggestions only: the person or pet types and needs that switch it on.
     pub applies_to: &'static [&'static str],
 }
 
@@ -331,15 +332,16 @@ pub fn find(key: &str) -> Option<&'static Check> {
 }
 
 /// Where a checklist entry stands in this household.
+///
+/// - `items`: the items standing for it.
+/// - `have`: usable (not expired) amount, counted in the items' own units.
+/// - `expired`: some stock has expired.
 #[derive(Debug, Clone, Serialize)]
 pub struct CheckState {
     pub check: Check,
-    /// The items standing for it.
     pub items: Vec<(i64, String)>,
-    /// Usable (not expired) amount, counted in the items' own units.
     pub have: f64,
     pub need: f64,
-    /// Some stock has expired.
     pub expired: bool,
 }
 
@@ -388,17 +390,18 @@ pub fn checklist(list: &[Check], snap: &Snapshot, people: i64) -> Vec<CheckState
 }
 
 /// A medicine someone takes, with how long the stock lasts.
+///
+/// - `have`: usable stock in the item's unit.
+/// - `days`: days the usable stock lasts at the daily dose.
+/// - `next_expiry`: the soonest date some stock expires, among usable batches.
+/// - `renew_in`: days to the prescription renewal; negative when overdue.
 #[derive(Debug, Clone, Serialize)]
 pub struct Medicine {
     pub item: Item,
     pub dose: Dose,
-    /// Usable stock in the item's unit.
     pub have: f64,
-    /// Days the usable stock lasts at the daily dose.
     pub days: f64,
-    /// The soonest date some stock expires, among usable batches.
     pub next_expiry: Option<String>,
-    /// Days to the prescription renewal; negative when overdue.
     pub renew_in: Option<i64>,
 }
 
@@ -466,10 +469,11 @@ pub fn member_labels(members: &[Member]) -> HashMap<i64, String> {
 }
 
 /// A suggestion for this household, and who it is for.
+///
+/// - `who`: labels of the people and pets that switched it on ("Baby 1", "Rex").
 #[derive(Debug, Clone, Serialize)]
 pub struct Suggestion {
     pub state: CheckState,
-    /// Labels of the people and pets that switched it on ("Baby 1", "Rex").
     pub who: Vec<String>,
 }
 

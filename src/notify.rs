@@ -18,7 +18,8 @@ pub type BoxFut<T> = Pin<Box<dyn Future<Output = T> + Send>>;
 /// Sends (title, body); true on success. A function so tests can swap it.
 pub type Notifier = Arc<dyn Fn(String, String) -> BoxFut<bool> + Send + Sync>;
 
-/// The ntfy notifier, or `None` when no topic is configured.
+/// The ntfy notifier, or `None` when no topic is configured. The title header
+/// is made safe with RFC 2047, which ntfy accepts for non-ASCII values.
 pub fn ntfy(cfg: &Config) -> Option<Notifier> {
     if cfg.ntfy_topic.is_empty() {
         return None;
@@ -34,7 +35,6 @@ pub fn ntfy(cfg: &Config) -> Option<Notifier> {
     Some(Arc::new(move |title: String, body: String| {
         let mut req = client
             .post(&url)
-            // ntfy accepts RFC 2047 for non-ASCII header values.
             .header("Title", header_safe(&title))
             .header("Tags", "canned_food")
             .body(body);

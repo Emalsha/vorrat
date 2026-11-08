@@ -285,6 +285,7 @@ async fn scanning_an_unknown_code_prefills_the_form() {
     assert!(loc(&r).contains("not+in") || loc(&r).contains("not%20in"));
 }
 
+/// A forged image name in the form is dropped, not stored.
 #[tokio::test]
 async fn files_cannot_escape_the_folder() {
     let (app, st) = app();
@@ -295,7 +296,6 @@ async fn files_cannot_escape_the_folder() {
     ] {
         assert_eq!(get(&app, p).await.0, StatusCode::NOT_FOUND, "{p}");
     }
-    // A forged image name in the form is dropped, not stored.
     post(
         &app,
         "/add",
@@ -365,6 +365,7 @@ fn multipart(name: &str, bytes: &[u8]) -> (String, Vec<u8>) {
     (format!("multipart/form-data; boundary={b}"), body)
 }
 
+/// Deleting the item removes its files from disk.
 #[tokio::test]
 async fn attachments_only_accept_real_pdfs_and_images() {
     let dir = tempfile::tempdir().unwrap();
@@ -407,7 +408,6 @@ async fn attachments_only_accept_real_pdfs_and_images() {
         .to_str()
         .unwrap()
         .starts_with("sandbox"));
-    // Deleting the item removes its files from disk.
     post(&app, &format!("/items/{id}/delete"), "", "same-origin").await;
     assert_eq!(
         std::fs::read_dir(dir.path().join("files")).unwrap().count(),
@@ -490,6 +490,7 @@ async fn link_a_scanned_code_to_an_existing_item() {
     assert!(body.contains("999"));
 }
 
+/// A free-text entry has no item to stock.
 #[tokio::test]
 async fn shopping_add_low_and_into_stock() {
     let (app, st) = app();
@@ -520,7 +521,6 @@ async fn shopping_add_low_and_into_stock() {
     assert_eq!(s, StatusCode::OK);
     assert!(body.contains("value=\"2\""), "qty prefilled");
 
-    // A free-text entry has no item to stock.
     let e = st.store.add_shopping("Candles", None, None).unwrap();
     let r = post(&app, &format!("/shopping/{e}/stock"), "", "same-origin").await;
     assert!(loc(&r).starts_with("/shopping"));
@@ -677,6 +677,7 @@ async fn api_writes_round_trip() {
     );
 }
 
+/// The pages don't need the token.
 #[tokio::test]
 async fn api_token_is_enforced_when_set() {
     let cfg =
@@ -697,7 +698,6 @@ async fn api_token_is_enforced_when_set() {
             .0,
         StatusCode::OK
     );
-    // The pages don't need it.
     assert_eq!(get(&app, "/").await.0, StatusCode::OK);
 }
 
@@ -837,13 +837,16 @@ async fn req(app: &axum::Router, r: Request<Body>) -> axum::response::Response {
     app.clone().oneshot(r).await.unwrap()
 }
 
+/// Pages send you to the login, with the way back. Writes and the API without a
+/// session or token are refused. The API token still works on its own. Wrong
+/// password, then the right one. Sign out ends the session for real. A forged
+/// cookie doesn't help.
 #[tokio::test]
 async fn sign_in_protects_everything_when_a_password_is_set() {
     let app = app_with(&[
         ("VORRAT_PASSWORD", "correct horse"),
         ("VORRAT_API_TOKEN", "tok"),
     ]);
-    // Pages send you to the login, with the way back.
     let r = get_resp(&app, "/items?q=rice").await;
     assert_eq!(r.status(), StatusCode::SEE_OTHER);
     assert_eq!(loc(&r), "/login?next=%2Fitems%3Fq%3Drice");
@@ -853,11 +856,9 @@ async fn sign_in_protects_everything_when_a_password_is_set() {
         get_resp(&app, "/export/vorrat.db").await.status(),
         StatusCode::SEE_OTHER
     );
-    // Writes and the API without a session or token are refused.
     let r = post(&app, "/shopping", "label=X", "same-origin").await;
     assert_eq!(r.status(), StatusCode::UNAUTHORIZED);
     assert_eq!(get(&app, "/api/v1/items").await.0, StatusCode::UNAUTHORIZED);
-    // The API token still works on its own.
     let r = req(
         &app,
         Request::get("/api/v1/items")
@@ -868,7 +869,6 @@ async fn sign_in_protects_everything_when_a_password_is_set() {
     .await;
     assert_eq!(r.status(), StatusCode::OK);
 
-    // Wrong password, then right one.
     let r = post(&app, "/login", "password=nope&next=%2Fplan", "same-origin").await;
     assert!(loc(&r).contains("Wrong"), "{}", loc(&r));
     assert!(r.headers().get("set-cookie").is_none());
@@ -900,7 +900,6 @@ async fn sign_in_protects_everything_when_a_password_is_set() {
         .to_bytes();
     assert!(String::from_utf8_lossy(&body).contains("/logout"));
 
-    // Sign out ends the session for real.
     let r = req(
         &app,
         Request::post("/logout")
@@ -912,7 +911,6 @@ async fn sign_in_protects_everything_when_a_password_is_set() {
     .await;
     assert_eq!(loc(&r), "/login");
     assert_eq!(req(&app, with("/")).await.status(), StatusCode::SEE_OTHER);
-    // A forged cookie doesn't help.
     let r = req(
         &app,
         Request::get("/")
@@ -924,6 +922,7 @@ async fn sign_in_protects_everything_when_a_password_is_set() {
     assert_eq!(r.status(), StatusCode::SEE_OTHER);
 }
 
+/// Cross-site login attempts are refused outright.
 #[tokio::test]
 async fn login_cannot_redirect_elsewhere_and_locks_out_guessing() {
     let app = app_with(&[("VORRAT_PASSWORD", "pw")]);
@@ -944,7 +943,6 @@ async fn login_cannot_redirect_elsewhere_and_locks_out_guessing() {
         "{}",
         loc(&r)
     );
-    // Cross-site login attempts are refused outright.
     assert_eq!(
         post(&app, "/login", "password=pw", "cross-site")
             .await
@@ -960,6 +958,7 @@ async fn without_a_password_there_is_no_login() {
     assert_eq!(get(&app, "/").await.0, StatusCode::OK);
 }
 
+/// Normal use still works. Outside demo mode, no banner.
 #[tokio::test]
 async fn demo_mode_has_sample_data_and_blocks_server_changes() {
     let cfg =
@@ -988,10 +987,8 @@ async fn demo_mode_has_sample_data_and_blocks_server_changes() {
         let r = post(&app, p, "lang=de", "same-origin").await;
         assert!(loc(&r).contains("demo"), "{p}: {}", loc(&r));
     }
-    // Normal use still works.
     let r = post(&app, "/shopping", "label=Candles", "same-origin").await;
     assert_eq!(r.status(), StatusCode::SEE_OTHER);
-    // Outside demo mode, no banner.
     let (app2, _) = self::app();
     assert!(!get(&app2, "/").await.1.contains("demo-note"));
 }
@@ -1009,6 +1006,8 @@ async fn french_and_dutch_pages() {
     assert!(nl.contains("Noodplan") && nl.contains("Drinkwater"));
 }
 
+/// The plan page shows the household and the new scaling modes. Cross-site
+/// writes are refused like everywhere else.
 #[tokio::test]
 async fn household_page_adds_edits_and_removes_people_and_pets() {
     let (app, st) = app();
@@ -1039,7 +1038,6 @@ async fn household_page_adds_edits_and_removes_people_and_pets() {
     assert!(body.contains("Dog 1"));
     assert!(body.contains("No public body gives amounts for pets"));
 
-    // The plan page shows the household and the new scaling modes.
     let (_, body) = get(&app, "/plan").await;
     assert!(body.contains("3 people"), "{body}");
     assert!(body.contains("1 pet"));
@@ -1075,7 +1073,6 @@ async fn household_page_adds_edits_and_removes_people_and_pets() {
     .await;
     assert_eq!(st.store.household_counts().unwrap(), (2, 1));
 
-    // Cross-site writes are refused like everywhere else.
     let r = post(&app, "/household", "kind=pet&type=cat", "cross-site").await;
     assert_eq!(r.status(), StatusCode::FORBIDDEN);
     assert_eq!(st.store.household_counts().unwrap(), (2, 1));
@@ -1091,6 +1088,8 @@ async fn household_page_in_german() {
     assert!(body.contains("Katze 1"));
 }
 
+/// The item page carries the dose form, to change or remove it. Bad input and
+/// cross-site posts add nothing.
 #[tokio::test]
 async fn medicine_page_adds_a_medicine_and_its_dose() {
     let (app, st) = app();
@@ -1128,7 +1127,6 @@ async fn medicine_page_adds_a_medicine_and_its_dose() {
     assert!(body.contains("lasts 14 days"), "{body}");
     assert!(body.contains("5 mg · tablet"));
 
-    // The item page carries the dose form; changing and removing it.
     let (_, body) = get(&app, &format!("/items/{id}")).await;
     assert!(body.contains("Daily dose") && body.contains("Remove daily dose"));
     post(
@@ -1161,7 +1159,6 @@ async fn medicine_page_adds_a_medicine_and_its_dose() {
         "still in the medicine category"
     );
 
-    // Bad input and cross-site posts add nothing.
     let n = st.store.all_items().unwrap().len();
     let r = post(
         &app,
@@ -1182,6 +1179,7 @@ async fn medicine_page_adds_a_medicine_and_its_dose() {
     assert_eq!(st.store.all_items().unwrap().len(), n);
 }
 
+/// An item the household already has can be linked.
 #[tokio::test]
 async fn checklists_add_link_and_shop() {
     let (app, st) = app();
@@ -1216,7 +1214,6 @@ async fn checklists_add_link_and_shop() {
     assert!(body.contains("Counts for the checklist entry"));
     st.store.add_batch(id, 1.0, None, None, None).unwrap();
 
-    // Link an item the household already has.
     let t = st
         .store
         .add_item(vorrat::db::NewItem {
@@ -1276,6 +1273,7 @@ async fn medicine_page_in_german() {
     assert!(body.contains("Batterie- oder Kurbelradio"));
 }
 
+/// Only suggestions can be hidden; checklist entries can't.
 #[tokio::test]
 async fn plan_suggests_from_the_household() {
     let (app, st) = app();
@@ -1329,7 +1327,6 @@ async fn plan_suggests_from_the_household() {
         "on the list, not yet in stock"
     );
 
-    // Only suggestions can be hidden; checklist entries can't.
     assert_eq!(
         post(
             &app,

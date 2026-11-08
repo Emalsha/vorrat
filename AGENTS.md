@@ -97,6 +97,16 @@ Each of these has a reason; a change that breaks one needs Emalsha's decision fi
     release binary is about 7 MB and uses about 13 MB of memory. Say in the pull
     request if a change grows either noticeably, and prefer the standard
     library or an existing dependency over a new one.
+13. **Comments only at the top of an item.** A comment explains a function,
+    struct, enum, trait, impl, constant or module, as a doc comment (`///`,
+    or `//!` at the top of a file) right above it. Nothing inside a function
+    body, an attribute, a struct or enum definition (no field or variant
+    comments: describe them in the struct's own doc comment), a CSS rule or a
+    template. No pull request or issue numbers in comments: that history lives
+    in git. In JavaScript and CSS, a comment sits on its own line above the
+    function or rule it explains. If code needs a comment in its middle to be
+    understood, rename or split it instead. `cargo test --test style` checks
+    this.
 
 ## Check your work
 
