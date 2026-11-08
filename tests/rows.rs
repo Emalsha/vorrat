@@ -9,7 +9,8 @@
 
 mod common;
 use common::*;
-use vorrat::db::{ItemQuery, NewItem, Sort, EXPORT_TABLES};
+use vorrat::db::EXPORT_TABLES;
+use vorrat::stock::queries::{ItemQuery, NewItem, Sort};
 
 /// The demo household, plus rows that fill the optional columns it leaves empty.
 #[test]

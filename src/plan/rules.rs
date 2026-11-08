@@ -1,0 +1,239 @@
+//! Emergency coverage: how many days the stock lasts for the household, and what to eat first in a power cut.
+
+use std::collections::{BTreeMap, HashMap};
+
+use anyhow::Result;
+use chrono::NaiveDate;
+use serde::Serialize;
+
+use crate::db::Store;
+use crate::essentials;
+use crate::locations::queries::Location;
+use crate::plan::queries::Target;
+use crate::stock::queries::Item;
+use crate::stock::rules::{annotate, item_amount, to_base, Dated, Snapshot, Status};
+
+/// What one item adds to a plan line.
+///
+/// - `amount`: in the target's unit.
+#[derive(Debug, Clone, Serialize)]
+pub struct Contribution {
+    pub item_id: i64,
+    pub name: String,
+    pub amount: f64,
+}
+
+/// How far the stock covers one plan line.
+///
+/// - `need`: in the target's unit.
+/// - `ratio`: 0..=1
+/// - `days`: for per-day targets (people or pets): how many days the stock lasts.
+#[derive(Debug, Clone, Serialize)]
+pub struct Coverage {
+    pub target: Target,
+    pub need: f64,
+    pub have: f64,
+    pub items: Vec<Contribution>,
+    pub ratio: f64,
+    pub missing: f64,
+    pub days: Option<f64>,
+}
+
+/// The whole emergency plan against the stock.
+///
+/// - `ratio`: average coverage across targets, 0..=1.
+/// - `weakest_days`: days the household gets through on its weakest essential (per-day
+///   line or medicine).
+/// - `medicine_days`: days until the first medicine runs out, when anyone takes one.
+#[derive(Debug, Clone, Serialize)]
+pub struct Plan {
+    pub people: i64,
+    pub pets: i64,
+    pub days: i64,
+    pub lines: Vec<Coverage>,
+    pub ratio: f64,
+    pub weakest_days: Option<f64>,
+    pub medicine_days: Option<f64>,
+}
+
+impl Plan {
+    pub fn gaps(&self) -> impl Iterator<Item = &Coverage> {
+        self.lines.iter().filter(|c| c.missing > 0.0)
+    }
+}
+
+/// Emergency plan: per target, what we need vs. what we have. Expired batches
+/// don't count. Items match a target by category.
+pub fn coverage(store: &Store, today: NaiveDate) -> Result<Plan> {
+    coverage_of(store, &Snapshot::load(store, today)?)
+}
+
+/// [`coverage`] from an already loaded snapshot.
+/// Each target's mode says who it is for and whether it is needed every day.
+pub fn coverage_of(store: &Store, snap: &Snapshot) -> Result<Plan> {
+    let (people, pets) = store.household_counts()?;
+    let days = store.setting_int("days", 14).max(1);
+    let batches: Vec<&Dated> = snap
+        .batches
+        .iter()
+        .filter(|b| b.status != Status::Expired)
+        .collect();
+    let items: HashMap<i64, &Item> = snap.items.iter().map(|i| (i.id, i)).collect();
+    let mut lines = Vec::new();
+    for t in store.targets()? {
+        let (count, per_day) = match t.mode.as_str() {
+            "per_person_day" => (people, true),
+            "per_person" => (people, false),
+            "per_pet_day" => (pets, true),
+            "per_pet" => (pets, false),
+            _ => (1, false),
+        };
+        let need = t.amount * (count * if per_day { days } else { 1 }) as f64;
+        let (tdim, tfactor) = to_base(1.0, &t.unit);
+        let mut have_base = 0.0;
+        let mut contrib: BTreeMap<i64, f64> = BTreeMap::new();
+        for b in &batches {
+            let Some(it) = items.get(&b.batch.item_id) else {
+                continue;
+            };
+            if it.category.as_deref().unwrap_or("") != t.category {
+                continue;
+            }
+            let (dim, amt) = item_amount(it, b.batch.qty);
+            if dim != tdim {
+                continue;
+            }
+            have_base += amt;
+            *contrib.entry(it.id).or_default() += amt / tfactor;
+        }
+        let have = round3(have_base / tfactor);
+        let need = round3(need);
+        let ratio = if need > 0.0 {
+            (have / need).min(1.0)
+        } else {
+            1.0
+        };
+        let days_cov = (per_day && t.amount > 0.0 && count > 0)
+            .then(|| round1(have / (t.amount * count as f64)));
+        lines.push(Coverage {
+            items: contrib
+                .into_iter()
+                .map(|(id, a)| Contribution {
+                    item_id: id,
+                    name: items[&id].name.clone(),
+                    amount: round3(a),
+                })
+                .collect(),
+            missing: round3((need - have).max(0.0)),
+            ratio,
+            need,
+            have,
+            days: days_cov,
+            target: t,
+        });
+    }
+    let ratio = if lines.is_empty() {
+        1.0
+    } else {
+        lines.iter().map(|c| c.ratio).sum::<f64>() / lines.len() as f64
+    };
+    let medicine_days =
+        essentials::rules::medicine_days(&essentials::rules::medicines(store, snap)?);
+    let weakest_days = lines
+        .iter()
+        .filter_map(|c| c.days)
+        .chain(medicine_days)
+        .reduce(f64::min);
+    Ok(Plan {
+        people,
+        pets,
+        days,
+        lines,
+        ratio,
+        weakest_days,
+        medicine_days,
+    })
+}
+
+fn round3(v: f64) -> f64 {
+    (v * 1000.0).round() / 1000.0
+}
+
+fn round1(v: f64) -> f64 {
+    (v * 10.0).round() / 10.0
+}
+
+/// Where a location keeps things cold, judged by its own or a parent's name.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Cold {
+    Fridge,
+    Freezer,
+}
+
+pub fn cold_kind(name: &str) -> Option<Cold> {
+    let n = name.trim().to_lowercase();
+    if ["freez", "gefrier", "tiefkühl", "congél", "vries", "frys"]
+        .iter()
+        .any(|k| n.contains(k))
+    {
+        Some(Cold::Freezer)
+    } else if [
+        "fridge",
+        "refrigerator",
+        "kühlschrank",
+        "frigo",
+        "koelkast",
+        "kylskåp",
+    ]
+    .iter()
+    .any(|k| n.contains(k))
+    {
+        Some(Cold::Fridge)
+    } else {
+        None
+    }
+}
+
+/// What to eat first when the power is off: the fridge, then the freezer,
+/// each soonest-expiring first. Documents and non-food are left out.
+pub struct PowerCut {
+    pub fridge: Vec<Dated>,
+    pub freezer: Vec<Dated>,
+}
+
+/// Sorts food into fridge and freezer. A location counts as cold through its
+/// parents too, so a box inside the freezer is in the freezer.
+pub fn power_cut(store: &Store, today: NaiveDate) -> Result<PowerCut> {
+    let locs = store.locations()?;
+    let by_id: std::collections::HashMap<i64, &Location> = locs.iter().map(|l| (l.id, l)).collect();
+    let kind_of = |mut id: Option<i64>| {
+        for _ in 0..16 {
+            let l = by_id.get(&id?)?;
+            if let Some(k) = cold_kind(&l.name) {
+                return Some(k);
+            }
+            id = l.parent_id;
+        }
+        None
+    };
+    let mut fridge = Vec::new();
+    let mut freezer = Vec::new();
+    for d in annotate(store.batches(None)?, today) {
+        if d.batch.kind != "food" {
+            continue;
+        }
+        match kind_of(d.batch.location_id) {
+            Some(Cold::Fridge) => fridge.push(d),
+            Some(Cold::Freezer) => freezer.push(d),
+            None => {}
+        }
+    }
+    let soonest = |a: &Dated, b: &Dated| {
+        a.days_left
+            .unwrap_or(i64::MAX)
+            .cmp(&b.days_left.unwrap_or(i64::MAX))
+    };
+    fridge.sort_by(soonest);
+    freezer.sort_by(soonest);
+    Ok(PowerCut { fridge, freezer })
+}

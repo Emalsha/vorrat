@@ -97,7 +97,7 @@ that. Latvia adds a litre in hot weather.
 
 **Only a few give food weights.** Germany's BBK lists kilograms per person for
 ten days, which is exactly where Vorrat's default targets come from (see
-`DEFAULT_TARGETS` in `src/db.rs`: the BBK figures divided by ten). Slovenia
+`DEFAULT_TARGETS` in `src/db/schema.rs`: the BBK figures divided by ten). Slovenia
 has a 30-day table for one adult and Austria's 2012 brochure a 14-day one. All
 others name kinds of food: long-life, needs little or no cooking, and what the
 household normally eats.

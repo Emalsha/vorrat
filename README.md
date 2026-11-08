@@ -114,12 +114,14 @@ cargo test         # unit + integration tests, including upgrading a schema v2 d
 cargo clippy --all-targets
 ```
 
-Code map: `src/db.rs` (SQLite schema, migrations, queries, undo), `src/rules.rs`
-(expiry, low stock, plan coverage, reminder digest), `src/web.rs` (pages, API,
-security headers, CSRF check, uploads), `src/lookup.rs` (Open Food Facts),
-`src/notify.rs` + `src/scheduler.rs` (daily push), `src/backup.rs`,
-`src/files.rs` (safe file names), `templates/` (Askama, compiled into the
-binary), `static/` (CSS, scanner script, bundled ZXing under its Apache-2.0 licence).
+Code map: one folder per feature under `src/` (`stock/`, `plan/`, `shopping/`,
+...), each with its routes, pages, queries and rules, on top of shared modules:
+`src/db/` (SQLite store, schema and migrations), `src/web/` (router, security
+headers, CSRF check), `src/auth/`, `src/jobs/` (daily push, nightly backup),
+`src/lookup.rs` (Open Food Facts) and `src/files.rs` (safe file names).
+`templates/` holds the Askama pages (compiled into the binary) and `static/`
+the CSS, scanner script and bundled ZXing under its Apache-2.0 licence. See
+`docs/ARCHITECTURE.md`.
 
 ## Licence
 

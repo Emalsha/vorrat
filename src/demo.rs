@@ -3,7 +3,8 @@
 use anyhow::Result;
 use chrono::{Days, NaiveDate};
 
-use crate::db::{NewItem, Store};
+use crate::db::Store;
+use crate::stock::queries::NewItem;
 
 /// (name, kind, category, unit, pack size, pack unit, min, [(qty, days until expiry, location)])
 type Sample = (

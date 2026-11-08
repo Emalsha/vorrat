@@ -11,7 +11,8 @@ use serde::Serialize;
 
 use crate::config::Config;
 use crate::db::Store;
-use crate::rules;
+use crate::jobs::digest;
+use crate::jobs::digest::RemindDays;
 
 pub type BoxFut<T> = Pin<Box<dyn Future<Output = T> + Send>>;
 
@@ -107,12 +108,12 @@ pub struct DigestResult {
 /// recorded, so a failed push is retried the next day.
 pub async fn send_digest(
     store: &Store,
-    remind: &rules::RemindDays,
+    remind: &RemindDays,
     notifier: Option<&Notifier>,
     today: NaiveDate,
     force: bool,
 ) -> anyhow::Result<DigestResult> {
-    let dg = rules::build_digest(store, today, remind)?;
+    let dg = digest::build_digest(store, today, remind)?;
     let (title, body) = if dg.is_empty() {
         (
             crate::i18n::tr("Vorrat: test push, all good"),
@@ -139,7 +140,7 @@ pub async fn send_digest(
     }
     let ok = n(title.clone(), body.clone()).await;
     if ok && !dg.is_empty() {
-        rules::commit_digest(store, &dg)?;
+        digest::commit_digest(store, &dg)?;
     }
     Ok(DigestResult {
         sent: ok,

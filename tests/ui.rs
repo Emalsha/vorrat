@@ -116,17 +116,23 @@ fn contrast_formula_matches_wcag() {
     assert!((contrast([0x76; 3], [255; 3]) - 4.54).abs() < 0.01);
 }
 
+/// Every template under `templates/`, with its path and text.
 fn templates() -> Vec<(String, String)> {
-    std::fs::read_dir("templates")
-        .unwrap()
-        .map(|e| {
+    let mut out = Vec::new();
+    let mut dirs = vec![std::path::PathBuf::from("templates")];
+    while let Some(d) = dirs.pop() {
+        for e in std::fs::read_dir(&d).unwrap() {
             let p = e.unwrap().path();
-            (
-                p.display().to_string(),
-                std::fs::read_to_string(&p).unwrap(),
-            )
-        })
-        .collect()
+            if p.is_dir() {
+                dirs.push(p);
+            } else {
+                let text = std::fs::read_to_string(&p).unwrap();
+                out.push((p.display().to_string(), text));
+            }
+        }
+    }
+    out.sort();
+    out
 }
 
 /// The CSP is `style-src 'self'`: inline styles would silently do nothing.

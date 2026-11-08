@@ -1,6 +1,7 @@
 mod common;
 use common::*;
-use vorrat::db::{ItemQuery, NewItem, Store};
+use vorrat::db::Store;
+use vorrat::stock::queries::{ItemQuery, NewItem};
 
 #[test]
 fn fresh_db_is_seeded() {

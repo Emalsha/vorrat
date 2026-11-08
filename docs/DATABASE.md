@@ -4,7 +4,8 @@
 
 ## What Vorrat uses
 
-All database code is in `src/db.rs`. It uses
+The store is in `src/db/` and each feature's queries are in its own
+`queries.rs` (see `docs/ARCHITECTURE.md`). It uses
 [rusqlite](https://crates.io/crates/rusqlite) with SQLite compiled into the
 binary (the `bundled` feature) and hand-written SQL:
 
@@ -66,7 +67,7 @@ What an ORM really adds is query checking at compile time. Instead:
 
 ## When to look again
 
-If Vorrat ever needs a second database engine, or `db.rs` grows to the point
+If Vorrat ever needs a second database engine, or the queries grow to the point
 where hand-written queries are a real source of bugs, compare again. Diesel
 would be the first candidate, because it can live next to rusqlite while
 queries move over one at a time.

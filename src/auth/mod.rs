@@ -2,9 +2,16 @@
 //! random tokens kept in memory, so a restart signs everyone out and signing
 //! out really ends the session.
 
+pub mod pages;
+
 use std::collections::HashMap;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
+
+use axum::routing::{get, post};
+use axum::Router;
+
+use crate::web::AppState;
 
 pub const COOKIE: &str = "vorrat_session";
 pub const SESSION_DAYS: u64 = 30;
@@ -101,4 +108,11 @@ pub fn safe_next(next: Option<&str>) -> String {
         Some(n) if n.starts_with('/') && !n.starts_with("//") && !n.contains('\\') => n.to_string(),
         _ => "/".to_string(),
     }
+}
+
+/// The sign-in and sign-out pages.
+pub fn routes() -> Router<Arc<AppState>> {
+    Router::new()
+        .route("/login", get(pages::login_page).post(pages::login))
+        .route("/logout", post(pages::logout))
 }
