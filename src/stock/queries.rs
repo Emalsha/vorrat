@@ -6,6 +6,7 @@ use rusqlite::{params, OptionalExtension, Row};
 use serde::Serialize;
 
 use crate::db::{now, today, Store};
+use crate::stock::rules::Snapshot;
 
 pub const KINDS: &[&str] = &["food", "supply", "document", "thing"];
 
@@ -259,6 +260,11 @@ fn round6(v: f64) -> f64 {
 }
 
 impl Store {
+    /// Every item and batch, read once for a page.
+    pub fn snapshot(&self, today: NaiveDate) -> Result<Snapshot> {
+        Ok(Snapshot::new(self.all_items()?, self.batches(None)?, today))
+    }
+
     pub fn add_item(&self, f: NewItem) -> Result<i64> {
         let name = f.name.trim();
         if name.is_empty() {

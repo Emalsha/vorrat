@@ -26,8 +26,7 @@ fn expiring_window() {
     s.add_batch(i, 1.0, d(3), None, None).unwrap();
     s.add_batch(i, 1.0, d(20), None, None).unwrap();
     s.add_batch(i, 1.0, d(-2), None, None).unwrap();
-    let days: Vec<i64> = stock::expiring(&s, today(), 14)
-        .unwrap()
+    let days: Vec<i64> = stock::expiring(s.batches(None).unwrap(), today(), 14)
         .iter()
         .map(|b| b.days_left.unwrap())
         .collect();
@@ -56,8 +55,7 @@ fn low_stock() {
     );
     s.add_batch(b, 3.0, None, None, None).unwrap();
     item(&s, "Salt");
-    let names: Vec<String> = stock::low_stock(&s)
-        .unwrap()
+    let names: Vec<String> = stock::low_stock(s.all_items().unwrap())
         .into_iter()
         .map(|i| i.name)
         .collect();
@@ -205,7 +203,7 @@ fn coverage_units_and_sizes() {
         },
     );
     s.add_batch(old, 10.0, d(-1), None, None).unwrap();
-    let plan = plan::coverage(&s, today()).unwrap();
+    let plan = s.plan(today()).unwrap();
     let w = plan
         .lines
         .iter()
@@ -228,7 +226,7 @@ fn coverage_fixed_targets() {
         },
     );
     s.add_batch(bat, 8.0, None, None, None).unwrap();
-    let plan = plan::coverage(&s, today()).unwrap();
+    let plan = s.plan(today()).unwrap();
     let c = plan
         .lines
         .iter()
@@ -250,7 +248,7 @@ fn coverage_ignores_dimension_mismatch() {
         },
     );
     s.add_batch(tins, 5.0, None, None, None).unwrap();
-    let plan = plan::coverage(&s, today()).unwrap();
+    let plan = s.plan(today()).unwrap();
     assert_eq!(
         plan.lines
             .iter()
@@ -279,7 +277,7 @@ fn weakest_days_follows_the_scarcest_essential() {
         );
         s.add_batch(i, qty, None, None, None).unwrap();
     }
-    assert_eq!(plan::coverage(&s, today()).unwrap().weakest_days, Some(0.0));
+    assert_eq!(s.plan(today()).unwrap().weakest_days, Some(0.0));
 }
 
 #[test]
@@ -312,7 +310,11 @@ fn power_cut_eats_the_fridge_first() {
         .unwrap();
     s.add_batch(rice, 1.0, common::d(300), Some(pantry), None)
         .unwrap();
-    let pc = power_cut(&s, common::today()).unwrap();
+    let pc = power_cut(
+        &s.locations().unwrap(),
+        s.batches(None).unwrap(),
+        common::today(),
+    );
     assert_eq!(pc.fridge.len(), 2);
     assert_eq!(pc.fridge[0].days_left, Some(2), "soonest first");
     assert_eq!(pc.freezer.len(), 1, "a drawer inside the freezer counts");
@@ -337,7 +339,7 @@ fn plan_scales_with_people_and_pets() {
             .unwrap()
             .clone()
     };
-    let p = plan::coverage(&s, today()).unwrap();
+    let p = s.plan(today()).unwrap();
     assert_eq!((p.people, p.pets), (3, 0));
     assert_eq!(line(&p, "Drinking water & drinks").need, 2.0 * 3.0 * 10.0);
     assert_eq!(line(&p, "Pet food").need, 0.0, "no pets, nothing needed");
@@ -357,7 +359,7 @@ fn plan_scales_with_people_and_pets() {
         },
     );
     s.add_batch(food, 1.0, None, None, None).unwrap();
-    let p = plan::coverage(&s, today()).unwrap();
+    let p = s.plan(today()).unwrap();
     assert_eq!(p.pets, 2);
     let pf = line(&p, "Pet food");
     assert_eq!(pf.need, 2.0);

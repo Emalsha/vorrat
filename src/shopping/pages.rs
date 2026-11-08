@@ -31,7 +31,7 @@ pub(super) async fn shopping_page(State(s): St, Query(f): Query<Flash>) -> Res<H
         .filter(|e| !e.done)
         .filter_map(|e| e.item_id)
         .collect();
-    let low_missing = stock::rules::low_stock(&s.store)?
+    let low_missing = stock::rules::low_stock(s.store.all_items()?)
         .iter()
         .filter(|i| !listed.contains(&i.id))
         .count();
@@ -78,7 +78,7 @@ pub(super) async fn shopping_add_low(State(s): St) -> Response {
                 .filter_map(|e| e.item_id)
                 .collect();
             let mut n = 0;
-            for it in stock::rules::low_stock(&s.store)?
+            for it in stock::rules::low_stock(s.store.all_items()?)
                 .into_iter()
                 .filter(|i| !listed.contains(&i.id))
             {

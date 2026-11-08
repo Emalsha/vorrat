@@ -9,11 +9,9 @@
 
 use std::collections::HashMap;
 
-use anyhow::Result;
 use chrono::NaiveDate;
 use serde::Serialize;
 
-use crate::db::Store;
 use crate::essentials::queries::Dose;
 use crate::household::queries::Member;
 use crate::stock::queries::Item;
@@ -408,10 +406,10 @@ pub struct Medicine {
     pub renew_in: Option<i64>,
 }
 
-pub fn medicines(store: &Store, snap: &Snapshot) -> Result<Vec<Medicine>> {
+pub fn medicines(doses: Vec<Dose>, snap: &Snapshot) -> Vec<Medicine> {
     let items: HashMap<i64, &Item> = snap.items.iter().map(|i| (i.id, i)).collect();
     let mut out = Vec::new();
-    for dose in store.doses()? {
+    for dose in doses {
         let Some(item) = items.get(&dose.item_id) else {
             continue;
         };
@@ -437,7 +435,7 @@ pub fn medicines(store: &Store, snap: &Snapshot) -> Result<Vec<Medicine>> {
             dose,
         });
     }
-    Ok(out)
+    out
 }
 
 /// Days the household's medicine lasts: the medicine that runs out first.

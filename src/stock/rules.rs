@@ -1,10 +1,8 @@
 //! Expiry status, low stock and quantities. Kept apart from the pages so the same logic serves the pages, the API and the jobs.
 
-use anyhow::Result;
 use chrono::NaiveDate;
 use serde::Serialize;
 
-use crate::db::Store;
 use crate::stock::queries::{Batch, Item};
 
 /// Measurement dimension. Quantities only add up within one dimension.
@@ -94,12 +92,12 @@ pub struct Snapshot {
 }
 
 impl Snapshot {
-    pub fn load(store: &Store, today: NaiveDate) -> Result<Self> {
-        Ok(Self {
-            batches: annotate(store.batches(None)?, today),
-            items: store.all_items()?,
+    pub fn new(items: Vec<Item>, batches: Vec<Batch>, today: NaiveDate) -> Self {
+        Self {
+            batches: annotate(batches, today),
+            items,
             today,
-        })
+        }
     }
 
     /// Batches already expired or expiring within `within` days, soonest first.
@@ -120,21 +118,17 @@ impl Snapshot {
 }
 
 /// Batches already expired or expiring within `within` days, soonest first.
-pub fn expiring(store: &Store, today: NaiveDate, within: i64) -> Result<Vec<Dated>> {
-    let mut out: Vec<Dated> = annotate(store.batches(None)?, today)
+pub fn expiring(batches: Vec<Batch>, today: NaiveDate, within: i64) -> Vec<Dated> {
+    let mut out: Vec<Dated> = annotate(batches, today)
         .into_iter()
         .filter(|b| b.days_left.is_some_and(|d| d <= within))
         .collect();
     out.sort_by_key(|b| b.days_left);
-    Ok(out)
+    out
 }
 
-pub fn low_stock(store: &Store) -> Result<Vec<Item>> {
-    Ok(store
-        .all_items()?
-        .into_iter()
-        .filter(Item::is_low)
-        .collect())
+pub fn low_stock(items: Vec<Item>) -> Vec<Item> {
+    items.into_iter().filter(Item::is_low).collect()
 }
 
 /// How much `qty` units of this item are, in base units, for matching targets.

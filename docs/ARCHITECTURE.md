@@ -161,10 +161,11 @@ reads better than `crate::core::db::Store`.
    never its tables. The plan reads stock through `stock::queries`, it doesn't
    write its own `SELECT` on `batches`. The shopping list calling the plan's
    coverage is fine.
-3. **`rules.rs` files don't use axum, Askama or rusqlite.** They take plain
-   data and return plain data, so tests need no server and no database.
-   Some still take a `&Store` and load what they need; moving that loading out
-   is the next step below.
+3. **`rules.rs` files don't use axum, Askama, rusqlite or the `Store`.** They
+   take plain data and return plain data, so they can be tested without a
+   server or a database. The loading sits next to the queries: for example
+   `Store::snapshot` reads the stock once for a page, and `Store::plan` loads
+   what `plan::rules::coverage` needs and calls it.
 4. **The schema stays in one place.** Queries are split by feature, the
    `SCHEMA` list and migrations are not, so the version chain stays readable
    and rule 1 of `AGENTS.md` is easy to check.
@@ -187,8 +188,9 @@ reads better than `crate::core::db::Store`.
 
 1. **Done: the move.** `db.rs`, `web.rs`, `rules.rs` and the jobs were split
    into the folders above in one pull request that only moved code.
-2. **Next: rules out of the database.** Make the `rules.rs` files take plain
-   data, and add a test that checks rule 3.
+2. **Done: rules out of the database.** The `rules.rs` files take plain data.
+   `cargo test --test layout` checks rules 1 and 3 and that every feature's
+   routes are merged.
 
 ## When to revisit
 

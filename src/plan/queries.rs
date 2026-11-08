@@ -1,11 +1,14 @@
-//! Queries for plan targets.
+//! Queries for plan targets, and loading what the plan rules need.
 
 use anyhow::{bail, Result};
+use chrono::NaiveDate;
 use rusqlite::params;
 use serde::Serialize;
 
 use crate::db::Store;
+use crate::plan::rules::{self, Plan, PlanInput};
 use crate::stock::queries::UNITS;
+use crate::stock::rules::Snapshot;
 
 /// How a plan target scales with the household.
 pub const TARGET_MODES: &[&str] = &[
@@ -47,6 +50,28 @@ fn validate_target(label: &str, mode: &str, amount: f64, unit: &str) -> Result<(
 }
 
 impl Store {
+    /// What the plan needs besides the stock.
+    pub fn plan_input(&self) -> Result<PlanInput> {
+        let (people, pets) = self.household_counts()?;
+        Ok(PlanInput {
+            people,
+            pets,
+            days: self.setting_int("days", 14).max(1),
+            targets: self.targets()?,
+            doses: self.doses()?,
+        })
+    }
+
+    /// The plan on `today`.
+    pub fn plan(&self, today: NaiveDate) -> Result<Plan> {
+        self.plan_for(&self.snapshot(today)?)
+    }
+
+    /// The plan from an already loaded snapshot.
+    pub fn plan_for(&self, snap: &Snapshot) -> Result<Plan> {
+        Ok(rules::coverage(snap, self.plan_input()?))
+    }
+
     pub fn targets(&self) -> Result<Vec<Target>> {
         let c = self.r();
         let mut st = c.prepare_cached(

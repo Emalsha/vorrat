@@ -10,7 +10,7 @@ use crate::db::Store;
 use crate::essentials;
 use crate::essentials::rules::MED_REMIND_DAYS;
 use crate::stock::queries::Item;
-use crate::stock::rules::{annotate, fmt_qty, low_stock, Dated, Snapshot};
+use crate::stock::rules::{annotate, fmt_qty, low_stock, Dated};
 
 /// Reminder marks in days before expiry; 0 means "has expired".
 #[derive(Debug, Clone)]
@@ -215,7 +215,7 @@ pub fn build_digest(store: &Store, today: NaiveDate, remind: &RemindDays) -> Res
         dg.marks.push((id, fresh));
     }
     let low_done = store.low_notified()?;
-    let low_now: Vec<Item> = low_stock(store)?;
+    let low_now: Vec<Item> = low_stock(store.all_items()?);
     let low_ids: HashSet<i64> = low_now.iter().map(|i| i.id).collect();
     for iid in low_done.difference(&low_ids) {
         store.clear_low(*iid)?;
@@ -226,8 +226,8 @@ pub fn build_digest(store: &Store, today: NaiveDate, remind: &RemindDays) -> Res
             dg.low.push(it);
         }
     }
-    let snap = Snapshot::load(store, today)?;
-    let meds = essentials::rules::medicines(store, &snap)?;
+    let snap = store.snapshot(today)?;
+    let meds = essentials::rules::medicines(store.doses()?, &snap);
     let sent = store.dose_marks()?;
     let who = essentials::rules::member_labels(&store.members()?);
     let remind = MED_REMIND_DAYS;
