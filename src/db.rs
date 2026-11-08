@@ -268,12 +268,12 @@ pub struct Dose {
 impl Dose {
     fn from_row(r: &Row) -> rusqlite::Result<Self> {
         Ok(Self {
-            item_id: r.get(0)?,
-            member_id: r.get(1)?,
-            form: r.get(2)?,
-            strength: r.get(3)?,
-            per_day: r.get(4)?,
-            renew_on: r.get(5)?,
+            item_id: r.get("item_id")?,
+            member_id: r.get("member_id")?,
+            form: r.get("form")?,
+            strength: r.get("strength")?,
+            per_day: r.get("per_day")?,
+            renew_on: r.get("renew_on")?,
         })
     }
 }
@@ -476,12 +476,12 @@ pub struct Attachment {
 impl Attachment {
     fn from_row(r: &Row) -> rusqlite::Result<Self> {
         Ok(Self {
-            id: r.get(0)?,
-            item_id: r.get(1)?,
-            filename: r.get(2)?,
-            stored: r.get(3)?,
-            mime: r.get(4)?,
-            size: r.get(5)?,
+            id: r.get("id")?,
+            item_id: r.get("item_id")?,
+            filename: r.get("filename")?,
+            stored: r.get("stored")?,
+            mime: r.get("mime")?,
+            size: r.get("size")?,
         })
     }
 }
@@ -1566,16 +1566,26 @@ impl Store {
         let batches: Vec<serde_json::Value> = st
             .query_map([item_id], |r| {
                 Ok(serde_json::json!({
-                    "id": r.get::<_, i64>(0)?, "item_id": r.get::<_, i64>(1)?, "location_id": r.get::<_, Option<i64>>(2)?,
-                    "qty": r.get::<_, f64>(3)?, "expires_on": r.get::<_, Option<String>>(4)?, "added_on": r.get::<_, String>(5)?,
-                    "opened_on": r.get::<_, Option<String>>(6)?, "price": r.get::<_, Option<f64>>(7)?, "note": r.get::<_, Option<String>>(8)?,
+                    "id": r.get::<_, i64>("id")?,
+                    "item_id": r.get::<_, i64>("item_id")?,
+                    "location_id": r.get::<_, Option<i64>>("location_id")?,
+                    "qty": r.get::<_, f64>("qty")?,
+                    "expires_on": r.get::<_, Option<String>>("expires_on")?,
+                    "added_on": r.get::<_, String>("added_on")?,
+                    "opened_on": r.get::<_, Option<String>>("opened_on")?,
+                    "price": r.get::<_, Option<f64>>("price")?,
+                    "note": r.get::<_, Option<String>>("note")?,
                 }))
             })?
             .collect::<rusqlite::Result<_>>()?;
         let mut st = c.prepare("SELECT n.batch_id, n.threshold, n.sent_at FROM notified n JOIN batches b ON b.id = n.batch_id WHERE b.item_id = ?1")?;
         let marks: Vec<serde_json::Value> = st
             .query_map([item_id], |r| {
-                Ok(serde_json::json!({"batch_id": r.get::<_, i64>(0)?, "threshold": r.get::<_, i64>(1)?, "sent_at": r.get::<_, String>(2)?}))
+                Ok(serde_json::json!({
+                    "batch_id": r.get::<_, i64>("batch_id")?,
+                    "threshold": r.get::<_, i64>("threshold")?,
+                    "sent_at": r.get::<_, String>("sent_at")?,
+                }))
             })?
             .collect::<rusqlite::Result<_>>()?;
         let last: i64 = c.query_row("SELECT COALESCE(MAX(id), 0) FROM events", [], |r| r.get(0))?;
@@ -1736,13 +1746,13 @@ impl Store {
         let v = st
             .query_map([], |r| {
                 Ok(Target {
-                    id: r.get(0)?,
-                    label: r.get(1)?,
-                    category: r.get(2)?,
-                    mode: r.get(3)?,
-                    amount: r.get(4)?,
-                    unit: r.get(5)?,
-                    sort: r.get(6)?,
+                    id: r.get("id")?,
+                    label: r.get("label")?,
+                    category: r.get("category")?,
+                    mode: r.get("mode")?,
+                    amount: r.get("amount")?,
+                    unit: r.get("unit")?,
+                    sort: r.get("sort")?,
                 })
             })?
             .collect::<rusqlite::Result<_>>()?;
@@ -1793,19 +1803,19 @@ impl Store {
     pub fn shopping(&self) -> Result<Vec<ShoppingEntry>> {
         let c = self.r();
         let mut st = c.prepare_cached(
-            "SELECT s.id, s.label, s.item_id, s.qty, s.done, s.added_on, i.name
+            "SELECT s.id, s.label, s.item_id, s.qty, s.done, s.added_on, i.name AS item_name
              FROM shopping s LEFT JOIN items i ON i.id = s.item_id ORDER BY s.done, s.added_on, s.id",
         )?;
         let v = st
             .query_map([], |r| {
                 Ok(ShoppingEntry {
-                    id: r.get(0)?,
-                    label: r.get(1)?,
-                    item_id: r.get(2)?,
-                    qty: r.get(3)?,
-                    done: r.get::<_, i64>(4)? != 0,
-                    added_on: r.get(5)?,
-                    item_name: r.get(6)?,
+                    id: r.get("id")?,
+                    label: r.get("label")?,
+                    item_id: r.get("item_id")?,
+                    qty: r.get("qty")?,
+                    done: r.get::<_, i64>("done")? != 0,
+                    added_on: r.get("added_on")?,
+                    item_name: r.get("item_name")?,
                 })
             })?
             .collect::<rusqlite::Result<_>>()?;
@@ -1957,10 +1967,10 @@ impl Store {
         )?;
         let v = st
             .query_map(params![item_id, limit], |r| {
-                let qty: Option<f64> = r.get(1)?;
-                let price: f64 = r.get(2)?;
+                let qty: Option<f64> = r.get("qty")?;
+                let price: f64 = r.get("price")?;
                 Ok(Price {
-                    ts: r.get(0)?,
+                    ts: r.get("ts")?,
                     qty,
                     price,
                     unit_price: qty

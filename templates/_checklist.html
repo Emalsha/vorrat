@@ -1,15 +1,15 @@
 <div class="card"><ul class="list">
   {% for c in rows %}
   <li><details>
-    <summary class="pad" style="display:block">
-      <div class="flex" style="justify-content:space-between">
+    <summary class="pad">
+      <div class="flex between">
         <span>{% if c.ok %}✓{% else %}○{% endif %} <b>{{ c.label|t }}</b></span>
         <span class="small {% if c.ok %}muted{% endif %}">{% if !c.count.is_empty() %}{{ c.count }} · {% endif %}{% if c.ok %}{{ "have"|t }}{% else %}{{ "missing"|t }}{% endif %}</span>
       </div>
       {% if c.expired %}<div class="small"><b>{{ "Some has expired"|t }}</b></div>{% endif %}
       <div class="muted small">{% for (id, name) in c.items %}{{ name }}{% if !loop.last %}, {% endif %}{% endfor %}{% if !c.items.is_empty() %} · {% endif %}{{ "Named by"|t }}: {{ c.named_by }}</div>
     </summary>
-    <div class="stack pad" style="padding-top:0">
+    <div class="stack pad pt0">
       {% for (id, name) in c.items %}<a href="/items/{{ id }}" class="small">{{ name }} ›</a>{% endfor %}
       <form method="post" action="/essentials/check/{{ c.key }}" class="flex">
         <button class="btn small primary" name="action" value="add">{{ "Add to stock"|t }}</button>

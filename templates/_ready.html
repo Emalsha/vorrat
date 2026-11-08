@@ -1,0 +1,16 @@
+<div class="ready">
+  {% if let Some(d) = ready_days %}
+  <div class="label">{{ "Your weakest essential lasts"|t }}</div>
+  <p class="big">{{ d }} <small>{{ ready_of }}</small></p>
+  {% else %}
+  <div class="label">{{ "Emergency readiness"|t }}</div>
+  <p class="big">{{ plan_pct }}% <small>{{ "covered"|t }}</small></p>
+  {% endif %}
+  <progress class="bar {{ plan_bar }}" max="100" value="{{ plan_pct }}" aria-hidden="true"></progress>
+  <div class="meta"><span>{{ plan_pct }}% {{ "covered"|t }}</span><span>{{ people }} {% if people == 1 %}{{ "person"|t }}{% else %}{{ "people"|t }}{% endif %}{% if pets > 0 %} · {{ pets }} {% if pets == 1 %}{{ "pet"|t }}{% else %}{{ "pets"|t }}{% endif %}{% endif %}</span></div>
+  {% if gaps.is_empty() %}
+  <p class="gaps"><span class="status ok">{% let icon = "ok" %}{% include "_icon.html" %}{{ "Everything in the plan is covered."|t }}</span></p>
+  {% else %}
+  <p class="gaps"><span class="status {% if plan_bar == "crit" %}crit{% else %}warn{% endif %}">{% if plan_bar == "crit" %}{% let icon = "crit" %}{% include "_icon.html" %}{% else %}{% let icon = "warn" %}{% include "_icon.html" %}{% endif %}{{ "Not yet covered:"|t }}</span> {{ gaps.join("; ") }}.</p>
+  {% endif %}
+</div>

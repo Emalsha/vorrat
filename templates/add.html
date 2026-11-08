@@ -23,7 +23,7 @@
       <label>{{ "Pack size"|t }} <input name="size" inputmode="decimal" placeholder="{{ "e.g. 1.5"|t }}" value="{{ p.size }}"></label>
       <label>{{ "Pack unit"|t }} <select name="size_unit"><option value="">—</option>{% for u in units %}<option value="{{ u }}" {% if p.size_unit == **u %}selected{% endif %}>{{ u|t }}</option>{% endfor %}</select></label>
     </div>
-    <p class="muted small" style="margin:0">{{ "Pack size lets \"6 pcs\" of 1.5 L bottles count as 9 L of water in the emergency plan."|t }}</p>
+    <p class="muted small m0">{{ "Pack size lets \"6 pcs\" of 1.5 L bottles count as 9 L of water in the emergency plan."|t }}</p>
     <div class="grid2">
       <label>{{ "Location"|t }} <select name="location_id"><option value="">—</option>{% for l in locations %}<option value="{{ l.id }}" {% if p.location_id == l.id.to_string() %}selected{% endif %}>{{ l.path }}</option>{% endfor %}</select></label>
       <label>{{ "Minimum"|t }} <input name="min_qty" inputmode="decimal" placeholder="0"></label>
