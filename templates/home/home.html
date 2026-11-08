@@ -1,10 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
+<div class="cols">
+  <div class="col">
   <h2>{{ "Emergency readiness"|t }}</h2>
   <a class="card" href="/plan">{% include "_ready.html" %}</a>
 
   <div class="actions"><a class="btn primary big" href="/scan">{{ "Scan to add"|t }}</a><a class="btn big" href="/scan?mode=use">{{ "Scan to use up"|t }}</a></div>
-
+  </div>
+  <div class="col">
   <h2 id="attention">{{ "Needs attention"|t }}{% if attention > 0 %} <span class="small">· {{ attention }}</span>{% endif %}</h2>
   <div class="card"><ul class="list">
     {% let back_to = "/" %}
@@ -16,7 +19,6 @@
     {% endfor %}
     {% if attention == 0 %}<li class="empty"><span class="status ok">{% let icon = "ok" %}{% include "_icon.html" %}{{ "Nothing needs attention."|t }}</span></li>{% endif %}
   </ul></div>
-
   <details class="card mt">
     <summary class="row"><span class="grow"><b>{{ "Recent"|t }}</b></span>{% let icon = "chev" %}{% include "_icon.html" %}</summary>
     <ul class="list">
@@ -24,5 +26,8 @@
       {% else %}<li class="empty">{{ "No activity yet."|t }}</li>{% endfor %}
     </ul>
   </details>
+  </div>
+</div>
+
   {% if let Some(n) = month_note %}<p class="muted small right">{{ n }}</p>{% endif %}
 {% endblock %}

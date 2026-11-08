@@ -2,7 +2,9 @@
 {% block title %}{{ "Shopping"|t }} · Vorrat{% endblock %}
 {% block heading %}{{ "Shopping list"|t }}{% endblock %}
 {% block content %}
-  <form method="post" action="/shopping" class="card pad flex mt">
+<div class="cols">
+  <div class="col">
+  <form method="post" action="/shopping" class="card pad flex">
     <input name="label" required placeholder="{{ "Add something"|t }}" aria-label="{{ "Item"|t }}" class="grow">
     <button class="btn">{{ "Add"|t }}</button>
   </form>
@@ -15,6 +17,9 @@
     {% else %}<li class="empty">{{ "The list is empty."|t }}</li>{% endfor %}
   </ul></div>
   {% if low_missing > 0 %}<form method="post" action="/shopping/add-low" class="mt"><button class="btn block">{{ "Add everything running low"|t }} ({{ low_missing }})</button></form>{% endif %}
+  {% if any_done %}<form method="post" action="/shopping/clear" class="mt"><button class="btn block">{{ "Clear ticked items"|t }}</button></form>{% endif %}
+  </div>
+  <div class="col">
 
   {% if !suggestions.is_empty() %}
   <h2>{{ "You may need soon"|t }}</h2>
@@ -26,6 +31,6 @@
     {% endfor %}
   </ul></div>
   {% endif %}
-
-  {% if any_done %}<form method="post" action="/shopping/clear" class="mt"><button class="btn block">{{ "Clear ticked items"|t }}</button></form>{% endif %}
+  </div>
+</div>
 {% endblock %}

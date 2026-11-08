@@ -2,7 +2,9 @@
 {% block title %}{{ "Scan"|t }} · Vorrat{% endblock %}
 {% block heading %}{% if mode == "use" %}{{ "Scan to use up"|t }}{% else %}{{ "Scan to add"|t }}{% endif %}{% endblock %}
 {% block content %}
-  <div class="chips mt">
+<div class="cols">
+  <div class="col">
+  <div class="chips">
     <a class="chip {% if mode == "add" %}on{% endif %}" href="/scan">{{ "Add to stock"|t }}</a>
     <a class="chip {% if mode == "use" %}on{% endif %}" href="/scan?mode=use">{{ "Use up"|t }}</a>
   </div>
@@ -16,6 +18,8 @@
   </div>
   <button class="btn primary block big mt" id="start" hidden>{{ "Open camera"|t }}</button>
   <p class="muted small" id="err" hidden></p>
+  </div>
+  <div class="col">
 
   <h2>{{ "Or type the barcode"|t }}</h2>
   <form class="card pad stack" action="/scan/code" method="get">
@@ -26,6 +30,8 @@
 
   <h2>{{ "No barcode?"|t }}</h2>
   <a class="btn block" href="/add">{{ "Add without a barcode (vegetables, documents, things…)"|t }}</a>
+  </div>
+</div>
 {% endblock %}
 {% block scripts %}
 <script src="/static/zxing-0.23.0.min.js" defer></script>

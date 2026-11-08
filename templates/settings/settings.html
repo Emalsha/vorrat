@@ -2,6 +2,8 @@
 {% block title %}{{ "Settings"|t }} · Vorrat{% endblock %}
 {% block heading %}{{ "Settings"|t }}{% endblock %}
 {% block content %}
+<div class="cols even">
+  <div class="col">
   <h2>{{ "Language"|t }}</h2>
   <form method="post" action="/settings/lang" class="card pad flex">
     <select name="lang" aria-label="{{ "Language"|t }}" class="grow">
@@ -34,6 +36,8 @@
     {% endif %}
   </div>
 
+  </div>
+  <div class="col">
   <h2>{{ "Your data"|t }}</h2>
   <div class="card pad stack">
     <p class="m0">{{ "Take it with you, any time."|t }}</p>
@@ -54,4 +58,6 @@
     {% if lookup %}{{ "Unknown barcodes are looked up in Open Food Facts (only the barcode number is sent)."|t }}{% else %}{{ "Barcode lookup is off."|t }}{% endif %}
     Vorrat {{ version }}, {{ "open source under AGPL-3.0."|t }}</p></div>
   {% if signed_in %}<form method="post" action="/logout" class="mt"><button class="btn block">{{ "Sign out"|t }}</button></form>{% endif %}
+  </div>
+</div>
 {% endblock %}

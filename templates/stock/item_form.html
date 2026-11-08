@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 {% block title %}{{ "Edit"|t }} {{ item.name }} · Vorrat{% endblock %}
 {% block heading %}{{ "Edit"|t }}: {{ item.name }}{% endblock %}
+{% block back %}<a href="/items/{{ item.id }}" class="back" aria-label="{{ "Back"|t }}"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></a>{% endblock %}
 {% block content %}
-  <form class="stack mt" method="post" action="/items/{{ item.id }}/edit">
+  <form class="stack mt narrow" method="post" action="/items/{{ item.id }}/edit">
     <div class="card pad stack">
       <label>{{ "Name"|t }} <input name="name" value="{{ item.name }}" required autocomplete="off"></label>
       <div class="grid2">
