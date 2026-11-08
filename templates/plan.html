@@ -2,24 +2,67 @@
 {% block title %}{{ "Plan"|t }} · Vorrat{% endblock %}
 {% block heading %}{{ "Emergency plan"|t }}{% endblock %}
 {% block content %}
-  <form method="post" action="/plan/settings" class="card pad mt">
-    <a href="/household" class="flex between">
-      <span><b>{{ "Household"|t }}</b> <span class="muted">{{ people }} {% if people == 1 %}{{ "person"|t }}{% else %}{{ "people"|t }}{% endif %}{% if pets > 0 %} · {{ pets }} {% if pets == 1 %}{{ "pet"|t }}{% else %}{{ "pets"|t }}{% endif %}{% endif %}</span></span>
-      <span class="muted small">{{ "Edit"|t }} ›</span>
-    </a>
-    <div class="grid2 mt end">
-      <label>{{ "Days"|t }} <input name="days" inputmode="numeric" value="{{ days }}"></label>
-      <button class="btn">{{ "Update"|t }}</button>
+  <div class="card mt">
+    {% include "_ready.html" %}
+    <div class="pad pt0 stack">
+      <a href="/household" class="row-line between">
+        <b>{{ "Household"|t }}</b>
+        <span class="small">{{ "Edit"|t }} ›</span>
+      </a>
+      <form method="post" action="/plan/settings" class="grid2 end">
+        <label>{{ "Days"|t }} <input name="days" inputmode="numeric" value="{{ days }}"></label>
+        <button class="btn">{{ "Update"|t }}</button>
+      </form>
+      <div>
+        <p class="muted small m0">{{ "Common recommendations. They set the days; the targets stay yours."|t }}</p>
+        <div class="flex mt">
+          {% for (d, label) in presets %}
+          <form method="post" action="/plan/settings"><button class="btn small{% if days == *d %} primary{% endif %}" name="days" value="{{ d }}"{% if days == *d %} aria-pressed="true"{% endif %}>{{ label|t }}</button></form>
+          {% endfor %}
+        </div>
+      </div>
     </div>
-    <p class="muted small mt0">{{ pct }}% {{ "covered"|t }}{% if let Some(w) = weakest %} · {{ "weakest essential lasts"|t }} {{ w }} {{ "days"|t }}{% endif %}. {{ "Targets start from the German civil-protection (BBK) checklist; edit them to fit your household. Stock counts by category; expired stock doesn't count."|t }}</p>
-  </form>
-
-  <div class="card pad mt">
-    <a href="/essentials" class="flex between">
-      <span><b>{{ "Medicine and essentials"|t }}</b><br><span class="muted small">{% if let Some(m) = medicine_days %}{{ "medicine lasts"|t }} {{ m }} {{ "days"|t }} · {% endif %}{{ "first-aid kit"|t }} {{ first_aid.0 }}/{{ first_aid.1 }} · {{ "essentials"|t }} {{ essentials.0 }}/{{ essentials.1 }}</span></span>
-      <span class="muted small">{{ "Edit"|t }} ›</span>
-    </a>
   </div>
+
+  <h2>{{ "Coverage"|t }}</h2>
+  <div class="card"><ul class="list">
+    {% for c in lines %}
+    <li><details>
+      <summary class="pad">
+        <div class="flex between">
+          <b>{{ c.label|t }}</b>
+          <span class="status {{ c.status }} small">{% if c.status == "ok" %}{% let icon = "ok" %}{% include "_icon.html" %}{% else if c.status == "crit" %}{% let icon = "crit" %}{% include "_icon.html" %}{% else %}{% let icon = "warn" %}{% include "_icon.html" %}{% endif %}{{ c.status_text }}</span>
+        </div>
+        <progress class="bar {{ c.bar }}" max="100" value="{{ c.pct }}" aria-hidden="true"></progress>
+        <div class="muted small mt-xs">{{ c.progress }}</div>
+      </summary>
+      <div class="pad pt0 stack">
+        <p class="muted small m0">{{ c.contributors }}</p>
+        <form method="post" action="/plan/targets/{{ c.id }}" class="stack">
+          <label>{{ "Label"|t }} <input name="label" value="{{ c.label }}"></label>
+          <div class="grid2">
+            <label>{{ "Category"|t }} <select name="category">{% for k in categories %}<option value="{{ k }}" {% if c.category == **k %}selected{% endif %}>{{ k|t }}</option>{% endfor %}</select></label>
+            <label>{{ "Mode"|t }} <select name="mode">{% for (v, l) in modes %}<option value="{{ v }}" {% if c.mode == **v %}selected{% endif %}>{{ l|t }}</option>{% endfor %}</select></label>
+          </div>
+          <div class="grid2">
+            <label>{{ "Amount"|t }} <input name="amount" inputmode="decimal" value="{{ c.amount }}"></label>
+            <label>{{ "Unit"|t }} <select name="unit">{% for u in units %}<option value="{{ u }}" {% if c.unit == **u %}selected{% endif %}>{{ u|t }}</option>{% endfor %}</select></label>
+          </div>
+          <div class="flex"><button class="btn small primary">{{ "Save"|t }}</button><button class="btn small danger" name="delete" value="1">{{ "Remove"|t }}</button></div>
+        </form>
+      </div>
+    </details></li>
+    {% endfor %}
+  </ul></div>
+  {% if has_gaps %}<form method="post" action="/plan/to-shopping" class="mt"><button class="btn primary block">{{ "Put the gaps on the shopping list"|t }}</button></form>{% endif %}
+  <p class="muted small">{{ "Targets start from the German civil-protection (BBK) checklist; edit them to fit your household. Stock counts by category; expired stock doesn't count."|t }}</p>
+
+  <h2>{{ "Medicine and essentials"|t }}</h2>
+  <div class="card"><a href="/essentials" class="row">
+    <div class="grow"><div class="title">{{ "Medicine and essentials"|t }}</div>
+      <div class="sub wrap">{% if let Some(m) = medicine_days %}{{ "medicine lasts"|t }} {{ m }} {{ "days"|t }} · {% endif %}{{ "first-aid kit"|t }} {{ first_aid.0 }}/{{ first_aid.1 }} · {{ "essentials"|t }} {{ essentials.0 }}/{{ essentials.1 }}</div></div>
+    {% let icon = "chev" %}{% include "_icon.html" %}
+  </a></div>
 
   {% if !suggestions.is_empty() %}
   <h2>{{ "Suggested for your household"|t }}</h2>
@@ -49,57 +92,25 @@
   <p class="muted small">{{ "From the official guides of the countries listed, for the people and pets in your household. No amounts are given: you know what yours need."|t }}</p>
   {% endif %}
 
-  <div class="card pad mt">
-    <div class="muted small">{{ "Common recommendations. They set the days; the targets stay yours."|t }}</div>
-    <div class="flex mt">
-      {% for (d, label) in presets %}
-      <form method="post" action="/plan/settings"><button class="btn small{% if days == *d %} primary{% endif %}" name="days" value="{{ d }}">{{ label|t }}</button></form>
-      {% endfor %}
-    </div>
-  </div>
-
-  <h2>{{ "Coverage"|t }}</h2>
+  <h2>{{ "Tools"|t }}</h2>
   <div class="card"><ul class="list">
-    {% for c in lines %}
-    <li><details>
-      <summary class="pad">
-        <div class="flex between">
-          <b>{{ c.label|t }}</b>
-          <span class="small {% if c.covered %}muted{% endif %}">{{ c.progress }}</span>
-        </div>
-        <progress class="bar {{ c.bar }}" max="100" value="{{ c.pct }}" aria-hidden="true"></progress>
-        <div class="muted small mt">{{ c.contributors }}</div>
-      </summary>
-      <form method="post" action="/plan/targets/{{ c.id }}" class="stack pad pt0">
-        <input name="label" value="{{ c.label }}" aria-label="{{ "Label"|t }}">
-        <div class="grid2">
-          <select name="category" aria-label="{{ "Category"|t }}">{% for k in categories %}<option value="{{ k }}" {% if c.category == **k %}selected{% endif %}>{{ k|t }}</option>{% endfor %}</select>
-          <select name="mode" aria-label="{{ "Mode"|t }}">{% for (v, l) in modes %}<option value="{{ v }}" {% if c.mode == **v %}selected{% endif %}>{{ l|t }}</option>{% endfor %}</select>
-        </div>
-        <div class="grid2">
-          <input name="amount" inputmode="decimal" value="{{ c.amount }}" aria-label="{{ "Amount"|t }}">
-          <select name="unit" aria-label="{{ "Unit"|t }}">{% for u in units %}<option value="{{ u }}" {% if c.unit == **u %}selected{% endif %}>{{ u|t }}</option>{% endfor %}</select>
-        </div>
-        <div class="flex"><button class="btn small primary">{{ "Save"|t }}</button><button class="btn small danger" name="delete" value="1">{{ "Remove"|t }}</button></div>
-      </form>
-    </details></li>
-    {% endfor %}
+    <li><a href="/plan/print" class="row"><span class="grow title">{{ "Printable checklist"|t }}</span>{% let icon = "chev" %}{% include "_icon.html" %}</a></li>
+    <li><a href="/plan/power-cut" class="row"><span class="grow title">{{ "Power cut: what to eat first"|t }}</span>{% let icon = "chev" %}{% include "_icon.html" %}</a></li>
   </ul></div>
-  {% if has_gaps %}<form method="post" action="/plan/to-shopping" class="mt"><button class="btn primary block">{{ "Put the gaps on the shopping list"|t }}</button></form>{% endif %}
-  <a href="/plan/print" class="btn block mt">{{ "Printable checklist"|t }}</a>
-  <a href="/plan/power-cut" class="btn block mt">{{ "Power cut: what to eat first"|t }}</a>
 
-  <h2>{{ "Add a target"|t }}</h2>
-  <form method="post" action="/plan/targets" class="card pad stack">
-    <input name="label" placeholder="{{ "e.g. Medicines, Cash, Power bank"|t }}" required aria-label="{{ "Label"|t }}">
-    <div class="grid2">
-      <select name="category" aria-label="{{ "Category"|t }}">{% for k in categories %}<option value="{{ k }}">{{ k|t }}</option>{% endfor %}</select>
-      <select name="mode" aria-label="{{ "Mode"|t }}">{% for (v, l) in modes %}<option value="{{ v }}" {% if *v == "fixed" %}selected{% endif %}>{{ l|t }}</option>{% endfor %}</select>
-    </div>
-    <div class="grid2">
-      <input name="amount" inputmode="decimal" placeholder="{{ "Amount"|t }}" required aria-label="{{ "Amount"|t }}">
-      <select name="unit" aria-label="{{ "Unit"|t }}">{% for u in units %}<option value="{{ u }}">{{ u|t }}</option>{% endfor %}</select>
-    </div>
-    <button class="btn block">{{ "Add target"|t }}</button>
-  </form>
+  <details class="card mt">
+    <summary class="row"><span class="grow"><b>{{ "Add a target"|t }}</b></span>{% let icon = "chev" %}{% include "_icon.html" %}</summary>
+    <form method="post" action="/plan/targets" class="pad pt0 stack">
+      <label>{{ "Label"|t }} <input name="label" placeholder="{{ "e.g. Medicines, Cash, Power bank"|t }}" required></label>
+      <div class="grid2">
+        <label>{{ "Category"|t }} <select name="category">{% for k in categories %}<option value="{{ k }}">{{ k|t }}</option>{% endfor %}</select></label>
+        <label>{{ "Mode"|t }} <select name="mode">{% for (v, l) in modes %}<option value="{{ v }}" {% if *v == "fixed" %}selected{% endif %}>{{ l|t }}</option>{% endfor %}</select></label>
+      </div>
+      <div class="grid2">
+        <label>{{ "Amount"|t }} <input name="amount" inputmode="decimal" required></label>
+        <label>{{ "Unit"|t }} <select name="unit">{% for u in units %}<option value="{{ u }}">{{ u|t }}</option>{% endfor %}</select></label>
+      </div>
+      <button class="btn block">{{ "Add target"|t }}</button>
+    </form>
+  </details>
 {% endblock %}

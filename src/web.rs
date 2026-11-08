@@ -431,6 +431,10 @@ pub struct PlanLine {
     pub bar: &'static str,
     pub covered: bool,
     pub contributors: String,
+    /// "ok", "warn" or "crit", for the status icon and colour.
+    pub status: &'static str,
+    /// "Covered" or "Missing 12 L"
+    pub status_text: String,
 }
 
 impl From<&rules::Coverage> for PlanLine {
@@ -469,6 +473,21 @@ impl From<&rules::Coverage> for PlanLine {
             bar: bar_class(c.ratio),
             covered: c.ratio >= 1.0,
             contributors,
+            status: match bar_class(c.ratio) {
+                _ if c.missing <= 0.0 => "ok",
+                "crit" => "crit",
+                _ => "warn",
+            },
+            status_text: if c.missing <= 0.0 {
+                tr("Covered")
+            } else {
+                format!(
+                    "{} {} {}",
+                    tr("Missing"),
+                    fmt_qty(c.missing),
+                    tr(&c.target.unit)
+                )
+            },
         }
     }
 }
@@ -507,6 +526,22 @@ fn bar_class(r: f64) -> &'static str {
 fn ready_days(plan: &rules::Plan) -> Option<String> {
     plan.weakest_days
         .map(|w| fmt_qty(w.clamp(0.0, plan.days as f64).floor()))
+}
+
+/// The first three targets not yet covered, then "+2 more". Labels contain
+/// commas, so the template joins them with "; ".
+fn gap_labels(plan: &rules::Plan) -> Vec<String> {
+    let g: Vec<String> = plan.gaps().map(|c| tr(&c.target.label)).collect();
+    if g.len() > 3 {
+        vec![format!(
+            "{}; +{} {}",
+            g[..3].join("; "),
+            g.len() - 3,
+            tr("more")
+        )]
+    } else {
+        g
+    }
 }
 
 fn item_unit(i: &db::Item) -> &str {
@@ -621,20 +656,7 @@ async fn home(State(s): St, Query(f): Query<Flash>) -> Res<Html<String>> {
         pets: plan.pets,
         ready_days: ready_days(&plan),
         ready_of: trf("of {0} days", &[&plan.days]),
-        gaps: {
-            // Labels contain commas, so they're separated with "; ".
-            let g: Vec<String> = plan.gaps().map(|c| tr(&c.target.label)).collect();
-            if g.len() > 3 {
-                vec![format!(
-                    "{}; +{} {}",
-                    g[..3].join("; "),
-                    g.len() - 3,
-                    tr("more")
-                )]
-            } else {
-                g
-            }
-        },
+        gaps: gap_labels(&plan),
         recent,
         month_note,
     })
@@ -1672,8 +1694,11 @@ struct PlanT {
     people: i64,
     pets: i64,
     days: i64,
-    pct: u32,
-    weakest: Option<String>,
+    plan_pct: u32,
+    plan_bar: &'static str,
+    ready_days: Option<String>,
+    ready_of: String,
+    gaps: Vec<String>,
     lines: Vec<PlanLine>,
     has_gaps: bool,
     categories: &'static [&'static str],
@@ -1721,8 +1746,11 @@ async fn plan_page(State(s): St, Query(f): Query<Flash>) -> Res<Html<String>> {
         people: plan.people,
         pets: plan.pets,
         days: plan.days,
-        pct: pct(plan.ratio),
-        weakest: plan.weakest_days.map(fmt_qty),
+        plan_pct: pct(plan.ratio),
+        plan_bar: bar_class(plan.ratio),
+        ready_days: ready_days(&plan),
+        ready_of: trf("of {0} days", &[&plan.days]),
+        gaps: gap_labels(&plan),
         has_gaps,
         lines: plan.lines.iter().map(PlanLine::from).collect(),
         categories: CATEGORIES,

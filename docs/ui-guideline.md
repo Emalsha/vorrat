@@ -99,7 +99,7 @@ no internet at all.
 - **No web fonts, no icon fonts, no CDNs.** The system font stack is legible
   and costs nothing. Icons are small inline SVG in the templates.
 - **One stylesheet**, `static/app.css`, compiled into the binary and cached by
-  the service worker. Keep it small: today about 10 KB. No CSS framework, no
+  the service worker. Keep it small: today about 15 KB uncompressed. No CSS framework, no
   build step, no preprocessor.
 - **No inline styles.** The content security policy is `style-src 'self'`, so
   a `style="…"` attribute does nothing. Use a class. `tests/ui.rs` fails on
@@ -186,8 +186,9 @@ Use these classes; add a new one only when none fits, and add it here.
 | Notice | `.notice` (`role="status"`) | The message after an action, with an optional Undo. |
 | Disclosure | `<details>` with a `<summary>` | For editing and for secondary information. |
 
-Helpers: `.muted`, `.small`, `.right`, `.mt`, `.m0`, `.pt0`, `.flex`,
-`.between`, `.end`, `.grid2`, `.grid3`, `.stack`, `.vh` (visually hidden,
+Helpers: `.muted`, `.small`, `.right`, `.mt`, `.mt-xs`, `.m0`, `.mt0`, `.pt0`,
+`.flex`, `.row-line` (a row with controls side by side), `.row.col` (a row
+that stacks), `.between`, `.end`, `.grow`, `.grid2`, `.grid3`, `.stack`, `.vh` (visually hidden,
 still read aloud).
 
 ### Status vocabulary
