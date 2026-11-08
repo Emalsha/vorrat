@@ -1627,9 +1627,19 @@ struct PlanT {
     presets: &'static [(i64, &'static str)],
     modes: &'static [(&'static str, &'static str)],
     medicine_days: Option<String>,
+    suggestions: Vec<SuggestRow>,
     /// (have, of) for the first-aid kit and the household essentials.
     first_aid: (usize, usize),
     essentials: (usize, usize),
+}
+
+struct SuggestRow {
+    key: &'static str,
+    label: &'static str,
+    /// The people and pets it is for.
+    who: String,
+    named_by: String,
+    candidates: Vec<(i64, String)>,
 }
 
 /// How a target scales, with the text the plan page shows for it.
@@ -1668,6 +1678,27 @@ async fn plan_page(State(s): St, Query(f): Query<Flash>) -> Res<Html<String>> {
         medicine_days: plan.medicine_days.map(fmt_qty),
         first_aid: count(es::FIRST_AID),
         essentials: count(es::ESSENTIALS),
+        suggestions: es::suggestions(
+            &s.store.members()?,
+            &snap,
+            &s.store.dismissed(&db::today().to_string())?,
+        )
+        .into_iter()
+        .map(|g| SuggestRow {
+            key: g.state.check.key,
+            label: g.state.check.label,
+            who: g.who.join(", "),
+            named_by: g.state.check.named_by.join(", "),
+            candidates: snap
+                .items
+                .iter()
+                .filter(|i| {
+                    i.preset.is_none() && i.category.as_deref() == Some(g.state.check.category)
+                })
+                .map(|i| (i.id, i.name.clone()))
+                .collect(),
+        })
+        .collect(),
     })
 }
 
@@ -2133,7 +2164,7 @@ async fn set_dose(State(s): St, Path(id): Path<i64>, Form(f): Form<DoseForm>) ->
 
 #[derive(Deserialize)]
 struct CheckForm {
-    /// `add`, `shop` or `link` (with `item_id`).
+    /// `add`, `shop`, `link` (with `item_id`), or `dismiss` for a suggestion.
     action: String,
     item_id: Option<String>,
 }
@@ -2143,6 +2174,9 @@ async fn check_action(State(s): St, Path(key): Path<String>, Form(f): Form<Check
         return not_found();
     };
     let label = tr(c.label);
+    // Suggestions live on the plan page, the checklists on their own page.
+    let suggestion = !c.applies_to.is_empty();
+    let page = if suggestion { "/plan" } else { "/essentials" };
     match f.action.as_str() {
         "add" => {
             let r = s.store.add_item(NewItem {
@@ -2163,22 +2197,29 @@ async fn check_action(State(s): St, Path(key): Path<String>, Form(f): Form<Check
                     &format!("/items/{id}"),
                     "Added. Now add the stock you have.",
                 ),
-                Err(e) => back("/essentials", format!("Not saved: {e}")),
+                Err(e) => back(page, format!("Not saved: {e}")),
             }
         }
         "shop" => done(
-            "/essentials",
+            page,
             s.store
                 .add_shopping(&label, None, None)
                 .map(|_| "Added to the shopping list".into()),
         ),
         "link" => done(
-            "/essentials",
+            page,
             (|| {
                 let id = opt_i64(&f.item_id).ok_or_else(|| anyhow::anyhow!("pick an item"))?;
                 s.store.set_preset(id, Some(c.key))?;
                 Ok("Saved".into())
             })(),
+        ),
+        // "Not needed" is for good; it comes back only if the data is reset.
+        "dismiss" if suggestion => done(
+            page,
+            s.store
+                .dismiss(&crate::essentials::dismiss_key(c.key), "9999-12-31")
+                .map(|_| "Hidden".into()),
         ),
         _ => not_found(),
     }

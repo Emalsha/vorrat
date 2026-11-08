@@ -1275,3 +1275,72 @@ async fn medicine_page_in_german() {
     assert!(body.contains("Verbandkasten"));
     assert!(body.contains("Batterie- oder Kurbelradio"));
 }
+
+#[tokio::test]
+async fn plan_suggests_from_the_household() {
+    let (app, st) = app();
+    let (_, body) = get(&app, "/plan").await;
+    assert!(!body.contains("Suggested for your household"));
+    st.store.add_member("pet", "cat", "Mimi <i>", &[]).unwrap();
+    let (_, body) = get(&app, "/plan").await;
+    assert!(body.contains("Suggested for your household"));
+    assert!(body.contains("Pet food"));
+    assert!(
+        body.contains("for Mimi &#60;i&#62;") || body.contains("for Mimi &lt;i&gt;"),
+        "{body}"
+    );
+    assert!(!body.contains("Lead<"), "a lead is for dogs");
+
+    let r = post(
+        &app,
+        "/essentials/check/sg-pet-carrier",
+        "action=dismiss",
+        "same-origin",
+    )
+    .await;
+    assert!(loc(&r).starts_with("/plan?msg=Hidden"));
+    let r = post(
+        &app,
+        "/essentials/check/sg-pet-water",
+        "action=shop",
+        "same-origin",
+    )
+    .await;
+    assert!(loc(&r).starts_with("/plan?"));
+    let r = post(
+        &app,
+        "/essentials/check/sg-pet-food",
+        "action=add",
+        "same-origin",
+    )
+    .await;
+    let id: i64 = loc(&r)["/items/".len()..]
+        .split('?')
+        .next()
+        .unwrap()
+        .parse()
+        .unwrap();
+    st.store.add_batch(id, 2.0, None, None, None).unwrap();
+    let (_, body) = get(&app, "/plan").await;
+    assert!(!body.contains("Pet carrier or cage"));
+    assert!(!body.contains(">Pet food<"));
+    assert!(
+        body.contains("Water for pets"),
+        "on the list, not yet in stock"
+    );
+
+    // Only suggestions can be hidden; checklist entries can't.
+    assert_eq!(
+        post(
+            &app,
+            "/essentials/check/es-radio",
+            "action=dismiss",
+            "same-origin"
+        )
+        .await
+        .status(),
+        StatusCode::NOT_FOUND
+    );
+    let body = get_lang(&app, "/plan", "de").await;
+    assert!(body.contains("Vorschläge für deinen Haushalt") && body.contains("Wasser für Tiere"));
+}
