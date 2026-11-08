@@ -15,7 +15,7 @@ use serde::Deserialize;
 
 use crate::config::Config;
 use crate::db::{self, ItemQuery, NewItem, Sort, Store, CATEGORIES, KINDS, UNITS};
-use crate::i18n::tr;
+use crate::i18n::{tr, trf};
 use crate::notify::{self, Notifier};
 use crate::rules::{self, fmt_qty, Dated, Status};
 
@@ -209,11 +209,11 @@ async fn security(req: Request, next: Next) -> Response {
     // A handler may set a stricter policy of its own (attachments: sandbox).
     if !h.contains_key("content-security-policy") {
         set(
-        h,
-        "content-security-policy",
-        "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; \
+            h,
+            "content-security-policy",
+            "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; \
          object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
-    );
+        );
     }
     set(h, "x-content-type-options", "nosniff");
     set(h, "referrer-policy", "no-referrer");
@@ -379,6 +379,10 @@ pub struct ItemRow {
     pub initial: String,
     pub sub: String,
     pub low: bool,
+    /// The one pill a list shows: "expired", "low", "urgent", "soon" or "".
+    pub status: &'static str,
+    /// When the next batch expires ("3d", "2d ago").
+    pub when: String,
 }
 
 impl From<&db::Item> for ItemRow {
@@ -400,6 +404,17 @@ impl From<&db::Item> for ItemRow {
             name: i.name.clone(),
             sub,
             low: i.is_low(),
+            status: {
+                let days = rules::days_left(i.next_expiry.as_deref(), db::today());
+                match Status::of(days, 14) {
+                    Status::Expired => "expired",
+                    _ if i.is_low() => "low",
+                    Status::Urgent => "urgent",
+                    Status::Soon => "soon",
+                    _ => "",
+                }
+            },
+            when: when(rules::days_left(i.next_expiry.as_deref(), db::today())),
         }
     }
 }
@@ -487,6 +502,13 @@ fn bar_class(r: f64) -> &'static str {
     }
 }
 
+/// Days the weakest essential lasts, at most the days planned for: the big
+/// number on Home and Plan.
+fn ready_days(plan: &rules::Plan) -> Option<String> {
+    plan.weakest_days
+        .map(|w| fmt_qty(w.clamp(0.0, plan.days as f64).floor()))
+}
+
 fn item_unit(i: &db::Item) -> &str {
     if i.unit == "pcs" {
         "piece"
@@ -503,7 +525,6 @@ fn initial(name: &str) -> String {
 }
 
 fn when(d: Option<i64>) -> String {
-    use crate::i18n::trf;
     match d {
         None => tr("no date"),
         Some(0) => tr("today"),
@@ -529,15 +550,18 @@ struct HomeT {
     msg: Option<String>,
     tab: &'static str,
     undo: Option<String>,
-    expired: usize,
-    soon: usize,
     expiring: Vec<BatchRow>,
     low: Vec<ItemRow>,
+    /// Rows under "Needs attention".
+    attention: usize,
     plan_pct: u32,
     plan_bar: &'static str,
-    plan_days: i64,
     people: i64,
-    weakest: Option<String>,
+    pets: i64,
+    /// How long the weakest essential lasts, capped at the planned days.
+    ready_days: Option<String>,
+    /// "of 14 days"
+    ready_of: String,
     gaps: Vec<String>,
     recent: Vec<String>,
     month_note: Option<String>,
@@ -563,7 +587,8 @@ async fn home(State(s): St, Query(f): Query<Flash>) -> Res<Html<String>> {
             tr("Thrown away:")
         )),
     };
-    let exp = snap.expiring(14);
+    let expiring: Vec<BatchRow> = snap.expiring(14).iter().map(BatchRow::from).collect();
+    let low: Vec<ItemRow> = snap.low_stock().iter().map(ItemRow::from).collect();
     let plan = rules::coverage_of(&s.store, &snap)?;
     let recent = s
         .store
@@ -587,15 +612,15 @@ async fn home(State(s): St, Query(f): Query<Flash>) -> Res<Html<String>> {
         msg: f.msg,
         tab: "home",
         undo: f.undo,
-        expired: exp.iter().filter(|b| b.status == Status::Expired).count(),
-        soon: exp.iter().filter(|b| b.status != Status::Expired).count(),
-        expiring: exp.iter().map(BatchRow::from).collect(),
-        low: snap.low_stock().iter().map(ItemRow::from).collect(),
+        attention: expiring.len() + low.len(),
+        expiring,
+        low,
         plan_pct: pct(plan.ratio),
         plan_bar: bar_class(plan.ratio),
-        plan_days: plan.days,
         people: plan.people,
-        weakest: plan.weakest_days.map(fmt_qty),
+        pets: plan.pets,
+        ready_days: ready_days(&plan),
+        ready_of: trf("of {0} days", &[&plan.days]),
         gaps: {
             // Labels contain commas, so they're separated with "; ".
             let g: Vec<String> = plan.gaps().map(|c| tr(&c.target.label)).collect();
@@ -623,8 +648,14 @@ struct ItemsT {
     undo: Option<String>,
     q: String,
     kind: String,
-    kinds: &'static [&'static str],
+    kinds: &'static [(&'static str, &'static str)],
     items: Vec<ItemRow>,
+    /// "Shown: 12"
+    shown: String,
+    /// Only items below their minimum.
+    low: bool,
+    /// "name" or "expiry"
+    sort: &'static str,
 }
 
 #[derive(Deserialize)]
@@ -632,28 +663,51 @@ struct ItemsQ {
     q: Option<String>,
     kind: Option<String>,
     sort: Option<String>,
+    low: Option<String>,
     msg: Option<String>,
 }
 
 async fn items_page(State(s): St, Query(p): Query<ItemsQ>) -> Res<Html<String>> {
     let q = p.q.unwrap_or_default();
     let kind = p.kind.unwrap_or_default();
+    let low = p.low.is_some_and(|v| v == "1");
+    let sort = match p.sort.as_deref() {
+        Some("expiry") => "expiry",
+        Some("recent") => "recent",
+        _ => "name",
+    };
     let items = s.store.items(&ItemQuery {
         search: &q,
         kind: &kind,
-        sort: Sort::parse(p.sort.as_deref().unwrap_or("name")),
+        sort: Sort::parse(sort),
         ..Default::default()
     })?;
+    let items: Vec<ItemRow> = items
+        .iter()
+        .filter(|i| !low || i.is_low())
+        .map(ItemRow::from)
+        .collect();
     render(ItemsT {
         msg: p.msg,
         tab: "items",
         undo: None,
-        items: items.iter().map(ItemRow::from).collect(),
+        shown: trf("Shown: {0}", &[&items.len()]),
+        items,
+        low,
+        sort,
         q,
         kind,
-        kinds: KINDS,
+        kinds: KIND_FILTERS,
     })
 }
+
+/// The kind filters on the stock page, with their plural labels.
+const KIND_FILTERS: &[(&str, &str)] = &[
+    ("food", "Food"),
+    ("supply", "Supplies"),
+    ("document", "Documents"),
+    ("thing", "Things"),
+];
 
 #[derive(Template)]
 #[template(path = "item.html")]
