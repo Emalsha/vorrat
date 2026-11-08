@@ -11,13 +11,13 @@ mod common;
 use common::*;
 use vorrat::db::{ItemQuery, NewItem, Sort, EXPORT_TABLES};
 
+/// The demo household, plus rows that fill the optional columns it leaves empty.
 #[test]
 fn every_reader_handles_full_and_empty_rows() {
     let s = store();
     let today = today();
     vorrat::demo::seed(&s, today).unwrap();
 
-    // Fill the optional columns the demo household leaves empty.
     let id = item_with(
         &s,
         NewItem {
