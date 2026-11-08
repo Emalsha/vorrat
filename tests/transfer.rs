@@ -9,6 +9,7 @@ fn parses_quotes_semicolons_and_bom() {
     assert_eq!(rows[2][0], "say \"hi\"\nthere");
 }
 
+/// Importing again adds stock, never new duplicates.
 #[test]
 fn import_creates_and_matches_items() {
     let s = common::store();
@@ -35,7 +36,6 @@ fn import_creates_and_matches_items() {
         "Garage shelf created once"
     );
     assert!(r.summary().contains("line 4"));
-    // Importing again adds stock, never new duplicates.
     let r = import_csv(&s, csv).unwrap();
     assert_eq!(r.new_items, 0);
     assert_eq!(s.item(rice).unwrap().unwrap().total, 4.0);

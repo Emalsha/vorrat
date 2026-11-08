@@ -18,7 +18,9 @@ pub fn next_run(now: NaiveDateTime, hm: (u32, u32)) -> NaiveDateTime {
     }
 }
 
-/// Runs forever; spawn it on the runtime.
+/// Runs forever; spawn it on the runtime. The digest uses the saved language,
+/// since there is no browser to ask. It wakes at least every 5 minutes, so
+/// clock changes and sleep are handled.
 pub async fn run(state: Arc<AppState>) {
     let cfg = &state.cfg;
     let mut next_digest = next_run(Local::now().naive_local(), cfg.digest_time);
@@ -35,7 +37,6 @@ pub async fn run(state: Arc<AppState>) {
                     tracing::error!("demo reset failed: {e:#}");
                 }
             }
-            // No browser here: German only when it's the saved setting.
             let lang = crate::i18n::Lang::pick(&state.lang_setting(), None);
             match crate::i18n::LANG
                 .scope(
@@ -72,7 +73,6 @@ pub async fn run(state: Arc<AppState>) {
                 next_backup = Some(next_run(Local::now().naive_local(), cfg.backup_time));
             }
         }
-        // Wake at least every 5 minutes, so clock changes and sleep are handled.
         let soonest = next_backup.map_or(next_digest, |b| b.min(next_digest));
         let wait = (soonest - Local::now().naive_local())
             .num_seconds()

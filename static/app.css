@@ -67,8 +67,9 @@ h2 { font-size: .8rem; text-transform: uppercase; letter-spacing: .06em; color: 
 .inline { display: inline; margin: 0; }
 form.stack { display: grid; gap: 12px; }
 label { display: grid; gap: 4px; font-size: .86rem; color: var(--muted); font-weight: 600; }
+/* A font size of at least 16px stops iOS zooming into fields. */
 input, select, textarea {
-  font: inherit; font-size: 16px; /* ≥16px stops iOS zooming into fields */
+  font: inherit; font-size: 16px;
   width: 100%; padding: 11px 12px; border-radius: 10px; border: 1px solid var(--line);
   background: var(--bg); color: var(--ink); min-height: 46px;
 }
@@ -117,7 +118,7 @@ table.prices th { color: var(--muted); font-weight: 600; border-top: 0; }
 .check { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--line); background: transparent; flex: none; padding: 0; cursor: pointer; }
 .done .check { background: var(--accent); border-color: var(--accent); }
 @media (max-width: 380px) { .grid3 { grid-template-columns: 1fr 1fr; } }
-/* v0.2: suggestions, undo, quick actions */
+/* Suggestions, undo, quick actions */
 .stack-sm { display: grid; gap: 8px; }
 .mt-xs { margin-top: 4px; }
 .warn-text { color: var(--amber); font-weight: 600; }

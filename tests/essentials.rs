@@ -12,6 +12,7 @@ fn adult(s: &vorrat::db::Store) -> i64 {
     s.members().unwrap()[0].id
 }
 
+/// Bad input adds nothing. Removing the person keeps the medicine, unassigned.
 #[test]
 fn medicine_dose_add_edit_remove() {
     let s = store();
@@ -28,7 +29,6 @@ fn medicine_dose_add_edit_remove() {
     assert_eq!((dose.member_id, dose.per_day), (Some(who), 2.0));
     assert_eq!(dose.strength, "5 mg");
 
-    // Bad input adds nothing.
     let before = s.all_items().unwrap().len();
     assert!(s
         .add_medicine("X", "pcs", None, "potion", "", 1.0, None)
@@ -43,7 +43,6 @@ fn medicine_dose_add_edit_remove() {
     s.set_dose(id, None, "", "", 1.0, None).unwrap();
     assert_eq!(s.dose(id).unwrap().unwrap().member_id, None);
 
-    // Removing the person keeps the medicine, unassigned.
     s.set_dose(id, Some(who), "tablet", "", 1.0, None).unwrap();
     s.delete_member(who).unwrap();
     assert_eq!(s.dose(id).unwrap().unwrap().member_id, None);
@@ -60,6 +59,8 @@ fn medicine_dose_add_edit_remove() {
     );
 }
 
+/// Expired stock doesn't count. Without a medicine the plan has no medicine
+/// days.
 #[test]
 fn medicine_days_count_usable_stock_and_join_the_plan() {
     let s = store();
@@ -67,7 +68,7 @@ fn medicine_days_count_usable_stock_and_join_the_plan() {
         .add_medicine("Inhaler", "pcs", None, "inhaler", "", 2.0, None)
         .unwrap();
     s.add_batch(id, 10.0, d(100), None, None).unwrap();
-    s.add_batch(id, 50.0, d(-1), None, None).unwrap(); // expired: doesn't count
+    s.add_batch(id, 50.0, d(-1), None, None).unwrap();
     let m = medicines(&s, &snap(&s)).unwrap();
     assert_eq!(m.len(), 1);
     assert_eq!((m[0].have, m[0].days), (10.0, 5.0));
@@ -78,11 +79,11 @@ fn medicine_days_count_usable_stock_and_join_the_plan() {
         Some(0.0),
         "nothing else stocked yet, so food is weakest"
     );
-    // Without a medicine the plan has no medicine days.
     s.delete_dose(id).unwrap();
     assert_eq!(rules::coverage(&s, today()).unwrap().medicine_days, None);
 }
 
+/// After a restock it stays quiet, and the next shortage alerts again.
 #[test]
 fn medicine_reminders_once_until_restocked() {
     let s = store();
@@ -113,7 +114,6 @@ fn medicine_reminders_once_until_restocked() {
         .unwrap()
         .is_empty());
 
-    // Restocked: quiet, and the next shortage alerts again.
     s.add_batch(id, 100.0, None, None, None).unwrap();
     assert!(rules::build_digest(&s, today(), &RemindDays::default())
         .unwrap()
@@ -129,6 +129,7 @@ fn medicine_reminders_once_until_restocked() {
     );
 }
 
+/// Expired stock doesn't count, and is flagged. Blankets are one per person.
 #[test]
 fn checklists_tick_from_linked_stock() {
     let s = store();
@@ -154,14 +155,12 @@ fn checklists_tick_from_linked_stock() {
     s.add_batch(t, 1.0, None, None, None).unwrap();
     assert!(state(&s, es::FIRST_AID, "fa-thermometer").ok());
 
-    // Expired stock doesn't count, and is flagged.
     let p = item(&s, "Plasters");
     s.set_preset(p, Some("fa-plasters")).unwrap();
     s.add_batch(p, 20.0, d(-3), None, None).unwrap();
     let c = state(&s, es::FIRST_AID, "fa-plasters");
     assert!(!c.ok() && c.expired);
 
-    // Blankets: one per person.
     let b = item(&s, "Wool blanket");
     s.set_preset(b, Some("es-blankets")).unwrap();
     s.add_batch(b, 1.0, None, None, None).unwrap();
@@ -171,6 +170,7 @@ fn checklists_tick_from_linked_stock() {
     assert!(state(&s, es::ESSENTIALS, "es-blankets").items.is_empty());
 }
 
+/// Every country named has a verified entry in the guidance data.
 #[test]
 fn checklist_keys_are_unique_and_sourced() {
     let mut keys = std::collections::HashSet::new();
@@ -187,7 +187,6 @@ fn checklist_keys_are_unique_and_sourced() {
             c.key
         );
     }
-    // Every country named has a verified entry in the guidance data.
     let data: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string("docs/guidance/presets.json").unwrap())
             .unwrap();
@@ -222,6 +221,8 @@ fn export_marks_health_data_private() {
     assert_eq!(doc["tables"]["doses"].as_array().unwrap().len(), 1);
 }
 
+/// Having a suggestion in stock or saying "not needed" hides it. No
+/// suggestion is a medicine.
 #[test]
 fn suggestions_follow_the_profile() {
     let s = store();
@@ -258,7 +259,6 @@ fn suggestions_follow_the_profile() {
         .unwrap();
     assert_eq!(food.who, vec!["Rex".to_string()]);
 
-    // Having it in stock or saying "not needed" hides it.
     let n = item(&s, "Nappies size 2");
     s.set_preset(n, Some("sg-nappies")).unwrap();
     s.add_batch(n, 30.0, None, None, None).unwrap();
@@ -270,6 +270,5 @@ fn suggestions_follow_the_profile() {
         "{k:?}"
     );
 
-    // No suggestion is a medicine.
     assert!(es::SUGGESTIONS.iter().all(|c| c.category != "medicine"));
 }

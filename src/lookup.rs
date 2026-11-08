@@ -161,7 +161,8 @@ pub fn map_category(tags: &[String]) -> Option<&'static str> {
     None
 }
 
-/// Prefill for a new item.
+/// Prefill for a new item. `pack` is the number of pieces in a multipack, the
+/// quantity to add.
 #[derive(Debug, Clone, Default, Serialize, PartialEq)]
 pub struct Found {
     pub name: String,
@@ -171,7 +172,6 @@ pub struct Found {
     pub category: Option<String>,
     pub size: Option<f64>,
     pub size_unit: Option<String>,
-    /// Pieces in a multipack: the quantity to add.
     pub pack: Option<u32>,
     pub frozen: bool,
     pub nutriscore: Option<String>,

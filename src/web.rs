@@ -19,12 +19,14 @@ use crate::i18n::tr;
 use crate::notify::{self, Notifier};
 use crate::rules::{self, fmt_qty, Dated, Status};
 
+/// Shared state of the running app.
+///
+/// - `lang`: the saved language setting (`auto`, `en`, `de`), kept here so a page
+///   view doesn't query it.
 pub struct AppState {
     pub store: Store,
     pub cfg: Config,
     pub notifier: Option<Notifier>,
-    /// The saved language setting (`auto`, `en`, `de`), kept here so a page
-    /// view doesn't query it.
     lang: std::sync::RwLock<String>,
     pub sessions: crate::auth::Sessions,
 }
@@ -138,8 +140,6 @@ pub fn router(state: Arc<AppState>) -> Router {
         .with_state(state)
 }
 
-// -- language -------------------------------------------------------------------
-
 tokio::task_local! {
     /// Whether this request is on a demo instance.
     static DEMO: bool;
@@ -193,10 +193,9 @@ async fn language(State(s): St, req: Request, next: Next) -> Response {
         .await
 }
 
-// -- security -----------------------------------------------------------------
-
 /// Strict headers on every response, and a same-origin check on every write:
 /// a page on another site can't make the browser post to Vorrat (CSRF).
+/// A handler may set a stricter policy of its own (attachments: sandbox).
 async fn security(req: Request, next: Next) -> Response {
     if req.method() != Method::GET && req.method() != Method::HEAD && !same_origin(req.headers()) {
         return (StatusCode::FORBIDDEN, "cross-site request refused").into_response();
@@ -206,7 +205,6 @@ async fn security(req: Request, next: Next) -> Response {
     let set = |h: &mut HeaderMap, k: &'static str, v: &'static str| {
         h.insert(k, HeaderValue::from_static(v));
     };
-    // A handler may set a stricter policy of its own (attachments: sandbox).
     if !h.contains_key("content-security-policy") {
         set(
         h,
@@ -226,11 +224,13 @@ async fn security(req: Request, next: Next) -> Response {
     res
 }
 
+/// Whether a write comes from Vorrat's own pages, by `Sec-Fetch-Site`. Older
+/// browsers: the host in `Origin` must match `Host`. No `Origin` means it is not
+/// a browser form.
 fn same_origin(h: &HeaderMap) -> bool {
     if let Some(site) = h.get("sec-fetch-site").and_then(|v| v.to_str().ok()) {
         return matches!(site, "same-origin" | "none");
     }
-    // Older browsers: compare Origin's host with Host. No Origin = not a browser form.
     match (
         h.get(header::ORIGIN).and_then(|v| v.to_str().ok()),
         h.get(header::HOST).and_then(|v| v.to_str().ok()),
@@ -240,8 +240,6 @@ fn same_origin(h: &HeaderMap) -> bool {
         (Some(_), None) => false,
     }
 }
-
-// -- errors -------------------------------------------------------------------
 
 pub struct AppError(anyhow::Error);
 
@@ -299,12 +297,11 @@ fn url_encode(s: &str) -> String {
     out
 }
 
-// -- form parsing helpers ---------------------------------------------------------
-
+/// An optional number from a form field. A decimal comma is accepted: half of
+/// Europe types "1,5".
 fn opt_f64(s: &Option<String>) -> anyhow::Result<Option<f64>> {
     match s.as_deref().map(str::trim).filter(|v| !v.is_empty()) {
         None => Ok(None),
-        // Accept a decimal comma: half of Europe types "1,5".
         Some(v) => v
             .replace(',', ".")
             .parse::<f64>()
@@ -326,13 +323,13 @@ fn opt_date(s: &Option<String>) -> anyhow::Result<Option<NaiveDate>> {
     }
 }
 
-// -- view models ------------------------------------------------------------------
-
+/// The message and undo link a page shows after an action.
+///
+/// - `qty`: prefill for the add-stock form (from the shopping list).
 #[derive(Default, Deserialize)]
 pub struct Flash {
     msg: Option<String>,
     undo: Option<String>,
-    /// Prefill for the add-stock form (from the shopping list).
     qty: Option<String>,
 }
 
@@ -521,8 +518,6 @@ fn hdate(s: Option<&str>) -> String {
         .unwrap_or_else(|| tr("no date"))
 }
 
-// -- pages ------------------------------------------------------------------------
-
 #[derive(Template)]
 #[template(path = "home.html")]
 struct HomeT {
@@ -543,6 +538,7 @@ struct HomeT {
     month_note: Option<String>,
 }
 
+/// The home page. Gap labels contain commas, so they are joined with "; ".
 async fn home(State(s): St, Query(f): Query<Flash>) -> Res<Html<String>> {
     let today = db::today();
     let snap = rules::Snapshot::load(&s.store, today)?;
@@ -597,7 +593,6 @@ async fn home(State(s): St, Query(f): Query<Flash>) -> Res<Html<String>> {
         people: plan.people,
         weakest: plan.weakest_days.map(fmt_qty),
         gaps: {
-            // Labels contain commas, so they're separated with "; ".
             let g: Vec<String> = plan.gaps().map(|c| tr(&c.target.label)).collect();
             if g.len() > 3 {
                 vec![format!(
@@ -655,6 +650,13 @@ async fn items_page(State(s): St, Query(p): Query<ItemsQ>) -> Res<Html<String>> 
     })
 }
 
+/// The item page.
+///
+/// - `back_to`: where the batch buttons return to (used by `_batch_row.html`).
+/// - `show_dose`: medicines: the daily dose form is shown for the medicine category or
+///   when a dose is set.
+/// - `members`: (id, label, chosen) for the "for" select.
+/// - `preset`: the checklist entry this item counts for.
 #[derive(Template)]
 #[template(path = "item.html")]
 struct ItemT {
@@ -673,20 +675,18 @@ struct ItemT {
     insights: Vec<String>,
     restock_qty: String,
     expiry_hint: Option<(String, String)>,
-    /// Where the batch buttons return to (used by `_batch_row.html`).
     back_to: String,
-    /// Medicines: the daily dose form is shown for the medicine category or
-    /// when a dose is set.
     show_dose: bool,
     has_dose: bool,
     dose: DoseView,
-    /// (id, label, chosen) for the "for" select.
     members: Vec<(i64, String, bool)>,
     forms: &'static [&'static str],
-    /// The checklist entry this item counts for.
     preset: Option<&'static str>,
 }
 
+/// A daily dose as the item page shows it.
+///
+/// - `days`: "lasts 14 days"
 #[derive(Default)]
 struct DoseView {
     member_id: Option<i64>,
@@ -694,7 +694,6 @@ struct DoseView {
     strength: String,
     per_day: String,
     renew_on: String,
-    /// "lasts 14 days"
     days: String,
 }
 
@@ -892,13 +891,14 @@ struct AddForm {
     nutriscore: Option<String>,
 }
 
+/// Adds stock. A known barcode or a name that already exists adds to that item
+/// instead of making a duplicate.
 async fn add_submit(State(s): St, Form(f): Form<AddForm>) -> Response {
     let r = (|| -> anyhow::Result<(i64, String)> {
         let qty = opt_f64(&f.qty)?.unwrap_or(1.0);
         let expires = opt_date(&f.expires_on)?;
         let loc = opt_i64(&f.location_id);
         let price = opt_f64(&f.price)?;
-        // A known barcode adds stock to the existing item instead of a duplicate.
         let existing = match f
             .barcode
             .as_deref()
@@ -906,7 +906,6 @@ async fn add_submit(State(s): St, Form(f): Form<AddForm>) -> Response {
             .filter(|b| !b.is_empty())
         {
             Some(code) => s.store.item_by_barcode(code)?,
-            // A typed name that already exists: add to it instead of a duplicate.
             None => s.store.item_by_name(&f.name)?,
         };
         let id = match existing {
@@ -1071,8 +1070,6 @@ async fn delete_item(State(s): St, Path(id): Path<i64>) -> Response {
     done("/items", r.map(|_| "Deleted".into()))
 }
 
-// -- edit item ------------------------------------------------------------------------
-
 #[derive(Template)]
 #[template(path = "item_form.html")]
 struct ItemFormT {
@@ -1090,6 +1087,7 @@ struct ItemFormT {
     locations: Vec<db::Location>,
 }
 
+/// The edit form. Pack sizes use every unit but "pcs".
 async fn edit_item_page(
     State(s): St,
     Path(id): Path<i64>,
@@ -1112,7 +1110,7 @@ async fn edit_item_page(
         item,
         kinds: KINDS,
         units: UNITS,
-        size_units: &UNITS[1..], // all but "pcs"
+        size_units: &UNITS[1..],
         categories: CATEGORIES,
         locations: s.store.locations()?,
     })?
@@ -1162,8 +1160,6 @@ async fn edit_item(State(s): St, Path(id): Path<i64>, Form(f): Form<EditForm>) -
     }
 }
 
-// -- barcodes -----------------------------------------------------------------------
-
 #[derive(Deserialize)]
 struct LinkForm {
     code: String,
@@ -1194,10 +1190,10 @@ async fn unlink_barcode(State(s): St, Path(id): Path<i64>, Form(f): Form<CodeFor
     )
 }
 
-// -- attachments ------------------------------------------------------------------------
-
 const MAX_UPLOAD: usize = 25 * 1024 * 1024;
 
+/// Stores a picture or PDF for an item. It trusts the bytes, not the browser's
+/// label: only real images and PDFs are kept.
 async fn upload(State(s): St, Path(id): Path<i64>, mut mp: axum::extract::Multipart) -> Response {
     let to = format!("/items/{id}");
     let mut as_picture = false;
@@ -1223,7 +1219,6 @@ async fn upload(State(s): St, Path(id): Path<i64>, mut mp: axum::extract::Multip
     let Some((fname, _ctype, bytes)) = file else {
         return back(&to, "Choose a file");
     };
-    // Trust the bytes, not the browser's label: only real images and PDFs.
     let Some((mime, ext)) = sniff(&bytes) else {
         return back(&to, "Only photos (JPEG, PNG, WebP) and PDFs");
     };
@@ -1267,6 +1262,8 @@ fn sniff(b: &[u8]) -> Option<(&'static str, &'static str)> {
     }
 }
 
+/// Serves an attachment with a sandbox policy, so a PDF opened inline can't run
+/// scripts in Vorrat's origin.
 async fn get_attachment(State(s): St, Path(id): Path<i64>) -> Res<Response> {
     let Some(a) = s.store.attachment(id)? else {
         return Ok(not_found());
@@ -1302,7 +1299,6 @@ async fn get_attachment(State(s): St, Path(id): Path<i64>) -> Res<Response> {
         bytes,
     )
         .into_response();
-    // A PDF opened inline must not run scripts in our origin.
     res.headers_mut().insert("content-security-policy", HeaderValue::from_static("sandbox; default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; plugin-types application/pdf"));
     res.headers_mut().insert(
         header::CACHE_CONTROL,
@@ -1321,8 +1317,6 @@ async fn delete_attachment(State(s): St, Path(id): Path<i64>) -> Res<Response> {
     }
     Ok(back(&format!("/items/{}", a.item_id), "Removed"))
 }
-
-// -- locations --------------------------------------------------------------------------
 
 #[derive(Template)]
 #[template(path = "locations.html")]
@@ -1395,8 +1389,6 @@ async fn edit_location(State(s): St, Path(id): Path<i64>, Form(f): Form<LocForm>
             .map(|_| "Saved".into()),
     )
 }
-
-// -- calendar ------------------------------------------------------------------------
 
 /// Expiry and renewal dates as an iCal feed, for the phone's calendar.
 async fn calendar(State(s): St) -> Res<Response> {
@@ -1480,8 +1472,6 @@ async fn delete_batch(State(s): St, Path(id): Path<i64>, Form(f): Form<BackForm>
         Err(e) => back(&to, format!("Not saved: {e}")),
     }
 }
-
-// -- scanning -----------------------------------------------------------------------
 
 #[derive(Template)]
 #[template(path = "scan.html")]
@@ -1607,8 +1597,9 @@ async fn data_file(State(s): St, Path(name): Path<String>) -> Response {
     }
 }
 
-// -- plan ---------------------------------------------------------------------------
-
+/// The plan page.
+///
+/// - `first_aid`: (have, of) for the first-aid kit and the household essentials.
 #[derive(Template)]
 #[template(path = "plan.html")]
 struct PlanT {
@@ -1628,15 +1619,16 @@ struct PlanT {
     modes: &'static [(&'static str, &'static str)],
     medicine_days: Option<String>,
     suggestions: Vec<SuggestRow>,
-    /// (have, of) for the first-aid kit and the household essentials.
     first_aid: (usize, usize),
     essentials: (usize, usize),
 }
 
+/// A suggestion as the plan page shows it.
+///
+/// - `who`: the people and pets it is for.
 struct SuggestRow {
     key: &'static str,
     label: &'static str,
-    /// The people and pets it is for.
     who: String,
     named_by: String,
     candidates: Vec<(i64, String)>,
@@ -1817,8 +1809,6 @@ async fn plan_settings(State(s): St, Form(f): Form<PlanSettings>) -> Response {
     )
 }
 
-// -- household profile --------------------------------------------------------
-
 #[derive(Template)]
 #[template(path = "household.html")]
 struct HouseholdT {
@@ -1833,15 +1823,17 @@ struct HouseholdT {
     pet_target: bool,
 }
 
+/// A person or pet as the household page shows it.
+///
+/// - `label`: the name, or the translated type with a number ("Adult 2").
+/// - `needs`: every need with whether this person has it, for the checkboxes.
+/// - `needs_text`: translated, for the summary line.
 struct MemberRow {
     id: i64,
-    /// The name, or the translated type with a number ("Adult 2").
     label: String,
     name: String,
     r#type: String,
-    /// Every need with whether this person has it, for the checkboxes.
     needs: Vec<(&'static str, bool)>,
-    /// Translated, for the summary line.
     needs_text: String,
 }
 
@@ -1935,8 +1927,10 @@ async fn edit_member(
     )
 }
 
-// -- medicine and essentials ------------------------------------------------------
-
+/// The medicine and essentials page.
+///
+/// - `groups`: one group per person or pet who takes something, then "not assigned".
+/// - `undosed`: medicine-category items without a daily dose.
 #[derive(Template)]
 #[template(path = "essentials.html")]
 struct EssentialsT {
@@ -1944,9 +1938,7 @@ struct EssentialsT {
     tab: &'static str,
     undo: Option<String>,
     plan_days: i64,
-    /// One group per person or pet who takes something, then "not assigned".
     groups: Vec<MedGroup>,
-    /// Medicine-category items without a daily dose.
     undosed: Vec<(i64, String)>,
     first_aid: Vec<CheckRow>,
     first_aid_ok: usize,
@@ -1961,31 +1953,35 @@ struct MedGroup {
     meds: Vec<MedRow>,
 }
 
+/// A medicine as the essentials page shows it.
+///
+/// - `detail`: "400 mg · tablet", translated form.
+/// - `stock`: "28 pcs · 2 a day"
+/// - `renew`: "Renew prescription by 12 Dec", with whether it is soon or overdue.
 struct MedRow {
     id: i64,
     name: String,
-    /// "400 mg · tablet", translated form.
     detail: String,
-    /// "28 pcs · 2 a day"
     stock: String,
     days: String,
     pct: u32,
     bar: &'static str,
-    /// "Renew prescription by 12 Dec", with whether it is soon or overdue.
     renew: Option<(String, bool)>,
     expiry: Option<String>,
 }
 
+/// A checklist entry as the essentials page shows it.
+///
+/// - `count`: "1 / 3" for per-person entries; empty otherwise.
+/// - `candidates`: items that could stand for it: same category, not linked yet.
 struct CheckRow {
     key: &'static str,
     label: &'static str,
     ok: bool,
     expired: bool,
-    /// "1 / 3" for per-person entries; empty otherwise.
     count: String,
     items: Vec<(i64, String)>,
     named_by: String,
-    /// Items that could stand for it: same category, not linked yet.
     candidates: Vec<(i64, String)>,
 }
 
@@ -2117,6 +2113,8 @@ struct DoseForm {
     delete: Option<String>,
 }
 
+/// Adds a medicine, then opens its item page to enter how much is in the
+/// cupboard and until when it keeps.
 async fn add_medicine(State(s): St, Form(f): Form<DoseForm>) -> Response {
     let r = (|| {
         let per_day = opt_f64(&f.per_day)?.unwrap_or(0.0);
@@ -2131,7 +2129,6 @@ async fn add_medicine(State(s): St, Form(f): Form<DoseForm>) -> Response {
         )
     })();
     match r {
-        // Next: how much is in the cupboard, and until when it keeps.
         Ok(id) => back(
             &format!("/items/{id}"),
             "Medicine added. Now add the stock you have.",
@@ -2162,19 +2159,23 @@ async fn set_dose(State(s): St, Path(id): Path<i64>, Form(f): Form<DoseForm>) ->
     )
 }
 
+/// A button on a checklist entry or suggestion.
+///
+/// - `action`: `add`, `shop`, `link` (with `item_id`), or `dismiss` for a suggestion.
 #[derive(Deserialize)]
 struct CheckForm {
-    /// `add`, `shop`, `link` (with `item_id`), or `dismiss` for a suggestion.
     action: String,
     item_id: Option<String>,
 }
 
+/// Acts on a checklist entry or suggestion. Suggestions live on the plan page,
+/// the checklists on their own page. "Not needed" is for good; it comes back
+/// only if the data is reset.
 async fn check_action(State(s): St, Path(key): Path<String>, Form(f): Form<CheckForm>) -> Response {
     let Some(c) = crate::essentials::find(&key) else {
         return not_found();
     };
     let label = tr(c.label);
-    // Suggestions live on the plan page, the checklists on their own page.
     let suggestion = !c.applies_to.is_empty();
     let page = if suggestion { "/plan" } else { "/essentials" };
     match f.action.as_str() {
@@ -2214,7 +2215,6 @@ async fn check_action(State(s): St, Path(key): Path<String>, Form(f): Form<Check
                 Ok("Saved".into())
             })(),
         ),
-        // "Not needed" is for good; it comes back only if the data is reset.
         "dismiss" if suggestion => done(
             page,
             s.store
@@ -2299,8 +2299,6 @@ async fn plan_to_shopping(State(s): St) -> Response {
         })(),
     )
 }
-
-// -- shopping -----------------------------------------------------------------------
 
 #[derive(Template)]
 #[template(path = "shopping.html")]
@@ -2428,8 +2426,6 @@ async fn clear_shopping(State(s): St) -> Response {
     )
 }
 
-// -- settings -----------------------------------------------------------------------
-
 #[derive(Template)]
 #[template(path = "settings.html")]
 struct SettingsT {
@@ -2447,13 +2443,14 @@ struct SettingsT {
     signed_in: bool,
 }
 
+/// The settings page. It never shows the ntfy topic: on ntfy.sh it works like a
+/// password.
 async fn settings_page(State(s): St, Query(f): Query<Flash>) -> Res<Html<String>> {
     let c = &s.cfg;
     render(SettingsT {
         msg: f.msg,
         tab: "",
         undo: None,
-        // Never show the topic itself: on ntfy.sh it works like a password.
         push: (!c.ntfy_topic.is_empty()).then(|| c.ntfy_url.clone()),
         digest_time: format!("{:02}:{:02}", c.digest_time.0, c.digest_time.1),
         backup: c
@@ -2534,8 +2531,6 @@ async fn backup_now(State(s): St) -> Response {
     }
 }
 
-// -- static -------------------------------------------------------------------------
-
 async fn static_file(Path(name): Path<String>) -> Response {
     let (body, ctype): (&'static [u8], &str) = match name.as_str() {
         "app.css" => (
@@ -2576,8 +2571,6 @@ async fn static_file(Path(name): Path<String>) -> Response {
     )
         .into_response()
 }
-
-// -- JSON API -----------------------------------------------------------------------
 
 #[derive(Deserialize)]
 struct ApiItemsQ {
@@ -2633,8 +2626,6 @@ async fn api_digest(State(s): St) -> Res<Json<serde_json::Value>> {
         "currency": s.cfg.currency,
     })))
 }
-
-// -- JSON API: auth and writes --------------------------------------------------
 
 /// With `VORRAT_API_TOKEN` set, `/api/` needs that bearer token. The pages don't
 /// use the API, so they keep working without it.
@@ -2699,8 +2690,9 @@ async fn api_barcode(State(s): St, Path(code): Path<String>) -> Res<Response> {
     Ok(Json(serde_json::json!({ "item": item, "batches": batches })).into_response())
 }
 
+/// Creates an item from JSON. Pictures only come from the lookup, so a client
+/// can't point at a file.
 async fn api_create_item(State(s): St, Json(mut f): Json<NewItem>) -> Response {
-    // Pictures only come from the lookup; a client can't point at a file.
     f.image = None;
     if let Some(code) = f
         .barcode
@@ -2811,8 +2803,6 @@ async fn api_suggestions(State(s): St) -> Res<Json<Vec<crate::smart::Suggestion>
     )?))
 }
 
-// -- export / import ----------------------------------------------------------
-
 fn download(ctype: &'static str, name: &str, body: Vec<u8>) -> Response {
     (
         [
@@ -2838,8 +2828,8 @@ async fn export_json(State(s): St) -> Res<Response> {
     ))
 }
 
+/// The CSV export, with a BOM so Excel reads it as UTF-8 (umlauts).
 async fn export_csv(State(s): St) -> Res<Response> {
-    // A BOM so Excel reads the file as UTF-8 (umlauts).
     let mut body = "\u{feff}".as_bytes().to_vec();
     body.extend(crate::transfer::export_csv(&s.store)?.into_bytes());
     Ok(download(
@@ -2923,8 +2913,6 @@ async fn service_worker() -> Response {
         .into_response()
 }
 
-// -- sign-in --------------------------------------------------------------------
-
 /// With `VORRAT_PASSWORD` set, every page needs a session. API calls with the
 /// bearer token (`VORRAT_API_TOKEN`) don't; `api_auth` checks those.
 async fn sign_in(State(s): St, req: Request, next: Next) -> Response {
@@ -2990,6 +2978,8 @@ struct LoginForm {
     next: Option<String>,
 }
 
+/// Checks the household password. A wrong one waits a little longer, to slow
+/// down guessing.
 async fn login(State(s): St, Form(f): Form<LoginForm>) -> Response {
     let next = crate::auth::safe_next(f.next.as_deref());
     let again = |msg: &str| {
@@ -3008,7 +2998,6 @@ async fn login(State(s): St, Form(f): Form<LoginForm>) -> Response {
     }
     if !crate::auth::ct_eq(f.password.as_bytes(), s.cfg.password.as_bytes()) {
         s.sessions.failed();
-        // Slow down guessing a little more.
         tokio::time::sleep(std::time::Duration::from_millis(400)).await;
         tracing::warn!("wrong password at sign-in");
         return again("Wrong password");
@@ -3047,8 +3036,6 @@ async fn logout(State(s): St, headers: HeaderMap) -> Response {
     )
         .into_response()
 }
-
-// -- power cut ------------------------------------------------------------------------
 
 #[derive(Template)]
 #[template(path = "power_cut.html")]

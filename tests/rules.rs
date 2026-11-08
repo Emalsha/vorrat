@@ -167,6 +167,8 @@ fn digest_text() {
     assert!(dg.body().contains("Milk (1 L, in 2d)"), "{}", dg.body());
 }
 
+/// Twelve 1.5 L bottles count as 18 L and 500 ml of juice as 0.5 L; expired
+/// stock doesn't count.
 #[test]
 fn coverage_units_and_sizes() {
     let s = store();
@@ -180,7 +182,7 @@ fn coverage_units_and_sizes() {
             ..Default::default()
         },
     );
-    s.add_batch(water, 12.0, None, None, None).unwrap(); // 18 L
+    s.add_batch(water, 12.0, None, None, None).unwrap();
     let juice = item_with(
         &s,
         NewItem {
@@ -190,7 +192,7 @@ fn coverage_units_and_sizes() {
             ..Default::default()
         },
     );
-    s.add_batch(juice, 500.0, None, None, None).unwrap(); // 0.5 L
+    s.add_batch(juice, 500.0, None, None, None).unwrap();
     let old = item_with(
         &s,
         NewItem {
@@ -200,7 +202,7 @@ fn coverage_units_and_sizes() {
             ..Default::default()
         },
     );
-    s.add_batch(old, 10.0, d(-1), None, None).unwrap(); // expired: doesn't count
+    s.add_batch(old, 10.0, d(-1), None, None).unwrap();
     let plan = rules::coverage(&s, today()).unwrap();
     let w = plan
         .lines
@@ -257,6 +259,7 @@ fn coverage_ignores_dimension_mismatch() {
     );
 }
 
+/// Vegetables etc. are at 0 days, so the weakest is 0.
 #[test]
 fn weakest_days_follows_the_scarcest_essential() {
     let s = store();
@@ -274,7 +277,6 @@ fn weakest_days_follows_the_scarcest_essential() {
         );
         s.add_batch(i, qty, None, None, None).unwrap();
     }
-    // Vegetables etc. are at 0 days, so the weakest is 0.
     assert_eq!(
         rules::coverage(&s, today()).unwrap().weakest_days,
         Some(0.0)
@@ -318,9 +320,10 @@ fn power_cut_eats_the_fridge_first() {
     assert_eq!(pc.freezer[0].batch.item_name, "Peas");
 }
 
+/// The store starts with two adults and 14 days.
 #[test]
 fn plan_scales_with_people_and_pets() {
-    let s = store(); // two adults, 14 days
+    let s = store();
     s.set_setting("days", "10").unwrap();
     s.add_member("person", "baby", "", &[]).unwrap();
     s.add_target("Pet food", "pet", "per_pet_day", 0.1, "kg")

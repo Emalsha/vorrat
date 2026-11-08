@@ -152,40 +152,46 @@ pub fn item_amount(item: &Item, qty: f64) -> (Dim, f64) {
     (Dim::Count, qty)
 }
 
+/// What one item adds to a plan line.
+///
+/// - `amount`: in the target's unit.
 #[derive(Debug, Clone, Serialize)]
 pub struct Contribution {
     pub item_id: i64,
     pub name: String,
-    /// In the target's unit.
     pub amount: f64,
 }
 
+/// How far the stock covers one plan line.
+///
+/// - `need`: in the target's unit.
+/// - `ratio`: 0..=1
+/// - `days`: for per-day targets (people or pets): how many days the stock lasts.
 #[derive(Debug, Clone, Serialize)]
 pub struct Coverage {
     pub target: Target,
-    /// In the target's unit.
     pub need: f64,
     pub have: f64,
     pub items: Vec<Contribution>,
-    /// 0..=1
     pub ratio: f64,
     pub missing: f64,
-    /// For per-day targets (people or pets): how many days the stock lasts.
     pub days: Option<f64>,
 }
 
+/// The whole emergency plan against the stock.
+///
+/// - `ratio`: average coverage across targets, 0..=1.
+/// - `weakest_days`: days the household gets through on its weakest essential (per-day
+///   line or medicine).
+/// - `medicine_days`: days until the first medicine runs out, when anyone takes one.
 #[derive(Debug, Clone, Serialize)]
 pub struct Plan {
     pub people: i64,
     pub pets: i64,
     pub days: i64,
     pub lines: Vec<Coverage>,
-    /// Average coverage across targets, 0..=1.
     pub ratio: f64,
-    /// Days the household gets through on its weakest essential (per-day
-    /// line or medicine).
     pub weakest_days: Option<f64>,
-    /// Days until the first medicine runs out, when anyone takes one.
     pub medicine_days: Option<f64>,
 }
 
@@ -202,6 +208,7 @@ pub fn coverage(store: &Store, today: NaiveDate) -> Result<Plan> {
 }
 
 /// [`coverage`] from an already loaded snapshot.
+/// Each target's mode says who it is for and whether it is needed every day.
 pub fn coverage_of(store: &Store, snap: &Snapshot) -> Result<Plan> {
     let (people, pets) = store.household_counts()?;
     let days = store.setting_int("days", 14).max(1);
@@ -213,7 +220,6 @@ pub fn coverage_of(store: &Store, snap: &Snapshot) -> Result<Plan> {
     let items: HashMap<i64, &Item> = snap.items.iter().map(|i| (i.id, i)).collect();
     let mut lines = Vec::new();
     for t in store.targets()? {
-        // Who the target is for, and whether it is needed every day.
         let (count, per_day) = match t.mode.as_str() {
             "per_person_day" => (people, true),
             "per_person" => (people, false),
@@ -288,8 +294,6 @@ pub fn coverage_of(store: &Store, snap: &Snapshot) -> Result<Plan> {
     })
 }
 
-// -- reminders ----------------------------------------------------------------
-
 /// Reminder marks in days before expiry; 0 means "has expired".
 #[derive(Debug, Clone)]
 pub struct RemindDays {
@@ -314,17 +318,19 @@ impl RemindDays {
     }
 }
 
+/// What the daily reminder says.
+///
+/// - `week`: crossed the middle mark (7 days, 30 for documents).
+/// - `soon`: crossed the first mark (14 days, 90 for documents).
+/// - `medicine`: medicines that last fewer than `MED_REMIND_DAYS` days.
+/// - `renew`: prescriptions to renew within `MED_REMIND_DAYS` days.
 #[derive(Debug, Default, Serialize)]
 pub struct Digest {
     pub expired: Vec<Dated>,
-    /// Crossed the middle mark (7 days, 30 for documents).
     pub week: Vec<Dated>,
-    /// Crossed the first mark (14 days, 90 for documents).
     pub soon: Vec<Dated>,
     pub low: Vec<Item>,
-    /// Medicines that last fewer than `MED_REMIND_DAYS` days.
     pub medicine: Vec<MedAlert>,
-    /// Prescriptions to renew within `MED_REMIND_DAYS` days.
     pub renew: Vec<MedAlert>,
     #[serde(skip)]
     marks: Vec<(i64, Vec<i64>)>,
@@ -335,12 +341,13 @@ pub struct Digest {
 }
 
 /// A medicine reminder: which one, for whom, and how many days are left.
+///
+/// - `days`: days of stock left, or days to the renewal date.
 #[derive(Debug, Clone, Serialize)]
 pub struct MedAlert {
     pub item_id: i64,
     pub name: String,
     pub who: Option<String>,
-    /// Days of stock left, or days to the renewal date.
     pub days: f64,
 }
 
@@ -451,6 +458,9 @@ impl Digest {
 /// What's NEW to tell the user today. Each batch is reminded once per mark; if
 /// a batch crossed several marks since last time, only the most urgent is sent
 /// and the earlier ones are recorded as done.
+/// A low-stock alert is cleared when the item is restocked, so the next drop
+/// alerts again. Medicines are reminded once when the stock gets short (again
+/// after a restock) and once per renewal date.
 pub fn build_digest(store: &Store, today: NaiveDate, remind: &RemindDays) -> Result<Digest> {
     let mut dg = Digest::default();
     for b in annotate(store.batches(None)?, today) {
@@ -490,7 +500,7 @@ pub fn build_digest(store: &Store, today: NaiveDate, remind: &RemindDays) -> Res
     let low_now: Vec<Item> = low_stock(store)?;
     let low_ids: HashSet<i64> = low_now.iter().map(|i| i.id).collect();
     for iid in low_done.difference(&low_ids) {
-        store.clear_low(*iid)?; // restocked: the next drop alerts again
+        store.clear_low(*iid)?;
     }
     for it in low_now {
         if !low_done.contains(&it.id) {
@@ -498,8 +508,6 @@ pub fn build_digest(store: &Store, today: NaiveDate, remind: &RemindDays) -> Res
             dg.low.push(it);
         }
     }
-    // Medicines: once when the stock gets short (again after a restock), once
-    // per renewal date.
     let snap = Snapshot::load(store, today)?;
     let meds = crate::essentials::medicines(store, &snap)?;
     let sent = store.dose_marks()?;
@@ -564,8 +572,6 @@ fn round1(v: f64) -> f64 {
     (v * 10.0).round() / 10.0
 }
 
-// -- power cut -------------------------------------------------------------------
-
 /// Where a location keeps things cold, judged by its own or a parent's name.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Cold {
@@ -604,12 +610,13 @@ pub struct PowerCut {
     pub freezer: Vec<Dated>,
 }
 
+/// Sorts food into fridge and freezer. A location counts as cold through its
+/// parents too, so a box inside the freezer is in the freezer.
 pub fn power_cut(store: &Store, today: NaiveDate) -> Result<PowerCut> {
     let locs = store.locations()?;
     let by_id: std::collections::HashMap<i64, &crate::db::Location> =
         locs.iter().map(|l| (l.id, l)).collect();
     let kind_of = |mut id: Option<i64>| {
-        // Walk up the tree; a box inside the freezer is in the freezer.
         for _ in 0..16 {
             let l = by_id.get(&id?)?;
             if let Some(k) = cold_kind(&l.name) {

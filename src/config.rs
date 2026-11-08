@@ -7,34 +7,36 @@ use anyhow::{bail, Context, Result};
 
 use crate::rules::RemindDays;
 
+/// Settings for one run, read from `VORRAT_*` variables.
+///
+/// - `data_dir`: holds `vorrat.db` and `files/` (pictures, attachments).
+/// - `listen`: where to listen. Loopback by default: put a TLS proxy (Caddy,
+///   Tailscale Serve, …) in front for anything beyond this machine.
+/// - `ntfy_url`: ntfy server; leave the topic empty to turn push off. On ntfy.sh the topic
+///   works like a password: anyone who knows it can read the messages.
+/// - `api_token`: when set, every `/api/` call needs `Authorization: Bearer <token>`.
+/// - `password`: when set, the pages need this household password (sign-in).
+/// - `public_url`: e.g. `https://vorrat.example.org`: tapping a push opens the app.
+/// - `digest_time`: local time of the daily reminder digest and of the backup.
+/// - `backup_dir`: `None` turns the nightly backup off.
+/// - `lookup_enabled`: look up unknown barcodes in Open Food Facts (only the barcode is sent).
+/// - `demo`: public demo: sample data, reset every night, no uploads or imports.
 #[derive(Debug, Clone)]
 pub struct Config {
-    /// Holds `vorrat.db` and `files/` (pictures, attachments).
     pub data_dir: PathBuf,
-    /// Where to listen. Loopback by default: put a TLS proxy (Caddy,
-    /// Tailscale Serve, …) in front for anything beyond this machine.
     pub listen: SocketAddr,
     pub currency: String,
-    /// ntfy server; leave the topic empty to turn push off. On ntfy.sh the topic
-    /// works like a password: anyone who knows it can read the messages.
     pub ntfy_url: String,
     pub ntfy_topic: String,
     pub ntfy_token: String,
-    /// When set, every `/api/` call needs `Authorization: Bearer <token>`.
     pub api_token: String,
-    /// When set, the pages need this household password (sign-in).
     pub password: String,
-    /// e.g. `https://vorrat.example.org`: tapping a push opens the app.
     pub public_url: String,
-    /// Local time of the daily reminder digest and of the backup.
     pub digest_time: (u32, u32),
     pub backup_time: (u32, u32),
-    /// `None` turns the nightly backup off.
     pub backup_dir: Option<PathBuf>,
     pub backup_keep_days: u32,
-    /// Look up unknown barcodes in Open Food Facts (only the barcode is sent).
     pub lookup_enabled: bool,
-    /// Public demo: sample data, reset every night, no uploads or imports.
     pub demo: bool,
     pub remind_days: RemindDays,
 }
