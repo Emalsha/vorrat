@@ -333,3 +333,42 @@ At your pace, what's here lasts until about {0}.	À votre rythme, ce stock dure 
 You buy this about every {0} ({1} purchases).	Vous en achetez environ tous les {0} ({1} achats).
 None left. You buy it about every {0}.	Plus rien. Vous en achetez environ tous les {0}.
 At your pace this runs out in about {0} d.	À votre rythme, épuisé dans environ {0} j.
+
+# Household profile (schema v3)
+Add a person	Ajouter une personne
+Add a pet	Ajouter un animal
+Age group	Tranche d’âge
+Household	Foyer
+Kind of pet	Type d’animal
+Name (optional)	Nom (facultatif)
+Needs	Besoins
+No people yet.	Aucune personne pour l’instant.
+No pets.	Aucun animal.
+No public body gives amounts for pets. Add a target per pet per day on the plan page (for example pet food and water) with the amounts your pets need.	Aucun organisme public ne donne de quantités pour les animaux. Ajoutez sur la page du plan un objectif par animal et par jour (par exemple nourriture et eau) avec les quantités dont vos animaux ont besoin.
+Pets	Animaux
+pets	animaux
+Who the emergency plan is for. Targets per person count everyone here; targets per pet count the pets.	Pour qui est le plan d’urgence. Les objectifs par personne comptent tout le monde ici ; les objectifs par animal comptent les animaux.
+Added to the household	Ajouté au foyer
+Removed from the household	Retiré du foyer
+child	enfant
+teen	adolescent
+adult	adulte
+older adult	personne âgée
+dog	chien
+cat	chat
+small animal	petit animal
+bird	oiseau
+other pet	autre animal
+pregnant or breastfeeding	enceinte ou allaitante
+vegetarian	végétarien
+vegan	végan
+halal	halal
+kosher	casher
+gluten-free	sans gluten
+allergies	allergies
+care needs	besoin de soins
+glasses	lunettes
+hearing aid	appareil auditif
+per person	par personne
+per pet per day	par animal et par jour
+per pet	par animal

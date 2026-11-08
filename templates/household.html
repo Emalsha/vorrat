@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}{{ "Household"|t }} · Vorrat{% endblock %}
+{% block heading %}{{ "Household"|t }}{% endblock %}
+{% block content %}
+  <p class="muted small mt">{{ "Who the emergency plan is for. Targets per person count everyone here; targets per pet count the pets."|t }} <a href="/plan">{{ "Back to the plan"|t }}</a></p>
+
+  <h2>{{ "People"|t }}</h2>
+  <div class="card"><ul class="list">
+    {% for m in people %}
+    <li><details>
+      <summary class="pad" style="display:block">
+        <b>{{ m.label }}</b> <span class="muted small">{% if !m.name.is_empty() %}{{ m.type|t }}{% if !m.needs_text.is_empty() %} · {% endif %}{% endif %}{{ m.needs_text }}</span>
+      </summary>
+      <form method="post" action="/household/{{ m.id }}" class="stack pad" style="padding-top:0">
+        <div class="grid2">
+          <input name="name" value="{{ m.name }}" placeholder="{{ "Name (optional)"|t }}" maxlength="60" aria-label="{{ "Name"|t }}">
+          <select name="type" aria-label="{{ "Age group"|t }}">{% for t in person_types %}<option value="{{ t }}" {% if m.type == **t %}selected{% endif %}>{{ t|t }}</option>{% endfor %}</select>
+        </div>
+        <fieldset class="needs"><legend class="muted small">{{ "Needs"|t }}</legend>
+          {% for (n, on) in m.needs %}<label class="need"><input type="checkbox" name="need" value="{{ n }}" {% if *on %}checked{% endif %}> {{ n|t }}</label>{% endfor %}
+        </fieldset>
+        <div class="flex"><button class="btn small primary">{{ "Save"|t }}</button><button class="btn small danger" name="delete" value="1">{{ "Remove"|t }}</button></div>
+      </form>
+    </details></li>
+    {% else %}
+    <li class="pad muted">{{ "No people yet."|t }}</li>
+    {% endfor %}
+  </ul></div>
+
+  <form method="post" action="/household" class="card pad stack mt">
+    <input type="hidden" name="kind" value="person">
+    <div class="grid2">
+      <input name="name" placeholder="{{ "Name (optional)"|t }}" maxlength="60" aria-label="{{ "Name"|t }}">
+      <select name="type" aria-label="{{ "Age group"|t }}">{% for t in person_types %}<option value="{{ t }}" {% if *t == "adult" %}selected{% endif %}>{{ t|t }}</option>{% endfor %}</select>
+    </div>
+    <details><summary class="muted small">{{ "Needs"|t }}</summary>
+      <fieldset class="needs">{% for n in needs %}<label class="need"><input type="checkbox" name="need" value="{{ n }}"> {{ n|t }}</label>{% endfor %}</fieldset>
+    </details>
+    <button class="btn block">{{ "Add a person"|t }}</button>
+  </form>
+
+  <h2>{{ "Pets"|t }}</h2>
+  <div class="card"><ul class="list">
+    {% for m in pets %}
+    <li><details>
+      <summary class="pad" style="display:block"><b>{{ m.label }}</b>{% if !m.name.is_empty() %} <span class="muted small">{{ m.type|t }}</span>{% endif %}</summary>
+      <form method="post" action="/household/{{ m.id }}" class="stack pad" style="padding-top:0">
+        <div class="grid2">
+          <input name="name" value="{{ m.name }}" placeholder="{{ "Name (optional)"|t }}" maxlength="60" aria-label="{{ "Name"|t }}">
+          <select name="type" aria-label="{{ "Kind of pet"|t }}">{% for t in pet_types %}<option value="{{ t }}" {% if m.type == **t %}selected{% endif %}>{{ t|t }}</option>{% endfor %}</select>
+        </div>
+        <div class="flex"><button class="btn small primary">{{ "Save"|t }}</button><button class="btn small danger" name="delete" value="1">{{ "Remove"|t }}</button></div>
+      </form>
+    </details></li>
+    {% else %}
+    <li class="pad muted">{{ "No pets."|t }}</li>
+    {% endfor %}
+  </ul></div>
+  {% if !pets.is_empty() && !pet_target %}<p class="muted small mt">{{ "No public body gives amounts for pets. Add a target per pet per day on the plan page (for example pet food and water) with the amounts your pets need."|t }}</p>{% endif %}
+
+  <form method="post" action="/household" class="card pad stack mt">
+    <input type="hidden" name="kind" value="pet">
+    <div class="grid2">
+      <input name="name" placeholder="{{ "Name (optional)"|t }}" maxlength="60" aria-label="{{ "Name"|t }}">
+      <select name="type" aria-label="{{ "Kind of pet"|t }}">{% for t in pet_types %}<option value="{{ t }}">{{ t|t }}</option>{% endfor %}</select>
+    </div>
+    <button class="btn block">{{ "Add a pet"|t }}</button>
+  </form>
+{% endblock %}

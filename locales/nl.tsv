@@ -333,3 +333,42 @@ At your pace, what's here lasts until about {0}.	In jouw tempo duurt deze voorra
 You buy this about every {0} ({1} purchases).	Je koopt dit ongeveer elke {0} ({1} aankopen).
 None left. You buy it about every {0}.	Niets meer over. Je koopt het ongeveer elke {0}.
 At your pace this runs out in about {0} d.	In jouw tempo is dit over ongeveer {0} d. op.
+
+# Household profile (schema v3)
+Add a person	Persoon toevoegen
+Add a pet	Huisdier toevoegen
+Age group	Leeftijdsgroep
+Household	Huishouden
+Kind of pet	Soort huisdier
+Name (optional)	Naam (optioneel)
+Needs	Behoeften
+No people yet.	Nog geen personen.
+No pets.	Geen huisdieren.
+No public body gives amounts for pets. Add a target per pet per day on the plan page (for example pet food and water) with the amounts your pets need.	Geen overheidsinstantie geeft hoeveelheden voor huisdieren. Voeg op de planpagina een doel per huisdier per dag toe (bijvoorbeeld voer en water) met de hoeveelheden die jouw dieren nodig hebben.
+Pets	Huisdieren
+pets	huisdieren
+Who the emergency plan is for. Targets per person count everyone here; targets per pet count the pets.	Voor wie het noodplan is. Doelen per persoon tellen iedereen hier; doelen per huisdier tellen de huisdieren.
+Added to the household	Toegevoegd aan het huishouden
+Removed from the household	Uit het huishouden verwijderd
+child	kind
+teen	tiener
+adult	volwassene
+older adult	oudere
+dog	hond
+cat	kat
+small animal	klein huisdier
+bird	vogel
+other pet	ander huisdier
+pregnant or breastfeeding	zwanger of borstvoeding
+vegetarian	vegetarisch
+vegan	veganistisch
+halal	halal
+kosher	koosjer
+gluten-free	glutenvrij
+allergies	allergieën
+care needs	zorgbehoefte
+glasses	bril
+hearing aid	hoortoestel
+per person	per persoon
+per pet per day	per huisdier per dag
+per pet	per huisdier

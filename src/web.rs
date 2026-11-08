@@ -1,6 +1,7 @@
 //! HTTP layer: server-rendered pages (no JavaScript needed) plus a JSON API
 //! under `/api/v1` for future native or third-party clients.
 
+use std::collections::HashMap;
 use std::sync::Arc;
 
 use askama::Template;
@@ -85,6 +86,8 @@ pub fn router(state: Arc<AppState>) -> Router {
         .route("/plan/print", get(plan_print))
         .route("/plan/power-cut", get(power_cut_page))
         .route("/plan/settings", post(plan_settings))
+        .route("/household", get(household_page).post(add_member))
+        .route("/household/{id}", post(edit_member))
         .route("/plan/targets", post(add_target))
         .route("/plan/targets/{id}", post(edit_target))
         .route("/plan/to-shopping", post(plan_to_shopping))
@@ -1551,6 +1554,7 @@ struct PlanT {
     tab: &'static str,
     undo: Option<String>,
     people: i64,
+    pets: i64,
     days: i64,
     pct: u32,
     weakest: Option<String>,
@@ -1559,7 +1563,17 @@ struct PlanT {
     categories: &'static [&'static str],
     units: &'static [&'static str],
     presets: &'static [(i64, &'static str)],
+    modes: &'static [(&'static str, &'static str)],
 }
+
+/// How a target scales, with the text the plan page shows for it.
+const MODE_LABELS: &[(&str, &str)] = &[
+    ("per_person_day", "per person per day"),
+    ("per_person", "per person"),
+    ("per_pet_day", "per pet per day"),
+    ("per_pet", "per pet"),
+    ("fixed", "fixed total"),
+];
 
 async fn plan_page(State(s): St, Query(f): Query<Flash>) -> Res<Html<String>> {
     let plan = rules::coverage(&s.store, db::today())?;
@@ -1569,6 +1583,7 @@ async fn plan_page(State(s): St, Query(f): Query<Flash>) -> Res<Html<String>> {
         tab: "plan",
         undo: None,
         people: plan.people,
+        pets: plan.pets,
         days: plan.days,
         pct: pct(plan.ratio),
         weakest: plan.weakest_days.map(fmt_qty),
@@ -1577,6 +1592,7 @@ async fn plan_page(State(s): St, Query(f): Query<Flash>) -> Res<Html<String>> {
         categories: CATEGORIES,
         units: UNITS,
         presets: PLAN_PRESETS,
+        modes: MODE_LABELS,
     })
 }
 
@@ -1678,24 +1694,151 @@ const PLAN_PRESETS: &[(i64, &str)] = &[
 
 #[derive(Deserialize)]
 struct PlanSettings {
-    people: Option<String>,
     days: Option<String>,
 }
 
+/// The number of days. Who the plan is for comes from the household page.
 async fn plan_settings(State(s): St, Form(f): Form<PlanSettings>) -> Response {
     done(
         "/plan",
         (|| {
-            let people = opt_i64(&f.people)
-                .filter(|p| (1..=50).contains(p))
-                .ok_or_else(|| anyhow::anyhow!("people must be 1 to 50"))?;
             let days = opt_i64(&f.days)
                 .filter(|d| (1..=365).contains(d))
                 .ok_or_else(|| anyhow::anyhow!("days must be 1 to 365"))?;
-            s.store.set_setting("people", &people.to_string())?;
             s.store.set_setting("days", &days.to_string())?;
-            Ok(format!("Plan: {people} people, {days} days"))
+            Ok(format!("Plan: {days} days"))
         })(),
+    )
+}
+
+// -- household profile --------------------------------------------------------
+
+#[derive(Template)]
+#[template(path = "household.html")]
+struct HouseholdT {
+    msg: Option<String>,
+    tab: &'static str,
+    undo: Option<String>,
+    people: Vec<MemberRow>,
+    pets: Vec<MemberRow>,
+    person_types: &'static [&'static str],
+    pet_types: &'static [&'static str],
+    needs: &'static [&'static str],
+    pet_target: bool,
+}
+
+struct MemberRow {
+    id: i64,
+    /// The name, or the translated type with a number ("Adult 2").
+    label: String,
+    name: String,
+    r#type: String,
+    /// Every need with whether this person has it, for the checkboxes.
+    needs: Vec<(&'static str, bool)>,
+    /// Translated, for the summary line.
+    needs_text: String,
+}
+
+async fn household_page(State(s): St, Query(f): Query<Flash>) -> Res<Html<String>> {
+    let members = s.store.members()?;
+    let row = |m: &db::Member, n: usize| MemberRow {
+        id: m.id,
+        label: m.name.clone().unwrap_or_else(|| {
+            let t = tr(&m.r#type);
+            let mut c = t.chars();
+            let t = c
+                .next()
+                .map(|f| f.to_uppercase().chain(c).collect::<String>())
+                .unwrap_or_default();
+            format!("{t} {n}")
+        }),
+        name: m.name.clone().unwrap_or_default(),
+        r#type: m.r#type.clone(),
+        needs_text: m.needs.iter().map(|x| tr(x)).collect::<Vec<_>>().join(", "),
+        needs: db::NEEDS
+            .iter()
+            .map(|n| (*n, m.needs.iter().any(|x| x == n)))
+            .collect(),
+    };
+    let rows = |kind: &str| -> Vec<MemberRow> {
+        let mut seen: HashMap<String, usize> = HashMap::new();
+        members
+            .iter()
+            .filter(|m| m.kind == kind)
+            .map(|m| {
+                let n = seen.entry(m.r#type.clone()).or_default();
+                *n += 1;
+                row(m, *n)
+            })
+            .collect()
+    };
+    let pet_target = s
+        .store
+        .targets()?
+        .iter()
+        .any(|t| t.mode.starts_with("per_pet"));
+    render(HouseholdT {
+        msg: f.msg,
+        tab: "plan",
+        undo: None,
+        people: rows("person"),
+        pets: rows("pet"),
+        person_types: db::PERSON_TYPES,
+        pet_types: db::PET_TYPES,
+        needs: db::NEEDS,
+        pet_target,
+    })
+}
+
+/// Form fields as pairs: needs arrive as repeated `need=` checkboxes.
+fn member_fields(f: &[(String, String)]) -> (String, String, String, Vec<String>, bool) {
+    let get = |k: &str| {
+        f.iter()
+            .find(|(n, _)| n == k)
+            .map(|(_, v)| v.clone())
+            .unwrap_or_default()
+    };
+    let needs = f
+        .iter()
+        .filter(|(n, _)| n == "need")
+        .map(|(_, v)| v.clone())
+        .collect();
+    (
+        get("kind"),
+        get("type"),
+        get("name"),
+        needs,
+        f.iter().any(|(n, _)| n == "delete"),
+    )
+}
+
+async fn add_member(State(s): St, Form(f): Form<Vec<(String, String)>>) -> Response {
+    let (kind, r#type, name, needs, _) = member_fields(&f);
+    done(
+        "/household",
+        s.store
+            .add_member(&kind, &r#type, &name, &needs)
+            .map(|_| "Added to the household".into()),
+    )
+}
+
+async fn edit_member(
+    State(s): St,
+    Path(id): Path<i64>,
+    Form(f): Form<Vec<(String, String)>>,
+) -> Response {
+    let (_, r#type, name, needs, delete) = member_fields(&f);
+    done(
+        "/household",
+        if delete {
+            s.store
+                .delete_member(id)
+                .map(|_| "Removed from the household".into())
+        } else {
+            s.store
+                .update_member(id, &r#type, &name, &needs)
+                .map(|_| "Saved".into())
+        },
     )
 }
 

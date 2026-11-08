@@ -110,7 +110,7 @@ cross-site check as the forms applies.
 ## Develop
 
 ```bash
-cargo test         # unit + integration tests, including opening a schema v2 database
+cargo test         # unit + integration tests, including upgrading a schema v2 database
 cargo clippy --all-targets
 ```
 

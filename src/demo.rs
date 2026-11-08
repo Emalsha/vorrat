@@ -171,6 +171,11 @@ const SAMPLES: &[Sample] = &[
 ];
 
 pub fn seed(store: &Store, today: NaiveDate) -> Result<()> {
+    // A household of two adults (the default), a child and a cat.
+    if store.household_counts()?.1 == 0 {
+        store.add_member("person", "child", "", &[])?;
+        store.add_member("pet", "cat", "", &[])?;
+    }
     let locs = store.locations()?;
     let loc = |name: &str| -> Result<i64> {
         match locs.iter().find(|l| l.name.eq_ignore_ascii_case(name)) {

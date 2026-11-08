@@ -168,13 +168,14 @@ pub struct Coverage {
     /// 0..=1
     pub ratio: f64,
     pub missing: f64,
-    /// For per-person-per-day targets: how many days the stock lasts.
+    /// For per-day targets (people or pets): how many days the stock lasts.
     pub days: Option<f64>,
 }
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Plan {
     pub people: i64,
+    pub pets: i64,
     pub days: i64,
     pub lines: Vec<Coverage>,
     /// Average coverage across targets, 0..=1.
@@ -197,7 +198,7 @@ pub fn coverage(store: &Store, today: NaiveDate) -> Result<Plan> {
 
 /// [`coverage`] from an already loaded snapshot.
 pub fn coverage_of(store: &Store, snap: &Snapshot) -> Result<Plan> {
-    let people = store.setting_int("people", 2).max(1);
+    let (people, pets) = store.household_counts()?;
     let days = store.setting_int("days", 14).max(1);
     let batches: Vec<&Dated> = snap
         .batches
@@ -207,8 +208,15 @@ pub fn coverage_of(store: &Store, snap: &Snapshot) -> Result<Plan> {
     let items: HashMap<i64, &Item> = snap.items.iter().map(|i| (i.id, i)).collect();
     let mut lines = Vec::new();
     for t in store.targets()? {
-        let per_day = t.mode == "per_person_day";
-        let need = t.amount * if per_day { (people * days) as f64 } else { 1.0 };
+        // Who the target is for, and whether it is needed every day.
+        let (count, per_day) = match t.mode.as_str() {
+            "per_person_day" => (people, true),
+            "per_person" => (people, false),
+            "per_pet_day" => (pets, true),
+            "per_pet" => (pets, false),
+            _ => (1, false),
+        };
+        let need = t.amount * (count * if per_day { days } else { 1 }) as f64;
         let (tdim, tfactor) = to_base(1.0, &t.unit);
         let mut have_base = 0.0;
         let mut contrib: BTreeMap<i64, f64> = BTreeMap::new();
@@ -233,8 +241,8 @@ pub fn coverage_of(store: &Store, snap: &Snapshot) -> Result<Plan> {
         } else {
             1.0
         };
-        let days_cov =
-            (per_day && t.amount > 0.0).then(|| round1(have / (t.amount * people as f64)));
+        let days_cov = (per_day && t.amount > 0.0 && count > 0)
+            .then(|| round1(have / (t.amount * count as f64)));
         lines.push(Coverage {
             items: contrib
                 .into_iter()
@@ -260,6 +268,7 @@ pub fn coverage_of(store: &Store, snap: &Snapshot) -> Result<Plan> {
     let weakest_days = lines.iter().filter_map(|c| c.days).reduce(f64::min);
     Ok(Plan {
         people,
+        pets,
         days,
         lines,
         ratio,
