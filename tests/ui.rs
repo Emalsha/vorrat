@@ -4,6 +4,19 @@
 use std::collections::HashMap;
 
 const CSS: &str = include_str!("../static/app.css");
+const DESIGN: &str = include_str!("../docs/design/DESIGN.md");
+
+/// How the colour names in the Open Design export (`docs/design/DESIGN.md`)
+/// map onto the tokens in `static/app.css`.
+const DESIGN_TOKENS: &[(&str, &str)] = &[
+    ("paper", "bg"),
+    ("card", "surface"),
+    ("ink", "ink"),
+    ("ink-2", "ink-2"),
+    ("line", "line"),
+    ("forest", "accent"),
+    ("focus-blue", "focus"),
+];
 
 /// The `--name: #rrggbb` tokens of a theme: light from the first `:root`
 /// rule, dark from the `:root` rule inside `prefers-color-scheme: dark`.
@@ -108,6 +121,40 @@ fn both_themes_define_the_same_colours() {
     l.sort();
     d.sort();
     assert_eq!(l, d);
+}
+
+/// The `name: "#rrggbb"` colours in the front matter of `DESIGN.md`.
+fn design_colours() -> HashMap<String, [u8; 3]> {
+    let re = regex::Regex::new(r##"(?m)^\s+([a-z0-9-]+):\s*"#([0-9a-fA-F]{6})""##).unwrap();
+    let front = &DESIGN[..DESIGN.find("\n---\n\n#").unwrap_or(DESIGN.len())];
+    re.captures_iter(front)
+        .map(|c| {
+            let h = &c[2];
+            let byte = |i: usize| u8::from_str_radix(&h[i..i + 2], 16).unwrap();
+            (c[1].to_string(), [byte(0), byte(2), byte(4)])
+        })
+        .collect()
+}
+
+#[test]
+fn design_system_colours_match_the_tokens() {
+    let (design, css) = (design_colours(), tokens("light"));
+    let mut fails = Vec::new();
+    for (name, token) in DESIGN_TOKENS {
+        match (design.get(*name), css.get(*token)) {
+            (Some(d), Some(c)) if d == c => {}
+            (d, c) => fails.push(format!("DESIGN.md {name} is {d:?}, --{token} is {c:?}")),
+        }
+    }
+    let extra: Vec<_> = design
+        .keys()
+        .filter(|k| !DESIGN_TOKENS.iter().any(|(n, _)| n == k))
+        .collect();
+    assert!(
+        extra.is_empty(),
+        "DESIGN.md colours without a token: {extra:?}"
+    );
+    assert!(fails.is_empty(), "{}", fails.join("\n"));
 }
 
 #[test]
