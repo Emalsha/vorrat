@@ -4,6 +4,15 @@ How Vorrat looks and behaves, and why. Read it before changing a template or
 `static/app.css`. `AGENTS.md` still wins where the two differ; this file adds
 the interface rules on top of it.
 
+The brand itself (palette, type, voice, imagery, layout) is the design system
+in `docs/design/`, exported from Open Design. `docs/design/DESIGN.md` is its
+source of truth, and `docs/design/README.md` maps it onto the tokens in
+`static/app.css` and explains how to bring in a new export. This guideline
+applies that design to Vorrat's screens. When you build or change a page,
+read `DESIGN.md` for how it should look and sound, and this file for how it
+must behave. Where they differ, this file wins, and the difference should be
+fixed in Open Design so the next export agrees.
+
 The guideline started from a first draft researched with another assistant
 (Grok). Every claim in that draft was checked against the sources listed at the
 end. Where this version keeps, corrects or drops something from the draft, the
@@ -114,8 +123,12 @@ no internet at all.
 ## 5. Design tokens
 
 All colours, sizes and spacing come from custom properties at the top of
-`static/app.css`. Don't write a colour anywhere else. Light values are in
-`:root`; dark values in the `prefers-color-scheme: dark` block below it.
+`static/app.css`. Don't write a colour, radius, size or font anywhere else.
+Light values are in `:root`; dark values in the `prefers-color-scheme: dark`
+block below it. The values come from `docs/design/DESIGN.md`; the names used
+there (Paper, Card, Forest and so on) are mapped in `docs/design/README.md`.
+Use the tokens, never the derived `--brand-*` variables in
+`docs/design/system/`, which fail contrast.
 
 ### Colour
 
@@ -134,6 +147,7 @@ All colours, sizes and spacing come from custom properties at the top of
 | `--warn` / `--warn-soft` | `#8a5a00` / `#fff3d6` | `#ffcc66` / `#352a14` | Expiring soon, low, partly covered |
 | `--crit` / `--crit-soft` | `#b3261e` / `#fbe9e7` | `#ff8a80` / `#3a1d1b` | Expired, missing, destructive actions |
 | `--focus` | `#1f5fa8` | `#8ab4ff` | Focus ring, information notes |
+| `--banner` / `--banner-ink` | `#2f4f6f` / `#ffffff` | the same | Demo and offline notes |
 
 Every text pair is at least 5:1, more than the 4.5:1 AA asks, so a dim screen
 or a cheap panel still reads. `tests/ui.rs` checks the pairs in both themes.
@@ -148,12 +162,40 @@ alone.
 | Token | Value | Use |
 |---|---|---|
 | `--s1` … `--s6` | 4, 8, 12, 16, 24, 32 px | Gaps and padding. Nothing in between. |
-| `--radius`, `--radius-sm` | 14 px, 10 px | Cards; buttons and fields |
-| `--target` | 44 px | Minimum height of buttons, rows, fields, tabs |
+| `--radius`, `--radius-sm` | 14 px, 10 px | Cards; buttons, fields and thumbnails |
+| `--radius-xs`, `--radius-pill` | 6 px, 999 px | Tick boxes; pills, chips and progress bars |
+| `--target` | 44 px | Minimum height of buttons, fields, tabs |
+| `--target-sm` | 40 px | Small buttons and chips |
+| `--row` | 56 px | Minimum height of a list row |
 | `--measure` | 720 px | Maximum content width on a phone or tablet, and of a lone form |
 | `--wide` | 1160 px | Maximum content width on a desktop |
 | `--sidebar` | 248 px | Width of the desktop sidebar |
-| Type | 16 px body, 0.875 rem small, 1.25 rem titles, 2.25 rem the big number | No text below 0.75 rem, and that only for tab labels |
+| `--t-xs`, `--t-sm`, `--t-lg`, `--t-title`, `--t-xl` | 0.75, 0.875, 1.25, 1.5, 2.25 rem | Tab labels and section headings; small text; titles; desktop titles; the big number. Body is 1 rem (16 px), line height 1.45. No text below 0.75 rem. |
+| `--font`, `--mono` | system UI, system monospace | Everything; barcodes and codes. No web fonts. |
+
+### Surfaces and states
+
+From `DESIGN.md`:
+
+- Flat surfaces: a card is `--surface` with a 1 px `--line` border on `--bg`.
+  No shadows, gradients or elevation.
+- Hover underlines links, darkens buttons slightly and fills rows with
+  `--bg`. Never fade text to grey to show a state.
+- The current item has `aria-current` and a cue that isn't colour (underline,
+  left bar, outline).
+- Nothing moves on its own: no animation, fading or toasts.
+
+### Icons and pictures
+
+- Icons are inline SVG in the templates: 24 × 24 viewBox, `stroke="currentColor"`,
+  stroke width 2 (2.5 for status icons), round caps and joins, no fills. No
+  emoji, icon fonts or icon CDNs.
+- Pictures are the household's own: product photos from a barcode lookup or
+  an upload, scanned documents. Thumbnails are 42 px squares (64 to 88 px on
+  forms and the item page), `--radius-sm`, `object-fit: cover`, with an
+  `--accent-soft` placeholder showing the first letter.
+- No stock photos, illustrations or alarm imagery. The logo is the jar on the
+  Forest tile in `static/icon-*.png`; don't recolour it.
 
 ## 6. Layout shell
 
@@ -329,6 +371,9 @@ As in `AGENTS.md`: plain, short, concrete, full sentences, no exclamation
 marks. In addition:
 
 - Write numbers with units and "of": "9 of 56 L", "3 of 14 days".
+- Use the words in `DESIGN.md` ("Covered", "Low", "Missing 12 L", "Used up",
+  "Thrown away") and avoid what it lists: exclamation marks, "Oops",
+  alarmist wording, streaks or badges, jargon, error codes.
 - Say what to do, not what went wrong inside: "Enter a number, like 1.5."
 - Every visible text goes through `|t` or `tr()` and into every
   `locales/*.tsv`. German is often 30 % longer: leave room, let text wrap.
@@ -338,6 +383,8 @@ marks. In addition:
 Automatic, in `cargo test` (`tests/ui.rs`):
 
 - Contrast of every token pair in light and dark against WCAG AA.
+- The colours in the front matter of `docs/design/DESIGN.md` equal the light
+  tokens.
 - No `style="` attributes in templates.
 - No `|safe` in templates.
 
