@@ -178,6 +178,7 @@ fn checklist_keys_are_unique_and_sourced() {
     for c in es::FIRST_AID
         .iter()
         .chain(es::ESSENTIALS)
+        .chain(es::DOCUMENTS)
         .chain(es::SUGGESTIONS)
     {
         assert!(keys.insert(c.key), "duplicate key {}", c.key);
@@ -201,6 +202,7 @@ fn checklist_keys_are_unique_and_sourced() {
     for c in es::FIRST_AID
         .iter()
         .chain(es::ESSENTIALS)
+        .chain(es::DOCUMENTS)
         .chain(es::SUGGESTIONS)
     {
         for code in c.named_by {

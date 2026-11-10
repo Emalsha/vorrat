@@ -10,8 +10,8 @@ use crate::essentials::queries::MED_FORMS;
 use crate::essentials::rules;
 use crate::essentials::rules::CheckState;
 use crate::i18n::tr;
-use crate::stock::queries::{Item, NewItem};
-use crate::stock::rules::fmt_qty;
+use crate::stock::queries::NewItem;
+use crate::stock::rules::{fmt_qty, Snapshot};
 use crate::web::form::{opt_date, opt_f64, opt_i64};
 use crate::web::respond::{back, done, not_found, render, Flash, Res};
 use crate::web::view::{bar_class, filters, hdate, pct};
@@ -34,6 +34,8 @@ struct EssentialsT {
     first_aid_ok: usize,
     essentials: Vec<CheckRow>,
     essentials_ok: usize,
+    documents: Vec<CheckRow>,
+    documents_ok: usize,
     members: Vec<(i64, String)>,
     forms: &'static [&'static str],
 }
@@ -64,6 +66,7 @@ struct MedRow {
 ///
 /// - `count`: "1 / 3" for per-person entries; empty otherwise.
 /// - `candidates`: items that could stand for it: same category, not linked yet.
+/// - `places`: where its stock is, so a household can find a document copy.
 struct CheckRow {
     key: &'static str,
     label: &'static str,
@@ -73,9 +76,11 @@ struct CheckRow {
     items: Vec<(i64, String)>,
     named_by: String,
     candidates: Vec<(i64, String)>,
+    places: String,
 }
 
-fn check_rows(states: Vec<CheckState>, items: &[Item]) -> (Vec<CheckRow>, usize) {
+fn check_rows(states: Vec<CheckState>, snap: &Snapshot) -> (Vec<CheckRow>, usize) {
+    let items = &snap.items;
     let ok = states.iter().filter(|c| c.ok()).count();
     let rows = states
         .into_iter()
@@ -95,6 +100,17 @@ fn check_rows(states: Vec<CheckState>, items: &[Item]) -> (Vec<CheckRow>, usize)
                 .filter(|i| i.preset.is_none() && i.category.as_deref() == Some(c.check.category))
                 .map(|i| (i.id, i.name.clone()))
                 .collect(),
+            places: {
+                let mut p: Vec<&str> = snap
+                    .batches
+                    .iter()
+                    .filter(|b| c.items.iter().any(|(id, _)| *id == b.batch.item_id))
+                    .filter_map(|b| b.batch.location_name.as_deref())
+                    .collect();
+                p.sort();
+                p.dedup();
+                p.join(", ")
+            },
             items: c.items,
         })
         .collect();
@@ -165,10 +181,10 @@ pub(super) async fn essentials_page(State(s): St, Query(f): Query<Flash>) -> Res
         .map(|i| (i.id, i.name.clone()))
         .collect();
     let people = members.iter().filter(|m| m.kind == "person").count() as i64;
-    let (first_aid, first_aid_ok) =
-        check_rows(es::checklist(es::FIRST_AID, &snap, people), &snap.items);
+    let (first_aid, first_aid_ok) = check_rows(es::checklist(es::FIRST_AID, &snap, people), &snap);
     let (essentials, essentials_ok) =
-        check_rows(es::checklist(es::ESSENTIALS, &snap, people), &snap.items);
+        check_rows(es::checklist(es::ESSENTIALS, &snap, people), &snap);
+    let (documents, documents_ok) = check_rows(es::checklist(es::DOCUMENTS, &snap, people), &snap);
     render(EssentialsT {
         msg: f.msg,
         tab: "plan",
@@ -180,6 +196,8 @@ pub(super) async fn essentials_page(State(s): St, Query(f): Query<Flash>) -> Res
         first_aid_ok,
         essentials,
         essentials_ok,
+        documents,
+        documents_ok,
         members: members
             .iter()
             .map(|m| (m.id, labels[&m.id].clone()))

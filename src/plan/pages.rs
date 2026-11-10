@@ -111,7 +111,7 @@ pub(crate) fn gap_labels(plan: &Plan) -> Vec<String> {
 
 /// The plan page.
 ///
-/// - `first_aid`: (have, of) for the first-aid kit and the household essentials.
+/// - `first_aid`: (have, of) for the first-aid kit; `essentials` and `documents` likewise.
 /// - `country`: the chosen country's name, translated.
 /// - `washing`, `cash`: a target for washing water or cash exists, so the offer to add one is hidden.
 /// - `currency`: preselected for the cash offer: the chosen country's, or the euro.
@@ -139,6 +139,7 @@ struct PlanT {
     suggestions: Vec<SuggestRow>,
     first_aid: (usize, usize),
     essentials: (usize, usize),
+    documents: (usize, usize),
     country: Option<String>,
     washing: bool,
     cash: bool,
@@ -208,6 +209,7 @@ pub(super) async fn plan_page(State(s): St, Query(f): Query<Flash>) -> Res<Html<
         medicine_days: plan.medicine_days.map(fmt_qty),
         first_aid: count(es::FIRST_AID),
         essentials: count(es::ESSENTIALS),
+        documents: count(es::DOCUMENTS),
         country: country.map(|c| tr(c.name)),
         cash,
         currencies: CURRENCIES,

@@ -97,7 +97,7 @@
   <h2>{{ "Medicine and essentials"|t }}</h2>
   <div class="card"><a href="/essentials" class="row">
     <div class="grow"><div class="title">{{ "Medicine and essentials"|t }}</div>
-      <div class="sub wrap">{% if let Some(m) = medicine_days %}{{ "medicine lasts"|t }} {{ m }} {{ "days"|t }} · {% endif %}{{ "first-aid kit"|t }} {{ first_aid.0 }}/{{ first_aid.1 }} · {{ "essentials"|t }} {{ essentials.0 }}/{{ essentials.1 }}</div></div>
+      <div class="sub wrap">{% if let Some(m) = medicine_days %}{{ "medicine lasts"|t }} {{ m }} {{ "days"|t }} · {% endif %}{{ "first-aid kit"|t }} {{ first_aid.0 }}/{{ first_aid.1 }} · {{ "essentials"|t }} {{ essentials.0 }}/{{ essentials.1 }} · {{ "documents"|t }} {{ documents.0 }}/{{ documents.1 }}</div></div>
     {% let icon = "chev" %}{% include "_icon.html" %}
   </a></div>
 

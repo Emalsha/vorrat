@@ -323,11 +323,75 @@ pub const ESSENTIALS: &[Check] = &[
     ),
 ];
 
+/// Documents to keep copies of, and how to keep them, from the verified guides.
+/// Vorrat stores no scans: an entry is ticked when an item stands for it, and
+/// the item's place says where the copy is (the grab bag, the document box).
+pub const DOCUMENTS: &[Check] = &[
+    Check {
+        per_person: true,
+        ..c(
+            "doc-id",
+            "Copy of ID card or passport",
+            "documents",
+            &["BE", "CZ", "FR", "IE", "LV", "NL", "PL"],
+        )
+    },
+    c(
+        "doc-licence",
+        "Copy of driving licence",
+        "documents",
+        &["BE", "IE", "LV"],
+    ),
+    c(
+        "doc-insurance",
+        "Insurance papers and health insurance cards",
+        "documents",
+        &["BE", "CZ", "IE", "PL"],
+    ),
+    c(
+        "doc-medical",
+        "Medical records, vaccination cards and prescriptions",
+        "documents",
+        &["FR", "IE", "PL"],
+    ),
+    c(
+        "doc-certificates",
+        "Birth and marriage certificates",
+        "documents",
+        &["CZ", "IE", "LV", "PL"],
+    ),
+    c(
+        "doc-contracts",
+        "Property, rental and other contracts",
+        "documents",
+        &["CZ", "PL"],
+    ),
+    c(
+        "doc-map",
+        "Paper map of the area",
+        "documents",
+        &["IE", "LV", "NL"],
+    ),
+    c(
+        "doc-keys",
+        "Spare house and car keys",
+        "other",
+        &["CZ", "FR", "IE", "NL"],
+    ),
+    c(
+        "doc-box",
+        "Waterproof bag or box for documents",
+        "other",
+        &["DE", "FR", "IE", "LV", "SI"],
+    ),
+];
+
 /// The checklist entry with this key.
 pub fn find(key: &str) -> Option<&'static Check> {
     FIRST_AID
         .iter()
         .chain(ESSENTIALS)
+        .chain(DOCUMENTS)
         .chain(SUGGESTIONS)
         .find(|c| c.key == key)
 }
