@@ -157,8 +157,9 @@ first:
    separate from the plan length, expiry and a refill reminder. This is the
    most private data in the app, so it stays local and is never shown in the
    digest.
-4. **Water for drinking and for hygiene.** Two targets instead of one, and a
-   hot-weather note.
+4. ~~**Water for drinking and for hygiene.**~~ Done: a "washing water"
+   category and target next to drinking water, offered on the plan page with
+   the guides' figures, and a hot-weather note.
 5. **Cash target.** An amount per adult and per child in the local currency,
    tracked like any other target, with "small notes" in the text.
 6. **Grab bag per person.** A short checklist separate from the home stock,

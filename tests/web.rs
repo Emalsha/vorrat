@@ -1413,3 +1413,48 @@ async fn a_country_sets_the_plan_length_and_drinking_water() {
     assert!(loc(&r).contains("Not"));
     assert_eq!(st.store.setting("country").unwrap().as_deref(), Some("IT"));
 }
+
+#[tokio::test]
+async fn washing_water_is_its_own_target() {
+    let (app, st) = app();
+    let (_, page) = get(&app, "/plan").await;
+    assert!(page.contains("Water for washing and the toilet"));
+    post(
+        &app,
+        "/plan/targets",
+        "label=Water+for+washing+and+the+toilet&category=washing+water&mode=per_person_day&unit=L&amount=8",
+        "same-origin",
+    )
+    .await;
+    let jerrycan = st
+        .store
+        .add_item(vorrat::stock::queries::NewItem {
+            name: "Jerrycan".into(),
+            category: Some("washing water".into()),
+            unit: Some("L".into()),
+            ..Default::default()
+        })
+        .unwrap();
+    st.store
+        .add_batch(jerrycan, 20.0, None, None, None)
+        .unwrap();
+    let plan = st.store.plan(common::today()).unwrap();
+    let line = |cat: &str| {
+        plan.lines
+            .iter()
+            .find(|c| c.target.category == cat)
+            .unwrap()
+    };
+    assert_eq!(line("washing water").have, 20.0);
+    assert_eq!(line("washing water").need, 8.0 * 2.0 * 14.0);
+    assert_eq!(
+        line("water").have,
+        0.0,
+        "washing water is not drinking water"
+    );
+    let (_, page) = get(&app, "/plan").await;
+    assert!(
+        !page.contains("Choose an amount per person per day"),
+        "offered once"
+    );
+}

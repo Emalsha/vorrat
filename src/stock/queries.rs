@@ -15,6 +15,7 @@ pub const UNITS: &[&str] = &["pcs", "g", "kg", "ml", "L"];
 /// Categories double as the link between stock and the emergency plan (targets).
 pub const CATEGORIES: &[&str] = &[
     "water",
+    "washing water",
     "drinks",
     "grains",
     "vegetables",
