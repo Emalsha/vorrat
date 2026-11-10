@@ -28,6 +28,7 @@ struct CountryT {
 /// - `numbers`: false when the guide is not verified, so only the link is shown.
 /// - `days`, `water`, `cash`: the recommendation, as text.
 /// - `changes`: what using the numbers would change, one line each.
+/// - `iodine`: what the guide says about iodine tablets, English.
 struct Chosen {
     code: &'static str,
     name: String,
@@ -37,6 +38,7 @@ struct Chosen {
     days: Option<String>,
     water: Option<String>,
     cash: Option<String>,
+    iodine: Option<&'static str>,
     changes: Vec<String>,
 }
 
@@ -88,6 +90,7 @@ fn chosen(c: &'static Country, days: i64, targets: &[crate::plan::queries::Targe
                 .collect::<Vec<_>>()
                 .join(", ")
         }),
+        iodine: rules::iodine(c.code),
         changes: change_lines(&rules::changes(c, days, targets)),
     }
 }
