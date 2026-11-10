@@ -259,6 +259,7 @@ table.check .box { width: 1.5em; font-size: 1.2em; }
 ul.checks { list-style: none; padding: 0; columns: 2; }
 ul.checks li { padding: 3px 0; break-inside: avoid; }
 p.lines { border-bottom: 1px solid var(--line); padding-bottom: 18px; }
+p.pre { white-space: pre-line; }
 
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }

@@ -167,9 +167,9 @@ first:
    own, with a printable checklist ticked by the stock in it.
 7. ~~**Documents checklist.**~~ Done: a documents list on the essentials
    page, each copy an item whose place says where it is; no scans.
-8. **Household plan page.** Meeting point, contacts on paper, where to shut
-   off water, gas and power, who needs help, neighbours. Printable and
-   offline, because the phone network may be down when it is needed.
+8. ~~**Household plan page.**~~ Done: meeting points, phone numbers, a
+   contact outside the area, shut-offs, who needs help and neighbours, with a
+   printable version.
 9. **Review reminders.** A twice-yearly "check the kit" reminder (Dutch and
    French advice), plus water and battery rotation, through the existing ntfy
    digest.

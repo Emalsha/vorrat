@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}{{ "Household plan"|t }} · Vorrat{% endblock %}
+{% block heading %}{{ "Household plan"|t }}{% endblock %}
+{% block content %}
+<p class="muted small mt">{{ "What everyone at home should know before a crisis: where to meet, whom to call, how to turn things off. Official guides ask households to agree on this in advance. Print it and keep it with the grab bags: the phone network may be down when you need it."|t }}</p>
+<div class="flex mt between">
+  <a href="/plan" class="btn small">{{ "Back to the plan"|t }}</a>
+  <a href="/household/plan/print" class="btn small primary">{{ "Printable plan"|t }}</a>
+</div>
+<form method="post" action="/household/plan" class="card pad stack mt">
+  {% for p in parts %}
+  <label>{{ p.heading|t }}
+    <textarea name="{{ p.key }}" rows="3" maxlength="2000" aria-describedby="hint-{{ p.key }}">{{ p.text }}</textarea>
+  </label>
+  <p id="hint-{{ p.key }}" class="muted small m0">{{ p.hint|t }}</p>
+  {% endfor %}
+  <button class="btn primary block">{{ "Save"|t }}</button>
+</form>
+{% endblock %}
