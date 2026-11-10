@@ -175,9 +175,9 @@ first:
    through the ntfy digest when it is due.
 10. **Needs no cooking.** A flag on items so the power-cut view and the plan
     can show what can be eaten without power (Danish and Belgian advice).
-11. **Country information.** Emergency numbers, the national alert system
-    (NL-Alert, BE-Alert), radio advice and iodine guidance, as static text
-    that works offline.
+11. **Country information.** Partly done: the country page shows 112 and
+    what the verified guides say about iodine (Belgium, Denmark, Finland).
+    National alert systems and radio stations need verified sources first.
 12. **More languages.** Authorities publish in many languages (the Dutch
     booklet in nine); the countries with the most detailed lists suggest
     Swedish, Polish, Czech, Danish and Latvian next.

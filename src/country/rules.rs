@@ -361,6 +361,27 @@ pub const COUNTRIES: &[Country] = &[
     },
 ];
 
+/// What the verified guides say about iodine tablets, by country code. Only
+/// what the guide says; Vorrat never suggests a medicine.
+pub const IODINE: &[(&str, &str)] = &[
+    (
+        "BE",
+        "Take iodine tablets only when the authorities say so. Pharmacies hand them out free.",
+    ),
+    (
+        "DK",
+        "The guide advises iodine tablets for people under 40 and for pregnant or breastfeeding people.",
+    ),
+    (
+        "FI",
+        "The guide advises iodine tablets for people aged 40 or under and for pregnant or breastfeeding people.",
+    ),
+];
+
+pub fn iodine(code: &str) -> Option<&'static str> {
+    IODINE.iter().find(|(c, _)| *c == code).map(|(_, t)| *t)
+}
+
 pub fn find(code: &str) -> Option<&'static Country> {
     COUNTRIES.iter().find(|c| c.code == code)
 }

@@ -142,3 +142,24 @@ fn cash_targets_count_adults_children_and_one_currency() {
         "already there"
     );
 }
+
+/// Iodine notes only for verified guides that mention iodine, and translated.
+#[test]
+fn iodine_notes_come_from_verified_guides() {
+    let text = std::fs::read_to_string("docs/guidance/presets.json").unwrap();
+    for (code, note) in vorrat::country::rules::IODINE {
+        assert_eq!(find(code).unwrap().status, Status::Verified, "{code}");
+        assert!(Lang::De.table().contains_key(note), "{note}");
+        let json: serde_json::Value = serde_json::from_str(&text).unwrap();
+        let source = json["sources"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|s| s["code"] == *code)
+            .unwrap();
+        assert!(
+            source.to_string().to_lowercase().contains("iodine"),
+            "{code} says nothing about iodine"
+        );
+    }
+}
