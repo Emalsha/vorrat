@@ -1,0 +1,74 @@
+name: release
+
+# After CI passes on main: publish the Docker image to GitHub's registry
+# (ghcr.io/<owner>/vorrat, tags "latest" and the commit hash), then ask
+# Koyeb to redeploy the public demo. The redeploy step is skipped until the
+# KOYEB_TOKEN secret and the KOYEB_SERVICE_ID variable are set.
+
+on:
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: release
+  cancel-in-progress: true
+
+jobs:
+  image:
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    env:
+      SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SHA }}
+          persist-credentials: false
+      - name: Image name in lower case
+        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/vorrat" >> "$GITHUB_ENV"
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:latest
+            ${{ env.IMAGE }}:${{ env.SHA }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ env.SHA }}
+            org.opencontainers.image.licenses=AGPL-3.0-or-later
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  demo:
+    needs: image
+    runs-on: ubuntu-latest
+    env:
+      KOYEB_TOKEN: ${{ secrets.KOYEB_TOKEN }}
+      KOYEB_SERVICE_ID: ${{ vars.KOYEB_SERVICE_ID }}
+    steps:
+      - name: Redeploy the public demo on Koyeb
+        run: |
+          if [ -z "$KOYEB_TOKEN" ] || [ -z "$KOYEB_SERVICE_ID" ]; then
+            echo "No KOYEB_TOKEN secret or KOYEB_SERVICE_ID variable; skipping the demo."
+            exit 0
+          fi
+          curl -fsS -X POST \
+            -H "Authorization: Bearer $KOYEB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{}' \
+            "https://app.koyeb.com/v1/services/$KOYEB_SERVICE_ID/redeploy" > /dev/null
+          echo "Redeploy requested."

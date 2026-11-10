@@ -71,9 +71,17 @@ up that folder. Settings → Your data also downloads the database file at any t
 **Restore:** stop Vorrat, put the backup `.db` file at `<data dir>/vorrat.db`,
 unpack the `-files.tar.gz` archive inside `<data dir>` (it contains `files/`), start Vorrat.
 
+## Prebuilt image
+
+Every version that passes CI on `main` is published as
+`ghcr.io/emalsha/vorrat:latest`, and under its commit hash. To use it instead
+of building, run `docker run -p 127.0.0.1:8087:8087 -v vorrat-data:/data ghcr.io/emalsha/vorrat`.
+It is built for 64-bit x86; on a Raspberry Pi, build it yourself as above.
+
 ## Upgrading
 
-`git pull`, then `docker compose … up -d --build`. The database is upgraded
+`git pull`, then `docker compose … up -d --build`. With the prebuilt image,
+`docker pull ghcr.io/emalsha/vorrat` and start the container again. The database is upgraded
 automatically; a newer database refuses to open in an older Vorrat instead
 of being damaged.
 
@@ -81,3 +89,16 @@ of being damaged.
 
 `VORRAT_DEMO=on` loads a sample household at start and every night and refuses
 uploads, imports and settings changes. Don't set a password on a demo.
+
+The project's own demo runs on a free Koyeb instance in Frankfurt. It needs no
+disk, because the data is thrown away every night and on every restart:
+
+1. Create a web service from the Docker image `ghcr.io/emalsha/vorrat:latest`,
+   port 8087, with `VORRAT_DEMO=on`, `VORRAT_LISTEN=0.0.0.0:8087` and
+   `VORRAT_LOOKUP=off`.
+2. Create a Koyeb API token. In the GitHub repository, add it as the secret
+   `KOYEB_TOKEN`, and add the service's ID as the variable `KOYEB_SERVICE_ID`.
+
+After every merge to `main` that passes CI, the `release` workflow publishes a
+new image and asks Koyeb to redeploy, so the demo always shows the latest
+version. The same image runs on any host that runs containers.
