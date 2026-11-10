@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}{{ "Grab bags"|t }} · Vorrat{% endblock %}
+{% block heading %}{{ "Grab bags"|t }}{% endblock %}
+{% block content %}
+<p class="muted small mt">{{ "A bag for each person, ready to take if you have to leave home quickly. It is a place of its own, apart from the home stock: put things in it by adding stock to that place."|t }}</p>
+<div class="flex mt noprint between">
+  <a href="/plan" class="btn small">{{ "Back to the plan"|t }}</a>
+  <button class="btn small primary" data-print>{{ "Print"|t }}</button>
+</div>
+
+{% for b in bags %}
+<h2>{{ b.name }}{% if b.place.is_some() %} · {{ b.packed.0 }}/{{ b.packed.1 }}{% endif %}</h2>
+{% if let Some((place, path)) = b.place %}
+<div class="card"><ul class="list">
+  {% for l in b.lines %}
+  <li class="pad">
+    <div class="flex between">
+      <span>{% if l.ok %}☑{% else %}☐{% endif %} <b>{{ l.label|t }}</b></span>
+      <span class="small {% if l.ok %}muted{% endif %}">{% if l.ok %}{{ "have"|t }}{% else %}{{ "missing"|t }}{% endif %}</span>
+    </div>
+    {% if l.expired %}<div class="small"><b>{{ "Some has expired"|t }}</b></div>{% endif %}
+    <div class="muted small">{% for i in l.items %}{{ i }}{% if !loop.last %}, {% endif %}{% endfor %}{% if !l.items.is_empty() %} · {% endif %}{{ "Named by"|t }}: {{ l.named_by }}</div>
+  </li>
+  {% endfor %}
+</ul></div>
+<p class="small noprint"><a href="/add?location_id={{ place }}">{{ "Put something in this bag"|t }} ›</a> <span class="muted">{{ path }}</span></p>
+{% else %}
+<form method="post" action="/grab-bag/{{ b.member }}" class="card pad noprint">
+  <button class="btn block">{{ "Make a grab bag"|t }}</button>
+</form>
+{% endif %}
+{% else %}
+<p class="muted">{{ "No people yet."|t }} <a href="/household">{{ "Household"|t }} ›</a></p>
+{% endfor %}
+<p class="muted small">{{ "From the official guides of the countries listed. The guides give no amounts: pack what each person needs for a few days."|t }}</p>
+{% endblock %}
+{% block scripts %}<script src="/static/print.js"></script>{% endblock %}

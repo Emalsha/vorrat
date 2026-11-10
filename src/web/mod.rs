@@ -22,8 +22,8 @@ use crate::jobs::notify::Notifier;
 use crate::web::respond::{back, not_found};
 use crate::web::view::DEMO;
 use crate::{
-    api, auth, country, essentials, home, household, jobs, locations, plan, settings, shopping,
-    stock,
+    api, auth, country, essentials, grab_bag, home, household, jobs, locations, plan, settings,
+    shopping, stock,
 };
 
 /// Shared state of the running app.
@@ -73,6 +73,7 @@ pub fn router(state: Arc<AppState>) -> Router {
         .merge(plan::routes())
         .merge(household::routes())
         .merge(country::routes())
+        .merge(grab_bag::routes())
         .merge(essentials::routes())
         .merge(shopping::routes())
         .merge(settings::routes())

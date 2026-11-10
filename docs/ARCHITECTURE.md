@@ -125,7 +125,8 @@ src/
   locations/           pages.rs, queries.rs
   plan/                coverage, targets, print view, power cut
   household/           people and pets
-  country/             country presets from docs/guidance (days, drinking water)
+  country/             country presets from docs/guidance (days, drinking water, cash)
+  grab_bag/            a grab bag per person and its checklist
   essentials/          medicine, doses, checklists
   shopping/            the list and dismissed suggestions
   settings/            language, test push, backup, export, import

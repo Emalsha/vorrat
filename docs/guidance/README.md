@@ -163,8 +163,8 @@ first:
 5. ~~**Cash target.**~~ Done: targets per adult and per child, cash counted
    in its own currency, offered on the plan page and set from the Dutch and
    Swedish amounts on the country page.
-6. **Grab bag per person.** A short checklist separate from the home stock,
-   checked by person, printable.
+6. ~~**Grab bag per person.**~~ Done: each person's bag is a place of its
+   own, with a printable checklist ticked by the stock in it.
 7. **Documents checklist.** Which copies exist and where they are (in the
    grab bag, in the waterproof box), without having to upload scans.
 8. **Household plan page.** Meeting point, contacts on paper, where to shut
@@ -182,7 +182,8 @@ first:
     booklet in nine); the countries with the most detailed lists suggest
     Swedish, Polish, Czech, Danish and Latvian next.
 
-Items 1, 3, 6, 7 and 8 need somewhere to store new data. Under rule 1 a new
+Items 1 and 3 needed somewhere to store new data (schema v3 and v4); 6, 7
+and 8 fit in the existing tables. Under rule 1 a new
 table means a new schema version, which is Emalsha's decision; the plan in
 [PLAN.md](../PLAN.md) owns that design.
 

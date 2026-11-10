@@ -1501,3 +1501,27 @@ async fn cash_targets_from_the_plan_page() {
     post(&app, "/country", "country=SE", "same-origin").await;
     assert!(get(&app, "/country").await.1.contains("1000 SEK per adult"));
 }
+
+#[tokio::test]
+async fn each_person_gets_a_grab_bag() {
+    let (app, st) = app();
+    let (s, page) = get(&app, "/grab-bag").await;
+    assert_eq!(s, StatusCode::OK);
+    assert_eq!(page.matches("Make a grab bag").count(), 2, "two adults");
+    let adult = st.store.members().unwrap()[0].id;
+    post(&app, &format!("/grab-bag/{adult}"), "", "same-origin").await;
+    post(&app, &format!("/grab-bag/{adult}"), "", "same-origin").await;
+    let bags: Vec<_> = st
+        .store
+        .locations()
+        .unwrap()
+        .into_iter()
+        .filter(|l| l.name.starts_with("Grab bag"))
+        .collect();
+    assert_eq!(bags.len(), 1, "one bag per person");
+    let (_, page) = get(&app, "/grab-bag").await;
+    assert!(page.contains(&format!("/add?location_id={}", bags[0].id)));
+    assert!(page.contains("0/12"));
+    let r = post(&app, "/grab-bag/999", "", "same-origin").await;
+    assert!(loc(&r).contains("Not"));
+}

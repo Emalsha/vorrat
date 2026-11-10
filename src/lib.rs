@@ -13,6 +13,7 @@ pub mod db;
 pub mod demo;
 pub mod essentials;
 pub mod files;
+pub mod grab_bag;
 pub mod home;
 pub mod household;
 pub mod i18n;
