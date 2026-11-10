@@ -502,7 +502,7 @@ More details	Meer details
 Has a barcode?	Heeft het een barcode?
 Scanning fills in the name and pack size for you.	Scannen vult de naam en verpakkingsgrootte voor je in.
 Country	Land
-What the authority in your country tells households to plan for. Its numbers can set your plan length and drinking water; every target stays yours to edit.	Wat de overheid in uw land huishoudens aanraadt. Haar cijfers kunnen de duur van het plan en het drinkwater bepalen; elk doel blijft aan te passen.
+What the authority in your country tells households to plan for. Its numbers can set your plan length, drinking water and cash; every target stays yours to edit.	Wat de overheid in uw land huishoudens aanraadt. Haar cijfers kunnen de duur van het plan, het drinkwater en het contante geld bepalen; elk doel blijft aan te passen.
 Choose your country	Kies uw land
 Plan for	Plannen voor
 Drinking water	Drinkwater
@@ -556,3 +556,14 @@ Water for washing and the toilet	Water om te wassen en voor het toilet
 Drinking water is not enough when the taps are dry. Several guides add water for washing and flushing: Belgium up to 10 L a day in total, Czechia 10 to 15 L, Latvia 10 to 12 L for hygiene alone. Choose an amount per person per day.	Drinkwater is niet genoeg als de kraan droog staat. Verschillende gidsen rekenen water voor wassen en doorspoelen mee: België tot 10 L per dag in totaal, Tsjechië 10 tot 15 L, Letland 10 tot 12 L alleen voor hygiëne. Kies een hoeveelheid per persoon per dag.
 Litres per person per day	Liter per persoon per dag
 In hot weather people need more water: Latvia's guide says 4 L a day instead of 3.	Bij warm weer is meer water nodig: de Letse gids noemt 4 L per dag in plaats van 3.
+Cash	Contant geld
+Per adult	Per volwassene
+Per child	Per kind
+per adult	per volwassene
+per child	per kind
+Currency	Valuta
+Cash: {0} {1} per adult	Contant geld: {0} {1} per volwassene
+Cash: {0} {1} per child	Contant geld: {0} {1} per kind
+{0} {1} per adult	{0} {1} per volwassene
+{0} {1} per child	{0} {1} per kind
+Cards and cash machines may not work in a power cut. The Netherlands suggests 70 euro per adult and 30 per child for 72 hours, Sweden 1,000 kronor per adult. Choose amounts that fit your household.	Pinpassen en geldautomaten werken misschien niet bij een stroomstoring. Nederland raadt 70 euro per volwassene en 30 per kind aan voor 72 uur, Zweden 1.000 kronen per volwassene. Kies bedragen die bij uw huishouden passen.

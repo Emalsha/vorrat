@@ -160,8 +160,9 @@ first:
 4. ~~**Water for drinking and for hygiene.**~~ Done: a "washing water"
    category and target next to drinking water, offered on the plan page with
    the guides' figures, and a hot-weather note.
-5. **Cash target.** An amount per adult and per child in the local currency,
-   tracked like any other target, with "small notes" in the text.
+5. ~~**Cash target.**~~ Done: targets per adult and per child, cash counted
+   in its own currency, offered on the plan page and set from the Dutch and
+   Swedish amounts on the country page.
 6. **Grab bag per person.** A short checklist separate from the home stock,
    checked by person, printable.
 7. **Documents checklist.** Which copies exist and where they are (in the

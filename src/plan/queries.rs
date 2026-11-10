@@ -16,6 +16,8 @@ pub const TARGET_MODES: &[&str] = &[
     "per_person",
     "per_pet_day",
     "per_pet",
+    "per_adult",
+    "per_child",
     "fixed",
 ];
 
@@ -53,9 +55,12 @@ impl Store {
     /// What the plan needs besides the stock.
     pub fn plan_input(&self) -> Result<PlanInput> {
         let (people, pets) = self.household_counts()?;
+        let (adults, children) = self.age_counts()?;
         Ok(PlanInput {
             people,
             pets,
+            adults,
+            children,
             days: self.setting_int("days", 14).max(1),
             targets: self.targets()?,
             doses: self.doses()?,

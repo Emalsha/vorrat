@@ -1458,3 +1458,46 @@ async fn washing_water_is_its_own_target() {
         "offered once"
     );
 }
+
+#[tokio::test]
+async fn cash_targets_from_the_plan_page() {
+    let (app, st) = app();
+    assert!(get(&app, "/plan").await.1.contains("Cash in small notes"));
+    let r = post(
+        &app,
+        "/plan/cash",
+        "adult=&child=&currency=EUR",
+        "same-origin",
+    )
+    .await;
+    assert!(loc(&r).contains("Not"));
+    let r = post(&app, "/plan/cash", "adult=50&currency=XYZ", "same-origin").await;
+    assert!(loc(&r).contains("Not"));
+    post(
+        &app,
+        "/plan/cash",
+        "adult=50&child=20&currency=CHF",
+        "same-origin",
+    )
+    .await;
+    let cash: Vec<_> = st
+        .store
+        .targets()
+        .unwrap()
+        .into_iter()
+        .filter(|t| t.category == "cash")
+        .collect();
+    assert_eq!(cash.len(), 2);
+    assert_eq!((cash[0].mode.as_str(), cash[0].amount), ("per_adult", 50.0));
+    assert_eq!(
+        (cash[1].mode.as_str(), cash[1].unit.as_str()),
+        ("per_child", "CHF")
+    );
+    assert!(!get(&app, "/plan")
+        .await
+        .1
+        .contains("Choose amounts that fit"));
+
+    post(&app, "/country", "country=SE", "same-origin").await;
+    assert!(get(&app, "/country").await.1.contains("1000 SEK per adult"));
+}

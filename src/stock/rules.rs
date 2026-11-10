@@ -3,25 +3,30 @@
 use chrono::NaiveDate;
 use serde::Serialize;
 
-use crate::stock::queries::{Batch, Item};
+use crate::stock::queries::{Batch, Item, CURRENCIES};
 
-/// Measurement dimension. Quantities only add up within one dimension.
+/// Measurement dimension. Quantities only add up within one dimension, and
+/// money only within one currency (`Money("EUR")`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Dim {
     Mass,
     Volume,
     Count,
+    Money(&'static str),
 }
 
-/// Convert to the base unit of its dimension: g, ml or pcs.
+/// Convert to the base unit of its dimension: g, ml, pcs or the currency itself.
 pub fn to_base(value: f64, unit: &str) -> (Dim, f64) {
     match unit {
         "g" => (Dim::Mass, value),
         "kg" => (Dim::Mass, value * 1000.0),
         "ml" => (Dim::Volume, value),
         "L" => (Dim::Volume, value * 1000.0),
-        _ => (Dim::Count, value),
+        _ => match CURRENCIES.iter().find(|c| **c == unit) {
+            Some(c) => (Dim::Money(c), value),
+            None => (Dim::Count, value),
+        },
     }
 }
 
@@ -134,7 +139,9 @@ pub fn low_stock(items: Vec<Item>) -> Vec<Item> {
 /// How much `qty` units of this item are, in base units, for matching targets.
 /// A "pcs" item with a pack size (e.g. 1.5 L bottles) counts by its contents.
 pub fn item_amount(item: &Item, qty: f64) -> (Dim, f64) {
-    if matches!(item.unit.as_str(), "g" | "kg" | "ml" | "L") {
+    if matches!(item.unit.as_str(), "g" | "kg" | "ml" | "L")
+        || CURRENCIES.contains(&item.unit.as_str())
+    {
         return to_base(qty, &item.unit);
     }
     if let (Some(size), Some(unit)) = (item.size, item.size_unit.as_deref()) {

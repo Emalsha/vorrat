@@ -67,3 +67,78 @@ fn only_what_differs_changes() {
 
     assert!(changes(find("IT").unwrap(), 14, &targets).is_empty());
 }
+
+/// Cash amounts are those the verified guides give, per adult or per child.
+#[test]
+fn cash_amounts_match_the_guidance_file() {
+    let text = std::fs::read_to_string("docs/guidance/presets.json").unwrap();
+    let json: serde_json::Value = serde_json::from_str(&text).unwrap();
+    for s in json["sources"].as_array().unwrap() {
+        let code = s["code"].as_str().unwrap();
+        let mut want: Vec<(String, f64, String)> = s["items"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|i| i["category"] == "cash" && i["quantity"].is_number())
+            .filter(|_| s["status"] == "verified")
+            .map(|i| {
+                (
+                    i["basis"].as_str().unwrap().to_string(),
+                    i["quantity"].as_f64().unwrap(),
+                    i["unit"].as_str().unwrap().to_string(),
+                )
+            })
+            .collect();
+        let mut have: Vec<(String, f64, String)> = find(code)
+            .unwrap()
+            .cash
+            .iter()
+            .map(|(m, a, u)| (m.to_string(), *a, u.to_string()))
+            .collect();
+        want.sort_by(|a, b| a.0.cmp(&b.0));
+        have.sort_by(|a, b| a.0.cmp(&b.0));
+        assert_eq!(have, want, "{code}");
+    }
+}
+
+/// Cash counts per adult and per child, and only in the target's currency.
+#[test]
+fn cash_targets_count_adults_children_and_one_currency() {
+    use vorrat::stock::queries::NewItem;
+    let s = common::store();
+    s.add_member("person", "child", "", &[]).unwrap();
+    s.add_member("person", "teen", "", &[]).unwrap();
+    s.add_target("Cash in small notes", "cash", "per_adult", 70.0, "EUR")
+        .unwrap();
+    s.add_target("Cash in small notes", "cash", "per_child", 30.0, "EUR")
+        .unwrap();
+    let cash = |unit: &str| {
+        common::item_with(
+            &s,
+            NewItem {
+                name: format!("Cash {unit}"),
+                category: Some("cash".into()),
+                unit: Some(unit.into()),
+                ..Default::default()
+            },
+        )
+    };
+    s.add_batch(cash("EUR"), 100.0, None, None, None).unwrap();
+    s.add_batch(cash("SEK"), 500.0, None, None, None).unwrap();
+    let plan = s.plan(common::today()).unwrap();
+    let lines: Vec<_> = plan
+        .lines
+        .iter()
+        .filter(|c| c.target.category == "cash")
+        .collect();
+    assert_eq!(lines[0].need, 140.0, "two adults");
+    assert_eq!(lines[1].need, 60.0, "a child and a teen");
+    assert_eq!(lines[0].have, 100.0, "kronor don't count as euro");
+    assert!(lines[0].days.is_none());
+
+    let nl = find("NL").unwrap();
+    assert!(
+        changes(nl, 3, &s.targets().unwrap()).cash.is_empty(),
+        "already there"
+    );
+}

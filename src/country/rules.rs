@@ -2,8 +2,9 @@
 //! for, copied from `docs/guidance/presets.json` (tests/country.rs keeps the
 //! two in step). Only verified guides carry numbers (AGENTS.md rule 7); the
 //! others give their link and nothing else. Using a country's numbers only
-//! sets the plan length and the drinking-water amount: every target stays the
-//! household's to edit.
+//! sets the plan length and the drinking-water amount, and adds the cash
+//! targets a guide gives an amount for: every target stays the household's to
+//! edit.
 
 use crate::plan::queries::Target;
 
@@ -22,6 +23,7 @@ pub enum Status {
 /// - `authority`: as the authority names itself, in its own language.
 /// - `days`: the length it recommends planning for; verified guides only.
 /// - `water`: drinking water in litres per person per day; verified guides only.
+/// - `cash`: (target mode, amount, currency) where a verified guide gives an amount.
 #[derive(Debug, Clone, Copy)]
 pub struct Country {
     pub code: &'static str,
@@ -31,6 +33,7 @@ pub struct Country {
     pub status: Status,
     pub days: Option<i64>,
     pub water: Option<f64>,
+    pub cash: &'static [(&'static str, f64, &'static str)],
 }
 
 /// Every authority in `presets.json`: the EU first, then the countries by
@@ -44,6 +47,7 @@ pub const COUNTRIES: &[Country] = &[
         status: Status::Verified,
         days: Some(3),
         water: None,
+        cash: &[],
     },
     Country {
         code: "AT",
@@ -53,6 +57,7 @@ pub const COUNTRIES: &[Country] = &[
         status: Status::Partial,
         days: None,
         water: None,
+        cash: &[],
     },
     Country {
         code: "BE",
@@ -62,6 +67,7 @@ pub const COUNTRIES: &[Country] = &[
         status: Status::Verified,
         days: Some(3),
         water: Some(3.0),
+        cash: &[],
     },
     Country {
         code: "BG",
@@ -71,6 +77,7 @@ pub const COUNTRIES: &[Country] = &[
         status: Status::Unverified,
         days: None,
         water: None,
+        cash: &[],
     },
     Country {
         code: "HR",
@@ -80,6 +87,7 @@ pub const COUNTRIES: &[Country] = &[
         status: Status::Verified,
         days: Some(2),
         water: Some(1.5),
+        cash: &[],
     },
     Country {
         code: "CY",
@@ -89,6 +97,7 @@ pub const COUNTRIES: &[Country] = &[
         status: Status::Unverified,
         days: None,
         water: None,
+        cash: &[],
     },
     Country {
         code: "CZ",
@@ -98,6 +107,7 @@ pub const COUNTRIES: &[Country] = &[
         status: Status::Verified,
         days: Some(3),
         water: Some(2.0),
+        cash: &[],
     },
     Country {
         code: "DK",
@@ -107,6 +117,7 @@ pub const COUNTRIES: &[Country] = &[
         status: Status::Verified,
         days: Some(3),
         water: Some(3.0),
+        cash: &[],
     },
     Country {
         code: "EE",
@@ -116,6 +127,7 @@ pub const COUNTRIES: &[Country] = &[
         status: Status::Verified,
         days: Some(7),
         water: Some(3.0),
+        cash: &[],
     },
     Country {
         code: "FI",
@@ -125,6 +137,7 @@ pub const COUNTRIES: &[Country] = &[
         status: Status::Verified,
         days: Some(3),
         water: None,
+        cash: &[],
     },
     Country {
         code: "FR",
@@ -134,6 +147,7 @@ pub const COUNTRIES: &[Country] = &[
         status: Status::Verified,
         days: Some(3),
         water: Some(2.0),
+        cash: &[],
     },
     Country {
         code: "DE",
@@ -143,6 +157,7 @@ pub const COUNTRIES: &[Country] = &[
         status: Status::Verified,
         days: Some(10),
         water: Some(2.0),
+        cash: &[],
     },
     Country {
         code: "GR",
@@ -152,6 +167,7 @@ pub const COUNTRIES: &[Country] = &[
         status: Status::Partial,
         days: None,
         water: None,
+        cash: &[],
     },
     Country {
         code: "HU",
@@ -161,6 +177,7 @@ pub const COUNTRIES: &[Country] = &[
         status: Status::Unverified,
         days: None,
         water: None,
+        cash: &[],
     },
     Country {
         code: "IS",
@@ -170,6 +187,7 @@ pub const COUNTRIES: &[Country] = &[
         status: Status::Partial,
         days: None,
         water: None,
+        cash: &[],
     },
     Country {
         code: "IE",
@@ -179,6 +197,7 @@ pub const COUNTRIES: &[Country] = &[
         status: Status::Verified,
         days: None,
         water: Some(2.0),
+        cash: &[],
     },
     Country {
         code: "IT",
@@ -188,6 +207,7 @@ pub const COUNTRIES: &[Country] = &[
         status: Status::Unverified,
         days: None,
         water: None,
+        cash: &[],
     },
     Country {
         code: "LV",
@@ -197,6 +217,7 @@ pub const COUNTRIES: &[Country] = &[
         status: Status::Verified,
         days: Some(3),
         water: Some(3.0),
+        cash: &[],
     },
     Country {
         code: "LI",
@@ -206,6 +227,7 @@ pub const COUNTRIES: &[Country] = &[
         status: Status::Unverified,
         days: None,
         water: None,
+        cash: &[],
     },
     Country {
         code: "LT",
@@ -215,6 +237,7 @@ pub const COUNTRIES: &[Country] = &[
         status: Status::Unverified,
         days: None,
         water: None,
+        cash: &[],
     },
     Country {
         code: "LU",
@@ -224,6 +247,7 @@ pub const COUNTRIES: &[Country] = &[
         status: Status::Partial,
         days: None,
         water: None,
+        cash: &[],
     },
     Country {
         code: "MT",
@@ -233,6 +257,7 @@ pub const COUNTRIES: &[Country] = &[
         status: Status::Unverified,
         days: None,
         water: None,
+        cash: &[],
     },
     Country {
         code: "NL",
@@ -242,6 +267,7 @@ pub const COUNTRIES: &[Country] = &[
         status: Status::Verified,
         days: Some(3),
         water: Some(3.0),
+        cash: &[("per_adult", 70.0, "EUR"), ("per_child", 30.0, "EUR")],
     },
     Country {
         code: "NO",
@@ -251,6 +277,7 @@ pub const COUNTRIES: &[Country] = &[
         status: Status::Verified,
         days: Some(7),
         water: None,
+        cash: &[],
     },
     Country {
         code: "PL",
@@ -260,6 +287,7 @@ pub const COUNTRIES: &[Country] = &[
         status: Status::Verified,
         days: Some(3),
         water: Some(3.0),
+        cash: &[],
     },
     Country {
         code: "PT",
@@ -269,6 +297,7 @@ pub const COUNTRIES: &[Country] = &[
         status: Status::Unverified,
         days: None,
         water: None,
+        cash: &[],
     },
     Country {
         code: "RO",
@@ -278,6 +307,7 @@ pub const COUNTRIES: &[Country] = &[
         status: Status::Unverified,
         days: None,
         water: None,
+        cash: &[],
     },
     Country {
         code: "SK",
@@ -287,6 +317,7 @@ pub const COUNTRIES: &[Country] = &[
         status: Status::Unverified,
         days: None,
         water: None,
+        cash: &[],
     },
     Country {
         code: "SI",
@@ -296,6 +327,7 @@ pub const COUNTRIES: &[Country] = &[
         status: Status::Verified,
         days: Some(3),
         water: Some(7.5),
+        cash: &[],
     },
     Country {
         code: "ES",
@@ -305,6 +337,7 @@ pub const COUNTRIES: &[Country] = &[
         status: Status::Unverified,
         days: None,
         water: None,
+        cash: &[],
     },
     Country {
         code: "SE",
@@ -314,6 +347,7 @@ pub const COUNTRIES: &[Country] = &[
         status: Status::Verified,
         days: Some(7),
         water: Some(3.0),
+        cash: &[("per_adult", 1000.0, "SEK")],
     },
     Country {
         code: "CH",
@@ -323,6 +357,7 @@ pub const COUNTRIES: &[Country] = &[
         status: Status::Verified,
         days: Some(7),
         water: Some(3.0),
+        cash: &[],
     },
 ];
 
@@ -335,15 +370,18 @@ pub fn find(code: &str) -> Option<&'static Country> {
 /// - `days`: (now, then), when the plan length differs.
 /// - `water`: the drinking-water target if there is one, its amount now, and
 ///   the country's amount, when they differ.
+/// - `cash`: cash targets to add, for each mode the household has no cash
+///   target for yet.
 #[derive(Debug, Default, PartialEq)]
 pub struct Changes {
     pub days: Option<(i64, i64)>,
     pub water: Option<(Option<i64>, Option<f64>, f64)>,
+    pub cash: Vec<(&'static str, f64, &'static str)>,
 }
 
 impl Changes {
     pub fn is_empty(&self) -> bool {
-        self.days.is_none() && self.water.is_none()
+        self.days.is_none() && self.water.is_none() && self.cash.is_empty()
     }
 }
 
@@ -365,5 +403,15 @@ pub fn changes(c: &Country, days: i64, targets: &[Target]) -> Changes {
             .water
             .filter(|w| water_now.is_none_or(|t| (t.amount - w).abs() > 1e-9))
             .map(|w| (water_now.map(|t| t.id), water_now.map(|t| t.amount), w)),
+        cash: c
+            .cash
+            .iter()
+            .filter(|(mode, ..)| {
+                !targets
+                    .iter()
+                    .any(|t| t.category == "cash" && t.mode == *mode)
+            })
+            .copied()
+            .collect(),
     }
 }
