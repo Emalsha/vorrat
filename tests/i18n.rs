@@ -39,6 +39,7 @@ fn every_marked_text_has_a_german_translation() {
     let checks = vorrat::essentials::rules::FIRST_AID
         .iter()
         .chain(vorrat::essentials::rules::ESSENTIALS)
+        .chain(vorrat::essentials::rules::DOCUMENTS)
         .chain(vorrat::essentials::rules::SUGGESTIONS)
         .map(|c| &c.label);
     for k in vorrat::stock::queries::KINDS

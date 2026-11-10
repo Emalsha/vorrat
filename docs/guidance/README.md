@@ -165,8 +165,8 @@ first:
    Swedish amounts on the country page.
 6. ~~**Grab bag per person.**~~ Done: each person's bag is a place of its
    own, with a printable checklist ticked by the stock in it.
-7. **Documents checklist.** Which copies exist and where they are (in the
-   grab bag, in the waterproof box), without having to upload scans.
+7. ~~**Documents checklist.**~~ Done: a documents list on the essentials
+   page, each copy an item whose place says where it is; no scans.
 8. **Household plan page.** Meeting point, contacts on paper, where to shut
    off water, gas and power, who needs help, neighbours. Printable and
    offline, because the phone network may be down when it is needed.

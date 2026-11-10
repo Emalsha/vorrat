@@ -1525,3 +1525,32 @@ async fn each_person_gets_a_grab_bag() {
     let r = post(&app, "/grab-bag/999", "", "same-origin").await;
     assert!(loc(&r).contains("Not"));
 }
+
+#[tokio::test]
+async fn the_documents_checklist_says_where_each_copy_is() {
+    let (app, st) = app();
+    let (_, page) = get(&app, "/essentials").await;
+    assert!(page.contains("Copy of ID card or passport"));
+    let r = post(
+        &app,
+        "/essentials/check/doc-licence",
+        "action=add",
+        "same-origin",
+    )
+    .await;
+    let id: i64 = loc(&r)
+        .trim_start_matches("/items/")
+        .split('?')
+        .next()
+        .unwrap()
+        .parse()
+        .unwrap();
+    let item = st.store.item(id).unwrap().unwrap();
+    assert_eq!(item.kind, "document");
+    let place = st.store.add_location("Document box", None).unwrap();
+    st.store
+        .add_batch(id, 1.0, None, Some(place), None)
+        .unwrap();
+    let (_, page) = get(&app, "/essentials").await;
+    assert!(page.contains("Where: Document box"));
+}

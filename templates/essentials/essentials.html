@@ -56,5 +56,8 @@
 
   <h2>{{ "Household essentials"|t }} <span class="muted small">{{ essentials_ok }} / {{ essentials.len() }}</span></h2>
   {% let rows = essentials %}{% include "essentials/_checklist.html" %}
+  <h2>{{ "Documents"|t }} <span class="muted small">{{ documents_ok }} / {{ documents.len() }}</span></h2>
+  <p class="muted small">{{ "Paper copies to take if you have to leave, kept dry. Vorrat stores no scans: add each copy as an item and give its place, so everyone knows where it is."|t }}</p>
+  {% let rows = documents %}{% include "essentials/_checklist.html" %}
   <p class="muted small">{{ "Each entry is named by the official guides of the countries listed (see docs/guidance in the source code). Ticked when you have at least one in stock that has not expired, or one per person for blankets."|t }}</p>
 {% endblock %}
