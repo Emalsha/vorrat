@@ -1,4 +1,5 @@
-//! The daily reminder digest: what expires, what is low, which medicine runs out.
+//! The daily reminder digest: what expires, what is low, which medicine runs
+//! out, and when the twice-yearly kit check is due.
 
 use std::collections::{HashMap, HashSet};
 
@@ -9,6 +10,7 @@ use serde::Serialize;
 use crate::db::Store;
 use crate::essentials;
 use crate::essentials::rules::MED_REMIND_DAYS;
+use crate::plan::rules::review_in;
 use crate::stock::queries::Item;
 use crate::stock::rules::{annotate, fmt_qty, low_stock, Dated};
 
@@ -42,6 +44,7 @@ impl RemindDays {
 /// - `soon`: crossed the first mark (14 days, 90 for documents).
 /// - `medicine`: medicines that last fewer than `MED_REMIND_DAYS` days.
 /// - `renew`: prescriptions to renew within `MED_REMIND_DAYS` days.
+/// - `review`: the twice-yearly kit check is due; sent once for each check.
 #[derive(Debug, Default, Serialize)]
 pub struct Digest {
     pub expired: Vec<Dated>,
@@ -50,6 +53,9 @@ pub struct Digest {
     pub low: Vec<Item>,
     pub medicine: Vec<MedAlert>,
     pub renew: Vec<MedAlert>,
+    pub review: bool,
+    #[serde(skip)]
+    review_mark: Option<String>,
     #[serde(skip)]
     marks: Vec<(i64, Vec<i64>)>,
     #[serde(skip)]
@@ -77,6 +83,7 @@ impl Digest {
             && self.low.is_empty()
             && self.medicine.is_empty()
             && self.renew.is_empty()
+            && !self.review
     }
 
     pub fn title(&self) -> String {
@@ -88,6 +95,7 @@ impl Digest {
             (self.low.len(), "running low"),
             (self.medicine.len(), "medicine running out"),
             (self.renew.len(), "prescription to renew"),
+            (self.review as usize, "kit check due"),
         ] {
             if n > 0 {
                 parts.push(format!("{n} {}", crate::i18n::tr(what)));
@@ -168,6 +176,11 @@ impl Digest {
                 })
                 .collect();
             lines.push(format!("{}: {}", crate::i18n::tr(label), txt.join("; ")));
+        }
+        if self.review {
+            lines.push(crate::i18n::tr(
+                "Twice-yearly check: go through the emergency stock, rotate the water, test torches and radio, and update the household plan.",
+            ));
         }
         lines.join("\n")
     }
@@ -254,6 +267,12 @@ pub fn build_digest(store: &Store, today: NaiveDate, remind: &RemindDays) -> Res
             }
         }
     }
+    let since = store.review_since(today)?;
+    let mark = since.to_string();
+    if review_in(since, today) <= 0 && store.setting("review_sent")?.as_deref() != Some(&mark) {
+        dg.review = true;
+        dg.review_mark = Some(mark);
+    }
     Ok(dg)
 }
 
@@ -267,6 +286,9 @@ pub fn commit_digest(store: &Store, dg: &Digest) -> Result<()> {
     }
     for (iid, mark) in &dg.dose_marks {
         store.mark_dose(*iid, mark)?;
+    }
+    if let Some(since) = &dg.review_mark {
+        store.set_setting("review_sent", since)?;
     }
     Ok(())
 }

@@ -21,5 +21,6 @@ pub fn routes() -> Router<Arc<AppState>> {
         .route("/plan/targets", post(pages::add_target))
         .route("/plan/targets/{id}", post(pages::edit_target))
         .route("/plan/cash", post(pages::add_cash))
+        .route("/plan/reviewed", post(pages::reviewed))
         .route("/plan/to-shopping", post(pages::plan_to_shopping))
 }

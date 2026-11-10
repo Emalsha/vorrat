@@ -170,9 +170,9 @@ first:
 8. ~~**Household plan page.**~~ Done: meeting points, phone numbers, a
    contact outside the area, shut-offs, who needs help and neighbours, with a
    printable version.
-9. **Review reminders.** A twice-yearly "check the kit" reminder (Dutch and
-   French advice), plus water and battery rotation, through the existing ntfy
-   digest.
+9. ~~**Review reminders.**~~ Done: a twice-yearly kit check on the plan
+   page (rotate water, test torches, radio and batteries), reminded once
+   through the ntfy digest when it is due.
 10. **Needs no cooking.** A flag on items so the power-cut view and the plan
     can show what can be eaten without power (Danish and Belgian advice).
 11. **Country information.** Emergency numbers, the national alert system

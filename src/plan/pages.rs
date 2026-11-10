@@ -145,6 +145,18 @@ struct PlanT {
     cash: bool,
     currencies: &'static [&'static str],
     currency: &'static str,
+    review: Review,
+}
+
+/// The twice-yearly kit check as the plan page shows it.
+///
+/// - `last`: the date of the last check, if there was one.
+/// - `due`: "due in 40 days" or "overdue by 3 days".
+/// - `overdue`: the check is due now.
+struct Review {
+    last: Option<String>,
+    due: String,
+    overdue: bool,
 }
 
 /// A suggestion as the plan page shows it.
@@ -187,7 +199,19 @@ pub(super) async fn plan_page(State(s): St, Query(f): Query<Flash>) -> Res<Html<
         .store
         .setting("country")?
         .and_then(|c| crate::country::rules::find(&c));
+    let today = db::today();
+    let review_in = rules::review_in(s.store.review_since(today)?, today);
+    let review = Review {
+        last: s.store.setting("reviewed_on")?,
+        due: if review_in > 0 {
+            trf("Next check in {0} days", &[&review_in])
+        } else {
+            tr("The kit check is due")
+        },
+        overdue: review_in <= 0,
+    };
     render(PlanT {
+        review,
         msg: f.msg,
         tab: "plan",
         undo: None,
@@ -392,6 +416,16 @@ pub(super) async fn edit_target(
                 .update_target(id, &f.label, &f.category, &f.mode, amount, &f.unit)?;
             Ok("Target saved".into())
         })(),
+    )
+}
+
+/// Records today as the day the kit was checked.
+pub(super) async fn reviewed(State(s): St) -> Response {
+    done(
+        "/plan",
+        s.store
+            .set_setting("reviewed_on", &db::today().to_string())
+            .map(|_| "Saved".into()),
     )
 }
 

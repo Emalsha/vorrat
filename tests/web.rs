@@ -1585,3 +1585,18 @@ async fn the_household_plan_is_saved_and_printed() {
         }
     }
 }
+
+#[tokio::test]
+async fn the_kit_check_is_recorded_on_the_plan_page() {
+    let (app, st) = app();
+    assert!(get(&app, "/plan")
+        .await
+        .1
+        .contains("Next check in 182 days"));
+    post(&app, "/plan/reviewed", "", "same-origin").await;
+    assert_eq!(
+        st.store.setting("reviewed_on").unwrap(),
+        Some(common::today().to_string())
+    );
+    assert!(get(&app, "/plan").await.1.contains("Last checked"));
+}
