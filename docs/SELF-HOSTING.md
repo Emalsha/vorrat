@@ -90,15 +90,17 @@ of being damaged.
 `VORRAT_DEMO=on` loads a sample household at start and every night and refuses
 uploads, imports and settings changes. Don't set a password on a demo.
 
-The project's own demo runs on a free Koyeb instance in Frankfurt. It needs no
-disk, because the data is thrown away every night and on every restart:
+The project's own demo runs on Render's free plan in Frankfurt. It needs no
+disk, because the data is thrown away every night and on every restart. A free
+Render service sleeps after 15 minutes without visitors and takes about a
+minute to wake up, with fresh sample data.
 
-1. Create a web service from the Docker image `ghcr.io/emalsha/vorrat:latest`,
-   port 8087, with `VORRAT_DEMO=on`, `VORRAT_LISTEN=0.0.0.0:8087` and
-   `VORRAT_LOOKUP=off`.
-2. Create a Koyeb API token. In the GitHub repository, add it as the secret
-   `KOYEB_TOKEN`, and add the service's ID as the variable `KOYEB_SERVICE_ID`.
+1. Create a web service from the existing image `ghcr.io/emalsha/vorrat:latest`,
+   region Frankfurt, instance type Free, with `VORRAT_DEMO=on`,
+   `VORRAT_LISTEN=0.0.0.0:8087`, `VORRAT_LOOKUP=off` and `PORT=8087`.
+2. Copy the service's deploy hook URL from its settings. In the GitHub
+   repository, add it as the secret `RENDER_DEPLOY_HOOK`.
 
 After every merge to `main` that passes CI, the `release` workflow publishes a
-new image and asks Koyeb to redeploy, so the demo always shows the latest
+new image and asks Render to redeploy, so the demo always shows the latest
 version. The same image runs on any host that runs containers.

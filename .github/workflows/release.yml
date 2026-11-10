@@ -2,8 +2,8 @@ name: release
 
 # After CI passes on main: publish the Docker image to GitHub's registry
 # (ghcr.io/<owner>/vorrat, tags "latest" and the commit hash), then ask
-# Koyeb to redeploy the public demo. The redeploy step is skipped until the
-# KOYEB_TOKEN secret and the KOYEB_SERVICE_ID variable are set.
+# Render to redeploy the public demo. The redeploy step is skipped until the
+# RENDER_DEPLOY_HOOK secret is set.
 
 on:
   workflow_run:
@@ -57,18 +57,13 @@ jobs:
     needs: image
     runs-on: ubuntu-latest
     env:
-      KOYEB_TOKEN: ${{ secrets.KOYEB_TOKEN }}
-      KOYEB_SERVICE_ID: ${{ vars.KOYEB_SERVICE_ID }}
+      RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
     steps:
-      - name: Redeploy the public demo on Koyeb
+      - name: Redeploy the public demo on Render
         run: |
-          if [ -z "$KOYEB_TOKEN" ] || [ -z "$KOYEB_SERVICE_ID" ]; then
-            echo "No KOYEB_TOKEN secret or KOYEB_SERVICE_ID variable; skipping the demo."
+          if [ -z "$RENDER_DEPLOY_HOOK" ]; then
+            echo "No RENDER_DEPLOY_HOOK secret; skipping the demo."
             exit 0
           fi
-          curl -fsS -X POST \
-            -H "Authorization: Bearer $KOYEB_TOKEN" \
-            -H "Content-Type: application/json" \
-            -d '{}' \
-            "https://app.koyeb.com/v1/services/$KOYEB_SERVICE_ID/redeploy" > /dev/null
+          curl -fsS -X POST "$RENDER_DEPLOY_HOOK" > /dev/null
           echo "Redeploy requested."
