@@ -312,7 +312,7 @@ Safe for about 4 hours without power.	Sûr pendant environ 4 heures sans courant
 Nothing stored in a fridge.	Rien dans un réfrigérateur.
 A full freezer keeps about 48 hours, a half-full one about 24, if the door stays shut.	Un congélateur plein tient environ 48 heures, à moitié plein environ 24, si la porte reste fermée.
 Nothing stored in a freezer.	Rien dans un congélateur.
-Then shelf-stable food. Your emergency plan shows how long it lasts.	Ensuite, les aliments de longue conservation. Votre plan d'urgence indique combien de temps ils durent.
+Then shelf-stable food you can eat without a stove, soonest first. Your emergency plan shows how long it lasts.	Ensuite, les aliments de longue conservation qui se mangent sans cuisson, ceux qui périment en premier d'abord. Votre plan d'urgence indique combien de temps ils durent.
 Times follow common food-safety guidance (USDA). When in doubt, throw it out.	Les durées suivent les recommandations courantes de sécurité alimentaire (USDA). Dans le doute, jetez.
 Locations count as fridge or freezer by their name.	Les emplacements comptent comme réfrigérateur ou congélateur selon leur nom.
 Demo: try anything. The data resets every night.	Démo : essayez tout. Les données sont réinitialisées chaque nuit.
@@ -632,3 +632,8 @@ Iodine tablets	Comprimés d'iode
 Take iodine tablets only when the authorities say so. Pharmacies hand them out free.	Ne prenez des comprimés d'iode que si les autorités le demandent. Les pharmacies les distribuent gratuitement.
 The guide advises iodine tablets for people under 40 and for pregnant or breastfeeding people.	Le guide conseille des comprimés d'iode aux moins de 40 ans et aux personnes enceintes ou allaitantes.
 The guide advises iodine tablets for people aged 40 or under and for pregnant or breastfeeding people.	Le guide conseille des comprimés d'iode aux personnes de 40 ans ou moins et aux personnes enceintes ou allaitantes.
+Can be eaten without cooking (for a power cut)	Se mange sans cuisson (pour une coupure de courant)
+needs no cooking	sans cuisson
+Needs no cooking	Sans cuisson
+{0} days without cooking	{0} jours sans cuisson
+No food is marked as needing no cooking yet. Mark it on the item's edit page.	Aucun aliment n'est encore marqué comme se mangeant sans cuisson. Marquez-le sur la page de modification de l'article.

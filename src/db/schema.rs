@@ -19,6 +19,8 @@ use crate::db::Store;
 /// - v4: medicine and essentials. A medicine is an item with a daily dose for one
 ///   person or pet; reminders about it are sent once per mark. Items can stand
 ///   for an entry of the first-aid or essentials checklist.
+/// - v5: items can be marked as food that needs no cooking, so the power-cut
+///   page and the plan can show what can be eaten without power.
 const SCHEMA: &[&str] = &[
     r#"
     CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
@@ -155,6 +157,9 @@ const SCHEMA: &[&str] = &[
         PRIMARY KEY (item_id, mark)
     );
     ALTER TABLE items ADD COLUMN preset TEXT;
+    "#,
+    r#"
+    ALTER TABLE items ADD COLUMN no_cook INTEGER NOT NULL DEFAULT 0;
     "#,
 ];
 
