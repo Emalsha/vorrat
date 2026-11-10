@@ -113,6 +113,7 @@ pub(crate) fn gap_labels(plan: &Plan) -> Vec<String> {
 ///
 /// - `first_aid`: (have, of) for the first-aid kit and the household essentials.
 /// - `country`: the chosen country's name, translated.
+/// - `washing`: a target for washing water exists, so the offer to add one is hidden.
 #[derive(Template)]
 #[template(path = "plan/plan.html")]
 struct PlanT {
@@ -138,6 +139,7 @@ struct PlanT {
     first_aid: (usize, usize),
     essentials: (usize, usize),
     country: Option<String>,
+    washing: bool,
 }
 
 /// A suggestion as the plan page shows it.
@@ -169,6 +171,10 @@ pub(super) async fn plan_page(State(s): St, Query(f): Query<Flash>) -> Res<Html<
         (c.iter().filter(|x| x.ok()).count(), c.len())
     };
     let has_gaps = plan.gaps().next().is_some();
+    let washing = plan
+        .lines
+        .iter()
+        .any(|c| c.target.category == "washing water");
     render(PlanT {
         msg: f.msg,
         tab: "plan",
@@ -182,6 +188,7 @@ pub(super) async fn plan_page(State(s): St, Query(f): Query<Flash>) -> Res<Html<
         ready_of: trf("of {0} days", &[&plan.days]),
         gaps: gap_labels(&plan),
         has_gaps,
+        washing,
         lines: plan.lines.iter().map(PlanLine::from).collect(),
         categories: CATEGORIES,
         units: UNITS,

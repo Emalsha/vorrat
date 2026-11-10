@@ -60,7 +60,22 @@
     </details></li>
     {% endfor %}
   </ul></div>
+  {% if !washing %}
+  <details class="card mt">
+    <summary class="row"><span class="grow"><b>{{ "Water for washing and the toilet"|t }}</b></span>{% let icon = "chev" %}{% include "_icon.html" %}</summary>
+    <form method="post" action="/plan/targets" class="pad pt0 stack">
+      <p class="muted small m0">{{ "Drinking water is not enough when the taps are dry. Several guides add water for washing and flushing: Belgium up to 10 L a day in total, Czechia 10 to 15 L, Latvia 10 to 12 L for hygiene alone. Choose an amount per person per day."|t }}</p>
+      <input type="hidden" name="label" value="Water for washing and the toilet">
+      <input type="hidden" name="category" value="washing water">
+      <input type="hidden" name="mode" value="per_person_day">
+      <input type="hidden" name="unit" value="L">
+      <label>{{ "Litres per person per day"|t }} <input name="amount" inputmode="decimal" required></label>
+      <button class="btn block">{{ "Add target"|t }}</button>
+    </form>
+  </details>
+  {% endif %}
   {% if has_gaps %}<form method="post" action="/plan/to-shopping" class="mt"><button class="btn primary block">{{ "Put the gaps on the shopping list"|t }}</button></form>{% endif %}
+  <p class="muted small">{{ "In hot weather people need more water: Latvia's guide says 4 L a day instead of 3."|t }}</p>
   <p class="muted small">{{ "Targets start from the German civil-protection (BBK) checklist; edit them to fit your household. Stock counts by category; expired stock doesn't count."|t }}</p>
   </div>
   <div class="col">
