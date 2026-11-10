@@ -115,8 +115,8 @@ and "not needed".
 1. ~~Household profile: people and pets~~ (done: schema v3 and the household page).
 2. ~~Suggestions and quick-add from the profile~~ (done: "Suggested for your household" on the plan page).
 3. ~~Medicine and other essentials~~ (done: schema v4 and the medicine and essentials page).
-4. **Official guidance in the project:** EU and national emergency-preparedness
-   advice, with sources, in `docs/` and as country presets.
+4. ~~Official guidance in the project~~ (done: `docs/guidance/`, and the
+   country page uses each verified guide's days and drinking water).
 5. More languages (Polish, Swedish, Italian, Spanish) and more country presets.
 6. Several households on one server: see [HOUSEHOLDS.md](HOUSEHOLDS.md).
 7. Accounts with Argon2id passwords and passkeys.

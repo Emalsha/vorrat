@@ -59,6 +59,7 @@ async fn every_page_renders() {
         "/plan/print",
         "/plan/power-cut",
         "/essentials",
+        "/country",
         "/static/zxing-0.23.0.min.js",
         "/healthz",
         "/static/app.css",
@@ -1366,4 +1367,49 @@ async fn stock_filters_and_home_attention() {
     assert!(home.contains("Needs attention"));
     assert!(home.contains("Lentils"), "running low is on Home");
     assert!(home.contains("aria-current=\"page\""), "current tab marked");
+}
+
+#[tokio::test]
+async fn a_country_sets_the_plan_length_and_drinking_water() {
+    let (app, st) = app();
+    assert!(get(&app, "/country")
+        .await
+        .1
+        .contains("Choose your country"));
+    post(&app, "/country", "country=NL", "same-origin").await;
+    assert_eq!(st.store.setting("country").unwrap().as_deref(), Some("NL"));
+    assert_eq!(
+        st.store.setting_int("days", 0),
+        14,
+        "choosing changes nothing yet"
+    );
+    let (_, page) = get(&app, "/country").await;
+    assert!(page.contains("denkvooruit.nl"));
+    assert!(page.contains("Use these numbers"));
+    post(&app, "/country/apply", "", "same-origin").await;
+    assert_eq!(st.store.setting_int("days", 0), 3);
+    let water = st.store.targets().unwrap();
+    let water = water.iter().find(|t| t.category == "water").unwrap();
+    assert_eq!(water.amount, 3.0);
+    assert_eq!(water.label, "Drinking water & drinks", "the label stays");
+    assert!(get(&app, "/country")
+        .await
+        .1
+        .contains("Your plan already follows this guide."));
+    assert!(get(&app, "/plan").await.1.contains("Netherlands"));
+
+    post(&app, "/country", "country=IT", "same-origin").await;
+    let (_, page) = get(&app, "/country").await;
+    assert!(page.contains("takes no numbers"));
+    assert!(!page.contains("Use these numbers"));
+    post(&app, "/country/apply", "", "same-origin").await;
+    assert_eq!(
+        st.store.setting_int("days", 0),
+        3,
+        "an unverified guide changes nothing"
+    );
+
+    let r = post(&app, "/country", "country=XX", "same-origin").await;
+    assert!(loc(&r).contains("Not"));
+    assert_eq!(st.store.setting("country").unwrap().as_deref(), Some("IT"));
 }

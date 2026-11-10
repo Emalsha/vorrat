@@ -11,6 +11,7 @@ const FEATURES: &[&str] = &[
     "locations",
     "plan",
     "household",
+    "country",
     "essentials",
     "shopping",
     "settings",

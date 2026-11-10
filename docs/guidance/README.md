@@ -6,8 +6,9 @@ authorities instead of inventing numbers (rule 7 in [AGENTS.md](../../AGENTS.md)
 
 - [COUNTRIES.md](COUNTRIES.md): one section per country, with the source, the
   recommended days, water, and every item the authority lists.
-- [presets.json](presets.json): the same data for the app. Nothing in `src/`
-  reads it yet. Each item has a category (the target categories Vorrat uses,
+- [presets.json](presets.json): the same data for the app. The country page
+  copies each authority's link, status, days and water from it
+  (`src/country/rules.rs`; `tests/country.rs` checks they match). Each item has a category (the target categories Vorrat uses,
   plus medicine, documents, cash, pets and others), a `basis` saying how it
   scales (per person per day, per adult, per child, per pet, per household),
   a quantity only where the authority gives one, `applies_to` profile
@@ -148,9 +149,9 @@ first:
    pregnancy, older people, care needs, glasses or hearing aids, and each kind
    of pet. `presets.json` already tags items with a `basis` (per adult, per
    child, per pet...) and `applies_to` triggers for this.
-2. **Country presets.** Pick a country and get its days, water per person and
-   suggested items, each with a link to the authority. Only verified entries,
-   and the household can still edit everything.
+2. ~~**Country presets.**~~ Done: the country page sets the plan length and
+   drinking water from a verified guide and links to the authority. Only
+   verified entries give numbers, and the household can still edit everything.
 3. **Medicine and personal needs.** Per person, generic names only (never a
    drug or dose beyond what the authority says), with its own days of supply
    separate from the plan length, expiry and a refill reminder. This is the

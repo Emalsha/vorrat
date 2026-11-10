@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}{{ "Country"|t }} · Vorrat{% endblock %}
+{% block heading %}{{ "Country"|t }}{% endblock %}
+{% block content %}
+<p class="muted small mt">{{ "What the authority in your country tells households to plan for. Its numbers can set your plan length and drinking water; every target stays yours to edit."|t }} <a href="/plan">{{ "Back to the plan"|t }}</a></p>
+
+<form method="post" action="/country" class="card pad stack mt">
+  <label>{{ "Country"|t }}
+    <select name="country">
+      {% if chosen.is_none() %}<option value="" selected disabled>{{ "Choose your country"|t }}</option>{% endif %}
+      {% for (code, name) in countries %}<option value="{{ code }}"{% if let Some(c) = chosen %}{% if c.code == *code %} selected{% endif %}{% endif %}>{{ name }}</option>{% endfor %}
+    </select>
+  </label>
+  <button class="btn block">{{ "Save"|t }}</button>
+</form>
+
+{% if let Some(c) = chosen %}
+<h2>{{ c.name }}</h2>
+<div class="card pad stack">
+  <p class="m0"><a href="{{ c.url }}" rel="noopener noreferrer">{{ c.authority }}</a></p>
+  {% if c.numbers %}
+  {% if let Some(d) = c.days %}<div class="row-line between"><span>{{ "Plan for"|t }}</span><b>{{ d }}</b></div>{% endif %}
+  {% if let Some(w) = c.water %}<div class="row-line between"><span>{{ "Drinking water"|t }}</span><b>{{ w }}</b></div>{% endif %}
+  {% if c.days.is_none() && c.water.is_none() %}<p class="muted small m0">{{ "This guide gives no number of days and no amount of water."|t }}</p>{% endif %}
+  {% if c.changes.is_empty() %}
+  <p class="status ok small m0">{% let icon = "ok" %}{% include "_icon.html" %}{{ "Your plan already follows this guide."|t }}</p>
+  {% else %}
+  <form method="post" action="/country/apply" class="stack">
+    <p class="m0"><b>{{ "Using these numbers changes:"|t }}</b></p>
+    <ul class="m0">{% for l in c.changes %}<li>{{ l }}</li>{% endfor %}</ul>
+    <button class="btn primary block">{{ "Use these numbers"|t }}</button>
+  </form>
+  {% endif %}
+  {% else %}
+  <p class="muted small m0">{{ "This guide could not be read fully yet, so Vorrat takes no numbers from it. Read it on the authority's page."|t }}</p>
+  {% endif %}
+</div>
+<p class="muted small">{{ "Planning help, not official advice. Guidance changes: check the authority's page."|t }}</p>
+{% endif %}
+{% endblock %}

@@ -11,6 +11,10 @@
         <b>{{ "Household"|t }}</b>
         <span class="small">{{ "Edit"|t }} ›</span>
       </a>
+      <a href="/country" class="row-line between">
+        <b>{{ "Country"|t }}</b>
+        <span class="small">{% if let Some(c) = country %}{{ c }}{% else %}{{ "Choose your country"|t }}{% endif %} ›</span>
+      </a>
       <form method="post" action="/plan/settings" class="grid2 end">
         <label>{{ "Days"|t }} <input name="days" inputmode="numeric" value="{{ days }}"></label>
         <button class="btn">{{ "Update"|t }}</button>
