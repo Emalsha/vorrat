@@ -24,10 +24,11 @@
   <div class="card mt"><ul class="list">
     {% for i in items %}
     <li><a class="row" href="/items/{{ i.id }}">{% let t = i %}{% include "_thumb.html" %}
-      <div class="grow"><div class="title">{{ i.name }}</div><div class="sub">{{ i.sub }}</div></div>
+      <div class="grow"><div class="title">{{ i.name }}</div>{% if !i.detail.is_empty() %}<div class="sub">{{ i.detail }}</div>{% endif %}
       {% if i.status == "expired" %}<span class="pill expired">{% let icon = "crit" %}{% include "_icon.html" %}<span class="vh">{{ "Expired"|t }}</span>{{ i.when }}</span>
       {% else if i.status == "low" %}<span class="pill low">{% let icon = "warn" %}{% include "_icon.html" %}{{ "low"|t }}</span>
-      {% else if !i.status.is_empty() %}<span class="pill {{ i.status }}">{% let icon = "warn" %}{% include "_icon.html" %}<span class="vh">{{ "Expires soon"|t }}</span>{{ i.when }}</span>{% endif %}</a></li>
+      {% else if !i.status.is_empty() %}<span class="pill {{ i.status }}">{% let icon = "warn" %}{% include "_icon.html" %}<span class="vh">{{ "Expires soon"|t }}</span>{{ i.when }}</span>{% endif %}</div>
+      <span class="count">{{ i.count }}<small>{{ i.unit }}</small></span></a></li>
     {% else %}<li class="empty">{% if q.is_empty() && kind.is_empty() && !low %}{{ "Nothing here yet."|t }} <a href="/add">{{ "Add something"|t }}</a>.{% else %}{{ "Nothing matches."|t }} <a href="/items">{{ "Show everything"|t }}</a>.{% endif %}</li>{% endfor %}
   </ul></div>
   <p class="small right phone-only"><a href="/locations">{{ "Locations"|t }} ›</a></p>

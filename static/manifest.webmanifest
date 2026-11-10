@@ -3,8 +3,8 @@
   "short_name": "Vorrat",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f4f3ef",
-  "theme_color": "#2f6f4f",
+  "background_color": "#eeede9",
+  "theme_color": "#141414",
   "icons": [
     {
       "src": "/static/icon-192.png",

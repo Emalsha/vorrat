@@ -31,34 +31,40 @@ with the derived tokens.
 The derived tokens come from a generic algorithm and don't match `DESIGN.md`
 or the app. Several fail WCAG 2.2 AA: the dark primary `#406d55` is 3.1:1 on
 the dark page, black text on Forest is 3.5:1, and Forest on the derived
-`primary-bg` `#a5b0a9` is 2.7:1. `DESIGN.md` was measured from
-`static/app.css` and is what the app follows. Never copy `variables.css` into
+`primary-bg` `#a5b0a9` is 2.7:1. They also still describe the earlier green
+design: `brand.json` and `system/` predate the Bauhaus palette and need a new
+export from Open Design. `DESIGN.md` is what the app follows. Never copy `variables.css` into
 `static/`.
 
 ## How the design maps onto the app
 
 | `DESIGN.md` | `static/app.css` | Light | Dark |
 |---|---|---|---|
-| Paper (background) | `--bg` | `#f5f4f0` | `#121311` |
-| Card (surface) | `--surface` | `#ffffff` | `#1c1d1b` |
-| Ink (foreground) | `--ink` | `#1d1c1a` | `#ecebe7` |
-| Ink 2 (muted) | `--ink-2` | `#5c5851` | `#a8a49c` |
-| Line (border) | `--line` | `#e4e1da` | `#2c2d2a` |
-| Field (control edges) | `--field` | `#8c877e` | `#77736b` |
-| Track (progress) | `--track` | `#d6d2ca` | `#3a3b38` |
-| Forest (accent) | `--accent` | `#2f6f4f` | `#6cc095` |
-| Text on Forest | `--accent-ink` | `#ffffff` | `#0d1a13` |
-| Forest Soft | `--accent-soft` | `#e8f1ec` | `#1d2b23` |
-| Amber / Amber Soft | `--warn` / `--warn-soft` | `#8a5a00` / `#fff3d6` | `#ffcc66` / `#352a14` |
-| Brick / Brick Soft | `--crit` / `--crit-soft` | `#b3261e` / `#fbe9e7` | `#ff8a80` / `#3a1d1b` |
-| Slate (demo, offline notes) | `--banner` / `--banner-ink` | `#2f4f6f` / `#ffffff` | same |
-| Focus Blue | `--focus` | `#1f5fa8` | `#8ab4ff` |
+| Paper (background) | `--bg` | `#eeede9` | `#121212` |
+| Card (surface) | `--surface` | `#ffffff` | `#1d1d1c` |
+| Ink (foreground, rules, primary button) | `--ink`, `--accent` | `#141414` | `#f0efea` |
+| Text on Ink | `--accent-ink` | `#ffffff` | `#121212` |
+| Ink 2 (muted) | `--ink-2` | `#4d4c48` | `#b3b1ab` |
+| Line (hairlines) | `--line` | `#d9d8d3` | `#343432` |
+| Field (control edges) | `--field` | `#6b6a66` | `#8a8984` |
+| Track (empty part of a bar) | `--track` | `#d9d8d3` | `#3a3a38` |
+| Hover fill of secondary buttons | `--accent-soft` | `#e2e1dc` | `#2c2c2a` |
+| Signal Blue (covered, focus ring) | `--ok`, `--focus` | `#1f4fa0` | `#86a8ee` |
+| Signal Yellow (soon, low; triangle fill only) | `--yellow` | `#f2b705` | `#f2b705` |
+| Signal Red (expired, missing, destructive) | `--crit` | `#c0261d` | `#ff7b6e` |
+| Demo and offline band | `--banner` / `--banner-ink` | `#141414` / `#ffffff` | `#f0efea` / `#121212` |
 | Spacing 4, 8, 12, 16, 24, 32 px | `--s1` … `--s6` | | |
-| Radius 14 / 10 / 6 / 999 px | `--radius` / `--radius-sm` / `--radius-xs` / `--radius-pill` | | |
-| Tap targets 44 / 40 px, rows 56 px | `--target` / `--target-sm` / `--row` | | |
-| Type 0.75 / 0.875 / 1.25 / 1.5 / 2.25 rem | `--t-xs` / `--t-sm` / `--t-lg` / `--t-title` / `--t-xl` | | |
-| Body and display face (system UI) | `--font` | | |
+| Rules and control edges 2 px | `--rule` | | |
+| Tap targets 48 / 40 px, rows 56 px | `--target` / `--target-sm` / `--row` | | |
+| Type 0.75 / 0.875 / 1.375 / 1.75 / 4 rem | `--t-xs` / `--t-sm` / `--t-lg` / `--t-title` / `--t-xl` | | |
+| Display face (Jost, bundled) | `--display` | | |
+| Body face (system UI) | `--font` | | |
 | Mono (barcodes, codes) | `--mono` | | |
+
+Jost is bundled as `static/fonts/jost.woff2` (Latin and Latin Extended,
+weights 400 to 700, about 23 KB) under the SIL Open Font License, which is
+next to it as `static/fonts/Jost-OFL.txt`. It is served from
+`/static/jost.woff2` and never loaded from the internet.
 
 `cargo test --test ui` checks that the colours in the front matter of
 `DESIGN.md` equal the light tokens in `static/app.css`, and that every token

@@ -10,7 +10,7 @@ use crate::plan::pages::{gap_labels, ready_days};
 use crate::stock::pages::{BatchRow, ItemRow};
 use crate::stock::rules::fmt_qty;
 use crate::web::respond::{render, Flash, Res};
-use crate::web::view::{bar_class, filters, money, pct};
+use crate::web::view::{bar_class, day_cells, filters, money, pct};
 use crate::web::St;
 
 #[derive(Template)]
@@ -19,7 +19,8 @@ struct HomeT {
     msg: Option<String>,
     tab: &'static str,
     undo: Option<String>,
-    expiring: Vec<BatchRow>,
+    expired: Vec<BatchRow>,
+    use_first: Vec<BatchRow>,
     low: Vec<ItemRow>,
     attention: usize,
     plan_pct: u32,
@@ -28,6 +29,7 @@ struct HomeT {
     pets: i64,
     ready_days: Option<String>,
     ready_of: String,
+    ready_cells: Vec<bool>,
     gaps: Vec<String>,
     recent: Vec<String>,
     month_note: Option<String>,
@@ -54,7 +56,11 @@ pub(super) async fn home(State(s): St, Query(f): Query<Flash>) -> Res<Html<Strin
             tr("Thrown away:")
         )),
     };
-    let expiring: Vec<BatchRow> = snap.expiring(14).iter().map(BatchRow::from).collect();
+    let (expired, use_first): (Vec<BatchRow>, Vec<BatchRow>) = snap
+        .expiring(14)
+        .iter()
+        .map(BatchRow::from)
+        .partition(|b| b.status == "expired");
     let low: Vec<ItemRow> = snap.low_stock().iter().map(ItemRow::from).collect();
     let plan = s.store.plan_for(&snap)?;
     let recent = s
@@ -79,8 +85,9 @@ pub(super) async fn home(State(s): St, Query(f): Query<Flash>) -> Res<Html<Strin
         msg: f.msg,
         tab: "home",
         undo: f.undo,
-        attention: expiring.len() + low.len(),
-        expiring,
+        attention: expired.len() + use_first.len() + low.len(),
+        expired,
+        use_first,
         low,
         plan_pct: pct(plan.ratio),
         plan_bar: bar_class(plan.ratio),
@@ -88,6 +95,7 @@ pub(super) async fn home(State(s): St, Query(f): Query<Flash>) -> Res<Html<Strin
         pets: plan.pets,
         ready_days: ready_days(&plan),
         ready_of: trf("of {0} days", &[&plan.days]),
+        ready_cells: day_cells(plan.weakest_days, plan.days),
         gaps: gap_labels(&plan),
         recent,
         month_note,

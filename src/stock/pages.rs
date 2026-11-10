@@ -15,7 +15,7 @@ use crate::stock::queries::{Attachment, Item, ItemQuery, NewItem, Sort, CATEGORI
 use crate::stock::rules::{fmt_qty, Dated, Status};
 use crate::web::form::{opt_date, opt_f64, opt_i64};
 use crate::web::respond::{back, back_undo, done, not_found, render, safe_back, Flash, Res};
-use crate::web::view::{filters, hdate, initial, money, when};
+use crate::web::view::{filters, hdate, money, when};
 use crate::web::St;
 use crate::{db, essentials};
 
@@ -24,7 +24,6 @@ pub(crate) struct BatchRow {
     pub id: i64,
     pub item_id: i64,
     pub name: String,
-    pub initial: String,
     pub sub: String,
     pub status: &'static str,
     pub when: String,
@@ -44,7 +43,6 @@ impl From<&Dated> for BatchRow {
             image: b.image.clone(),
             id: b.id,
             item_id: b.item_id,
-            initial: initial(&b.item_name),
             name: b.item_name.clone(),
             sub,
             status: d.status.as_str(),
@@ -55,12 +53,19 @@ impl From<&Dated> for BatchRow {
     }
 }
 
+/// An item as a list row.
+///
+/// - `sub`: quantity, minimum, category and next expiry in one line.
+/// - `count`, `unit`: the quantity on its own, for the count column of the stock list.
+/// - `detail`: `sub` without the quantity, shown beside the count column.
 pub(crate) struct ItemRow {
     pub image: Option<String>,
     pub id: i64,
     pub name: String,
-    pub initial: String,
     pub sub: String,
+    pub count: String,
+    pub unit: String,
+    pub detail: String,
     pub status: &'static str,
     pub when: String,
 }
@@ -68,21 +73,28 @@ pub(crate) struct ItemRow {
 impl From<&Item> for ItemRow {
     fn from(i: &Item) -> Self {
         let mut sub = format!("{} {}", fmt_qty(i.total), tr(&i.unit));
+        let mut detail = Vec::new();
         if i.min_qty > 0.0 {
             sub += &format!(" {} {}", tr("of min"), fmt_qty(i.min_qty));
+            detail.push(trf("at least {0}", &[&fmt_qty(i.min_qty)]));
         }
         if let Some(c) = &i.category {
             sub += &format!(" · {}", tr(c));
+            detail.push(tr(c));
         }
         if i.next_expiry.is_some() {
-            sub += &format!(" · {} {}", tr("next"), hdate(i.next_expiry.as_deref()));
+            let next = format!("{} {}", tr("next"), hdate(i.next_expiry.as_deref()));
+            sub += &format!(" · {next}");
+            detail.push(next);
         }
         Self {
             image: i.image.clone(),
             id: i.id,
-            initial: initial(&i.name),
             name: i.name.clone(),
             sub,
+            count: fmt_qty(i.total),
+            unit: tr(&i.unit),
+            detail: detail.join(" · "),
             status: {
                 let days = rules::days_left(i.next_expiry.as_deref(), db::today());
                 match Status::of(days, 14) {

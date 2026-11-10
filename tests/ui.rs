@@ -14,8 +14,9 @@ const DESIGN_TOKENS: &[(&str, &str)] = &[
     ("ink", "ink"),
     ("ink-2", "ink-2"),
     ("line", "line"),
-    ("forest", "accent"),
-    ("focus-blue", "focus"),
+    ("signal-blue", "ok"),
+    ("signal-yellow", "yellow"),
+    ("signal-red", "crit"),
 ];
 
 /// The `--name: #rrggbb` tokens of a theme: light from the first `:root`
@@ -40,7 +41,7 @@ fn tokens(theme: &str) -> HashMap<String, [u8; 3]> {
         })
         .collect();
     assert!(
-        t.len() >= 15,
+        t.len() >= 14,
         "{theme}: only {} colour tokens found",
         t.len()
     );
@@ -66,29 +67,30 @@ fn contrast(a: [u8; 3], b: [u8; 3]) -> f64 {
 }
 
 /// (foreground, background, minimum ratio). Text needs 4.5:1 (WCAG 1.4.3);
-/// field borders, focus rings and progress fills need 3:1 (1.4.11).
+/// field borders, focus rings, progress fills and status shapes need 3:1
+/// (1.4.11). Yellow never carries text and is too light on white to be a
+/// shape's only edge, so the triangle has an ink edge: `ink` on `bg` and
+/// `surface` covers it.
 const PAIRS: &[(&str, &str, f64)] = &[
     ("ink", "bg", 4.5),
     ("ink", "surface", 4.5),
     ("ink-2", "bg", 4.5),
     ("ink-2", "surface", 4.5),
-    ("accent", "bg", 4.5),
-    ("accent", "surface", 4.5),
-    ("accent", "accent-soft", 4.5),
     ("accent-ink", "accent", 4.5),
-    ("warn", "surface", 4.5),
-    ("warn", "warn-soft", 4.5),
-    ("crit", "surface", 4.5),
-    ("crit", "crit-soft", 4.5),
+    ("accent-ink", "ink-2", 4.5),
     ("ink", "accent-soft", 4.5),
+    ("ok", "bg", 4.5),
+    ("ok", "surface", 4.5),
+    ("crit", "bg", 4.5),
+    ("crit", "surface", 4.5),
     ("banner-ink", "banner", 4.5),
+    ("accent", "bg", 3.0),
+    ("accent", "surface", 3.0),
     ("field", "surface", 3.0),
     ("field", "bg", 3.0),
     ("focus", "bg", 3.0),
     ("focus", "surface", 3.0),
     ("accent", "track", 3.0),
-    ("warn", "track", 3.0),
-    ("crit", "track", 3.0),
 ];
 
 #[test]

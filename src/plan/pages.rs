@@ -13,10 +13,13 @@ use crate::stock::queries::{CATEGORIES, CURRENCIES, UNITS};
 use crate::stock::rules::fmt_qty;
 use crate::web::form::{opt_f64, opt_i64};
 use crate::web::respond::{done, render, Flash, Res};
-use crate::web::view::{bar_class, filters, pct};
+use crate::web::view::{bar_class, day_cells, filters, pct};
 use crate::web::St;
 use crate::{db, stock};
 
+/// A plan target as the plan page shows it.
+///
+/// - `cells`: one square per planned day, filled for the days it lasts; empty for targets that are not counted in days.
 pub struct PlanLine {
     pub id: i64,
     pub label: String,
@@ -26,10 +29,10 @@ pub struct PlanLine {
     pub amount: String,
     pub progress: String,
     pub pct: u32,
-    pub bar: &'static str,
     pub contributors: String,
     pub status: &'static str,
     pub status_text: String,
+    pub cells: Vec<bool>,
 }
 
 impl From<&Coverage> for PlanLine {
@@ -68,7 +71,6 @@ impl From<&Coverage> for PlanLine {
             amount: fmt_qty(c.target.amount),
             progress,
             pct: pct(c.ratio),
-            bar: bar_class(c.ratio),
             contributors,
             status: match bar_class(c.ratio) {
                 _ if c.missing <= 0.0 => "ok",
@@ -85,6 +87,7 @@ impl From<&Coverage> for PlanLine {
                     tr(&c.target.unit)
                 )
             },
+            cells: Vec::new(),
         }
     }
 }
@@ -112,6 +115,22 @@ pub(crate) fn gap_labels(plan: &Plan) -> Vec<String> {
     }
 }
 
+/// The plan lines with day squares, the least covered first, so the line
+/// that sets the big number comes right below it.
+fn weakest_first(plan: &Plan) -> Vec<PlanLine> {
+    let mut lines: Vec<(f64, PlanLine)> = plan
+        .lines
+        .iter()
+        .map(|c| {
+            let mut l = PlanLine::from(c);
+            l.cells = day_cells(c.days, plan.days);
+            (c.ratio, l)
+        })
+        .collect();
+    lines.sort_by(|a, b| a.0.total_cmp(&b.0));
+    lines.into_iter().map(|(_, l)| l).collect()
+}
+
 /// The plan page.
 ///
 /// - `first_aid`: (have, of) for the first-aid kit; `essentials` and `documents` likewise.
@@ -131,6 +150,7 @@ struct PlanT {
     plan_bar: &'static str,
     ready_days: Option<String>,
     ready_of: String,
+    ready_cells: Vec<bool>,
     gaps: Vec<String>,
     lines: Vec<PlanLine>,
     has_gaps: bool,
@@ -225,10 +245,11 @@ pub(super) async fn plan_page(State(s): St, Query(f): Query<Flash>) -> Res<Html<
         plan_bar: bar_class(plan.ratio),
         ready_days: ready_days(&plan),
         ready_of: trf("of {0} days", &[&plan.days]),
+        ready_cells: day_cells(plan.weakest_days, plan.days),
         gaps: gap_labels(&plan),
         has_gaps,
         washing,
-        lines: plan.lines.iter().map(PlanLine::from).collect(),
+        lines: weakest_first(&plan),
         categories: CATEGORIES,
         units: UNITS,
         presets: PLAN_PRESETS,
