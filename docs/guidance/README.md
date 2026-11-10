@@ -173,8 +173,9 @@ first:
 9. ~~**Review reminders.**~~ Done: a twice-yearly kit check on the plan
    page (rotate water, test torches, radio and batteries), reminded once
    through the ntfy digest when it is due.
-10. **Needs no cooking.** A flag on items so the power-cut view and the plan
-    can show what can be eaten without power (Danish and Belgian advice).
+10. ~~**Needs no cooking.**~~ Done: food can be marked on its edit page; the
+    power-cut page lists it after the fridge and freezer, and the plan shows
+    how many days it lasts (Danish and Belgian advice).
 11. **Country information.** Partly done: the country page shows 112 and
     what the verified guides say about iodine (Belgium, Denmark, Finland).
     National alert systems and radio stations need verified sources first.
@@ -182,8 +183,8 @@ first:
     booklet in nine); the countries with the most detailed lists suggest
     Swedish, Polish, Czech, Danish and Latvian next.
 
-Items 1 and 3 needed somewhere to store new data (schema v3 and v4); 6, 7
-and 8 fit in the existing tables. Under rule 1 a new
+Items 1, 3 and 10 needed somewhere to store new data (schema v3, v4 and
+v5); 6, 7 and 8 fit in the existing tables. Under rule 1 a new
 table means a new schema version, which is Emalsha's decision; the plan in
 [PLAN.md](../PLAN.md) owns that design.
 

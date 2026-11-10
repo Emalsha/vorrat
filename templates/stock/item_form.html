@@ -19,6 +19,7 @@
         <label>{{ "Unit"|t }} <select name="size_unit"><option value="">—</option>{% for u in size_units %}<option value="{{ u }}" {% if item.size_unit.clone().unwrap_or_default() == **u %}selected{% endif %}>{{ u|t }}</option>{% endfor %}</select></label>
       </div>
       <p class="muted small m0">{{ "Content per piece lets the emergency plan count a 400 g can as 0.4 kg."|t }}</p>
+      <label class="check-label"><input type="checkbox" name="no_cook" value="1"{% if item.no_cook %} checked{% endif %}> {{ "Can be eaten without cooking (for a power cut)"|t }}</label>
       <label>{{ "Once opened, use within (days)"|t }} <input name="open_days" inputmode="numeric" value="{{ open_days }}" placeholder="{{ "e.g. 4 for milk; empty keeps the printed date"|t }}"></label>
       <div class="grid2">
         <label>{{ "Brand"|t }} <input name="brand" value="{{ item.brand.as_deref().unwrap_or("") }}"></label>

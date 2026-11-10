@@ -356,6 +356,27 @@ async fn edit_item_page_saves() {
         (it.name.as_str(), it.unit.as_str(), it.open_days),
         ("Green tea", "g", Some(30))
     );
+    assert!(!it.no_cook);
+    post(
+        &app,
+        &format!("/items/{id}/edit"),
+        "name=Green+tea&unit=g&no_cook=1",
+        "same-origin",
+    )
+    .await;
+    assert!(st.store.item(id).unwrap().unwrap().no_cook);
+    assert!(get(&app, &format!("/items/{id}/edit"))
+        .await
+        .1
+        .contains("name=\"no_cook\" value=\"1\" checked"));
+    post(
+        &app,
+        &format!("/items/{id}/edit"),
+        "name=Green+tea&unit=g",
+        "same-origin",
+    )
+    .await;
+    assert!(!st.store.item(id).unwrap().unwrap().no_cook);
 }
 
 fn multipart(name: &str, bytes: &[u8]) -> (String, Vec<u8>) {
@@ -979,6 +1000,11 @@ async fn demo_mode_has_sample_data_and_blocks_server_changes() {
     assert!(body.contains("Yoghurt"), "something expiring on Home");
     let (_, body) = get(&app, "/plan/power-cut").await;
     assert!(body.contains("Frozen peas"));
+    assert!(
+        body.contains("Canned lentils"),
+        "food that needs no cooking"
+    );
+    assert!(!body.contains("Peanut butter"), "expired, so not listed");
     for p in [
         "/import",
         "/settings/backup",

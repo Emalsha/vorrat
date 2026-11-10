@@ -52,6 +52,7 @@ pub const CATEGORIES: &[&str] = &[
 /// Something the household keeps, with its stock.
 ///
 /// - `preset`: the checklist entry this item stands for (see `essentials.rs`).
+/// - `no_cook`: food that can be eaten without cooking.
 /// - `total`: sum of all batches.
 #[derive(Debug, Clone, Serialize)]
 pub struct Item {
@@ -71,6 +72,7 @@ pub struct Item {
     pub open_days: Option<i64>,
     pub nutriscore: Option<String>,
     pub preset: Option<String>,
+    pub no_cook: bool,
     pub created_at: String,
     pub total: f64,
     pub next_expiry: Option<String>,
@@ -96,6 +98,7 @@ impl Item {
             open_days: r.get("open_days")?,
             nutriscore: r.get("nutriscore")?,
             preset: r.get("preset")?,
+            no_cook: r.get("no_cook")?,
             created_at: r.get("created_at")?,
             total: r.get("total")?,
             next_expiry: r.get("next_expiry")?,
@@ -196,6 +199,7 @@ pub struct Event {
 /// Fields for a new item. Everything but the name is optional.
 ///
 /// - `image`: file name in the data `files/` folder (a picture from the barcode lookup).
+/// - `no_cook`: food that can be eaten without cooking, for a power cut.
 #[derive(Debug, Clone, Default, serde::Deserialize)]
 pub struct NewItem {
     pub name: String,
@@ -212,6 +216,8 @@ pub struct NewItem {
     pub open_days: Option<i64>,
     pub image: Option<String>,
     pub nutriscore: Option<String>,
+    #[serde(default)]
+    pub no_cook: bool,
 }
 
 fn blank_to_none(s: Option<String>) -> Option<String> {
@@ -288,8 +294,8 @@ impl Store {
         let c = self.c();
         c.execute(
             "INSERT INTO items (name, kind, barcode, brand, category, unit, size, size_unit, min_qty,
-                                default_location_id, notes, open_days, image, nutriscore, created_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)",
+                                default_location_id, notes, open_days, image, nutriscore, no_cook, created_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)",
             params![
                 name,
                 kind,
@@ -305,6 +311,7 @@ impl Store {
                 f.open_days,
                 blank_to_none(f.image).filter(|n| crate::files::is_safe_name(n)),
                 blank_to_none(f.nutriscore),
+                f.no_cook,
                 now()
             ],
         )?;
@@ -421,12 +428,13 @@ impl Store {
         }
         self.c().execute(
             "UPDATE items SET name = ?1, kind = ?2, barcode = ?3, brand = ?4, category = ?5, unit = ?6, size = ?7,
-                    size_unit = ?8, min_qty = ?9, default_location_id = ?10, notes = ?11, open_days = ?12
-             WHERE id = ?13",
+                    size_unit = ?8, min_qty = ?9, default_location_id = ?10, notes = ?11, open_days = ?12,
+                    no_cook = ?13
+             WHERE id = ?14",
             params![
                 name, kind, barcode, blank_to_none(f.brand), blank_to_none(f.category), unit, f.size,
                 blank_to_none(f.size_unit), f.min_qty.unwrap_or(0.0).max(0.0), f.default_location_id,
-                blank_to_none(f.notes), f.open_days.filter(|d| *d > 0), id
+                blank_to_none(f.notes), f.open_days.filter(|d| *d > 0), f.no_cook, id
             ],
         )?;
         self.log(Some(id), "edit", None, None, None, None)

@@ -69,7 +69,7 @@ than Grocy: one job, done very well.
 |---|---|---|
 | Language | Rust (2021 edition, MSRV 1.88) | Speed, memory safety, one static binary |
 | Web | axum + tokio | Mature, small, async |
-| Storage | SQLite via rusqlite (bundled) | One file, zero ops, easy backup; schema v4, older files upgrade on start |
+| Storage | SQLite via rusqlite (bundled) | One file, zero ops, easy backup; schema v5, older files upgrade on start |
 | Pages | Askama templates, compiled into the binary | Type-checked, auto-escaped HTML; works without JavaScript |
 | JS | Progressive enhancement only (barcode scanner, quick date entry) | Core works with JS off; strict CSP |
 | API | JSON under `/api/v1` | For a future mobile app and integrations (Home Assistant) |
@@ -110,6 +110,8 @@ renewing; first-aid kit and household essentials checklists from the verified
 official guides. Suggestions on the plan page for babies, children, pets,
 older people and some needs, from the same guides, with add, shopping list
 and "not needed".
+Needs no cooking (schema v5): food can be marked as edible without cooking;
+the power-cut page lists it and the plan shows how many days it lasts.
 
 **Next.**
 1. ~~Household profile: people and pets~~ (done: schema v3 and the household page).

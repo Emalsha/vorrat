@@ -1,6 +1,6 @@
 //! Emergency coverage: how many days the stock lasts for the household, and what to eat first in a power cut.
 
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, HashMap, HashSet};
 
 use chrono::NaiveDate;
 use serde::Serialize;
@@ -27,11 +27,15 @@ pub struct Contribution {
 /// - `need`: in the target's unit.
 /// - `ratio`: 0..=1
 /// - `days`: for per-day targets (people or pets): how many days the stock lasts.
+/// - `no_cook`: the part of `have` that can be eaten without cooking.
+/// - `no_cook_days`: for per-day targets, how many days that part lasts.
 #[derive(Debug, Clone, Serialize)]
 pub struct Coverage {
     pub target: Target,
     pub need: f64,
     pub have: f64,
+    pub no_cook: f64,
+    pub no_cook_days: Option<f64>,
     pub items: Vec<Contribution>,
     pub ratio: f64,
     pub missing: f64,
@@ -109,6 +113,7 @@ pub fn coverage(snap: &Snapshot, input: PlanInput) -> Plan {
         let need = t.amount * (count * if per_day { days } else { 1 }) as f64;
         let (tdim, tfactor) = to_base(1.0, &t.unit);
         let mut have_base = 0.0;
+        let mut no_cook_base = 0.0;
         let mut contrib: BTreeMap<i64, f64> = BTreeMap::new();
         for b in &batches {
             let Some(it) = items.get(&b.batch.item_id) else {
@@ -122,6 +127,9 @@ pub fn coverage(snap: &Snapshot, input: PlanInput) -> Plan {
                 continue;
             }
             have_base += amt;
+            if it.no_cook {
+                no_cook_base += amt;
+            }
             *contrib.entry(it.id).or_default() += amt / tfactor;
         }
         let have = round3(have_base / tfactor);
@@ -131,8 +139,13 @@ pub fn coverage(snap: &Snapshot, input: PlanInput) -> Plan {
         } else {
             1.0
         };
-        let days_cov = (per_day && t.amount > 0.0 && count > 0)
-            .then(|| round1(have / (t.amount * count as f64)));
+        let no_cook = round3(no_cook_base / tfactor);
+        let per_day_need =
+            (per_day && t.amount > 0.0 && count > 0).then_some(t.amount * count as f64);
+        let days_cov = per_day_need.map(|n| round1(have / n));
+        let no_cook_days = per_day_need
+            .filter(|_| no_cook > 0.0)
+            .map(|n| round1(no_cook / n));
         lines.push(Coverage {
             items: contrib
                 .into_iter()
@@ -146,6 +159,8 @@ pub fn coverage(snap: &Snapshot, input: PlanInput) -> Plan {
             ratio,
             need,
             have,
+            no_cook,
+            no_cook_days,
             days: days_cov,
             target: t,
         });
@@ -224,16 +239,26 @@ pub fn cold_kind(name: &str) -> Option<Cold> {
 }
 
 /// What to eat first when the power is off: the fridge, then the freezer,
-/// each soonest-expiring first. Documents and non-food are left out.
+/// each soonest-expiring first, then food elsewhere that needs no cooking.
+/// Documents and non-food are left out.
 pub struct PowerCut {
     pub fridge: Vec<Dated>,
     pub freezer: Vec<Dated>,
+    pub no_cook: Vec<Dated>,
 }
 
-/// Sorts food into fridge and freezer. A location counts as cold through its
-/// parents too, so a box inside the freezer is in the freezer.
-pub fn power_cut(locs: &[Location], batches: Vec<Batch>, today: NaiveDate) -> PowerCut {
-    let by_id: std::collections::HashMap<i64, &Location> = locs.iter().map(|l| (l.id, l)).collect();
+/// Sorts food into fridge, freezer and the rest. A location counts as cold
+/// through its parents too, so a box inside the freezer is in the freezer.
+/// `no_cook` holds the items that can be eaten without cooking; outside the
+/// fridge and freezer, only those are listed. Expired batches are left out
+/// of that list.
+pub fn power_cut(
+    locs: &[Location],
+    batches: Vec<Batch>,
+    no_cook: &HashSet<i64>,
+    today: NaiveDate,
+) -> PowerCut {
+    let by_id: HashMap<i64, &Location> = locs.iter().map(|l| (l.id, l)).collect();
     let kind_of = |mut id: Option<i64>| {
         for _ in 0..16 {
             let l = by_id.get(&id?)?;
@@ -246,6 +271,7 @@ pub fn power_cut(locs: &[Location], batches: Vec<Batch>, today: NaiveDate) -> Po
     };
     let mut fridge = Vec::new();
     let mut freezer = Vec::new();
+    let mut rest = Vec::new();
     for d in annotate(batches, today) {
         if d.batch.kind != "food" {
             continue;
@@ -253,6 +279,9 @@ pub fn power_cut(locs: &[Location], batches: Vec<Batch>, today: NaiveDate) -> Po
         match kind_of(d.batch.location_id) {
             Some(Cold::Fridge) => fridge.push(d),
             Some(Cold::Freezer) => freezer.push(d),
+            None if no_cook.contains(&d.batch.item_id) && d.status != Status::Expired => {
+                rest.push(d)
+            }
             None => {}
         }
     }
@@ -263,5 +292,10 @@ pub fn power_cut(locs: &[Location], batches: Vec<Batch>, today: NaiveDate) -> Po
     };
     fridge.sort_by(soonest);
     freezer.sort_by(soonest);
-    PowerCut { fridge, freezer }
+    rest.sort_by(soonest);
+    PowerCut {
+        fridge,
+        freezer,
+        no_cook: rest,
+    }
 }

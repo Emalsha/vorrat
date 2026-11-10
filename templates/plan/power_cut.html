@@ -20,7 +20,11 @@
     {% else %}<li class="empty">{{ "Nothing stored in a freezer."|t }}</li>{% endfor %}
   </ul></div>
 
-  <h2>3. {{ "Pantry"|t }}</h2>
-  <p class="muted small">{{ "Then shelf-stable food. Your emergency plan shows how long it lasts."|t }} <a href="/plan">{{ "Emergency plan"|t }} ›</a></p>
+  <h2>3. {{ "Needs no cooking"|t }}</h2>
+  <p class="muted small">{{ "Then shelf-stable food you can eat without a stove, soonest first. Your emergency plan shows how long it lasts."|t }} <a href="/plan">{{ "Emergency plan"|t }} ›</a></p>
+  <div class="card"><ul class="list">
+    {% for b in no_cook %}<li>{% include "_batch_row.html" %}</li>
+    {% else %}<li class="empty">{{ "No food is marked as needing no cooking yet. Mark it on the item's edit page."|t }}</li>{% endfor %}
+  </ul></div>
   <p class="muted small">{{ "Times follow common food-safety guidance (USDA). When in doubt, throw it out."|t }} {{ "Locations count as fridge or freezer by their name."|t }}</p>
 {% endblock %}

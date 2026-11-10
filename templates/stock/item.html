@@ -9,7 +9,7 @@
     <div class="item-head">
       <div class="grow">
         <p class="qty-big m0">{{ total }} <small>{{ item.unit }}</small></p>
-        <div class="muted small">{{ "in stock"|t }} · {{ item.kind|t }}{% if let Some(c) = item.category %} · {{ c|t }}{% endif %}{% if let Some(bc) = item.barcode %} · {{ bc }}{% endif %}</div>
+        <div class="muted small">{{ "in stock"|t }} · {{ item.kind|t }}{% if let Some(c) = item.category %} · {{ c|t }}{% endif %}{% if let Some(bc) = item.barcode %} · {{ bc }}{% endif %}{% if item.no_cook %} · {{ "needs no cooking"|t }}{% endif %}</div>
       </div>
       {% if let Some(img) = item.image %}<img class="form-pic" src="/files/{{ img }}" alt="">{% endif %}
     </div>

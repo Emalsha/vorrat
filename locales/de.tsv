@@ -312,7 +312,7 @@ Safe for about 4 hours without power.	Ohne Strom etwa 4 Stunden sicher.
 Nothing stored in a fridge.	Nichts im Kühlschrank gelagert.
 A full freezer keeps about 48 hours, a half-full one about 24, if the door stays shut.	Ein voller Gefrierschrank hält etwa 48 Stunden, ein halb voller etwa 24, wenn die Tür zu bleibt.
 Nothing stored in a freezer.	Nichts im Gefrierschrank gelagert.
-Then shelf-stable food. Your emergency plan shows how long it lasts.	Danach haltbare Lebensmittel. Wie lange sie reichen, zeigt dein Notfallplan.
+Then shelf-stable food you can eat without a stove, soonest first. Your emergency plan shows how long it lasts.	Danach haltbare Lebensmittel, die man ohne Herd essen kann, die zuerst ablaufenden zuerst. Wie lange sie reichen, zeigt dein Notfallplan.
 Times follow common food-safety guidance (USDA). When in doubt, throw it out.	Die Zeiten folgen gängigen Lebensmittel-Sicherheitsregeln (USDA). Im Zweifel wegwerfen.
 Locations count as fridge or freezer by their name.	Lagerorte zählen über ihren Namen als Kühl- oder Gefrierschrank.
 Demo: try anything. The data resets every night.	Demo: Probier alles aus. Die Daten werden jede Nacht zurückgesetzt.
@@ -632,3 +632,8 @@ Iodine tablets	Jodtabletten
 Take iodine tablets only when the authorities say so. Pharmacies hand them out free.	Nehmen Sie Jodtabletten nur, wenn die Behörden es sagen. Apotheken geben sie kostenlos aus.
 The guide advises iodine tablets for people under 40 and for pregnant or breastfeeding people.	Der Ratgeber empfiehlt Jodtabletten für Menschen unter 40 sowie für Schwangere und Stillende.
 The guide advises iodine tablets for people aged 40 or under and for pregnant or breastfeeding people.	Der Ratgeber empfiehlt Jodtabletten für Menschen bis 40 Jahre sowie für Schwangere und Stillende.
+Can be eaten without cooking (for a power cut)	Ohne Kochen essbar (für einen Stromausfall)
+needs no cooking	ohne Kochen essbar
+Needs no cooking	Ohne Kochen essbar
+{0} days without cooking	{0} Tage ohne Kochen
+No food is marked as needing no cooking yet. Mark it on the item's edit page.	Noch keine Lebensmittel sind als ohne Kochen essbar markiert. Markiere sie auf der Bearbeiten-Seite des Artikels.

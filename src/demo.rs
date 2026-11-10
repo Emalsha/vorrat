@@ -195,6 +195,10 @@ pub fn seed(store: &Store, today: NaiveDate) -> Result<()> {
             size: *size,
             size_unit: size_unit.map(str::to_string),
             min_qty: Some(*min),
+            no_cook: matches!(
+                *name,
+                "Canned lentils" | "Long-life milk" | "Peanut butter" | "Muesli"
+            ),
             ..Default::default()
         })?;
         for (qty, days, place) in *batches {

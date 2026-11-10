@@ -43,6 +43,9 @@ impl From<&Coverage> for PlanLine {
         if let Some(d) = c.days {
             progress += &format!(" · {} {}", fmt_qty(d), tr("days"));
         }
+        if let Some(d) = c.no_cook_days {
+            progress += &format!(" · {}", trf("{0} days without cooking", &[&fmt_qty(d)]));
+        }
         let contributors = if c.items.is_empty() {
             format!(
                 "{} \"{}\"",
@@ -505,13 +508,26 @@ struct PowerCutT {
     undo: Option<String>,
     fridge: Vec<BatchRow>,
     freezer: Vec<BatchRow>,
+    no_cook: Vec<BatchRow>,
     water_days: Option<String>,
     people: i64,
 }
 
 pub(super) async fn power_cut_page(State(s): St, Query(f): Query<Flash>) -> Res<Html<String>> {
     let today = db::today();
-    let pc = rules::power_cut(&s.store.locations()?, s.store.batches(None)?, today);
+    let no_cook = s
+        .store
+        .all_items()?
+        .into_iter()
+        .filter(|i| i.no_cook)
+        .map(|i| i.id)
+        .collect();
+    let pc = rules::power_cut(
+        &s.store.locations()?,
+        s.store.batches(None)?,
+        &no_cook,
+        today,
+    );
     let plan = s.store.plan(today)?;
     let water_days = plan
         .lines
@@ -525,6 +541,7 @@ pub(super) async fn power_cut_page(State(s): St, Query(f): Query<Flash>) -> Res<
         undo: f.undo,
         fridge: pc.fridge.iter().map(BatchRow::from).collect(),
         freezer: pc.freezer.iter().map(BatchRow::from).collect(),
+        no_cook: pc.no_cook.iter().map(BatchRow::from).collect(),
         water_days,
         people: plan.people,
     })

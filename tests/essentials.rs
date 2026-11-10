@@ -216,7 +216,7 @@ fn export_marks_health_data_private() {
     let s = store();
     let plain = vorrat::transfer::export_json(&s, "now").unwrap();
     assert!(plain.get("private").is_none());
-    assert_eq!(plain["schema"], 4);
+    assert_eq!(plain["schema"], 5);
     s.add_medicine("Drops", "ml", None, "drops", "", 1.0, None)
         .unwrap();
     let doc = vorrat::transfer::export_json(&s, "now").unwrap();

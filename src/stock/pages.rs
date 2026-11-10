@@ -645,6 +645,7 @@ pub(super) struct EditForm {
     open_days: Option<String>,
     default_location_id: Option<String>,
     notes: Option<String>,
+    no_cook: Option<String>,
 }
 
 pub(super) async fn edit_item(
@@ -668,6 +669,7 @@ pub(super) async fn edit_item(
                 open_days: opt_i64(&f.open_days),
                 default_location_id: opt_i64(&f.default_location_id),
                 notes: f.notes.clone(),
+                no_cook: f.no_cook.is_some(),
                 ..Default::default()
             },
         )

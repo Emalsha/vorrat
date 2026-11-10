@@ -312,7 +312,7 @@ Safe for about 4 hours without power.	Zonder stroom ongeveer 4 uur veilig.
 Nothing stored in a fridge.	Niets in een koelkast.
 A full freezer keeps about 48 hours, a half-full one about 24, if the door stays shut.	Een volle vriezer houdt het ongeveer 48 uur, een halfvolle ongeveer 24, als de deur dicht blijft.
 Nothing stored in a freezer.	Niets in een vriezer.
-Then shelf-stable food. Your emergency plan shows how long it lasts.	Daarna houdbaar voedsel. Je noodplan laat zien hoelang het duurt.
+Then shelf-stable food you can eat without a stove, soonest first. Your emergency plan shows how long it lasts.	Daarna houdbaar voedsel dat je zonder fornuis kunt eten, wat het eerst verloopt eerst. Je noodplan laat zien hoelang het duurt.
 Times follow common food-safety guidance (USDA). When in doubt, throw it out.	De tijden volgen gangbare voedselveiligheidsadviezen (USDA). Bij twijfel: weggooien.
 Locations count as fridge or freezer by their name.	Plekken tellen als koelkast of vriezer op basis van hun naam.
 Demo: try anything. The data resets every night.	Demo: probeer alles uit. De gegevens worden elke nacht teruggezet.
@@ -632,3 +632,8 @@ Iodine tablets	Jodiumtabletten
 Take iodine tablets only when the authorities say so. Pharmacies hand them out free.	Neem alleen jodiumtabletten als de overheid dat zegt. Apotheken geven ze gratis mee.
 The guide advises iodine tablets for people under 40 and for pregnant or breastfeeding people.	De gids raadt jodiumtabletten aan voor mensen onder de 40 en voor zwangere of borstvoedende mensen.
 The guide advises iodine tablets for people aged 40 or under and for pregnant or breastfeeding people.	De gids raadt jodiumtabletten aan voor mensen van 40 jaar of jonger en voor zwangere of borstvoedende mensen.
+Can be eaten without cooking (for a power cut)	Zonder koken te eten (voor een stroomstoring)
+needs no cooking	zonder koken te eten
+Needs no cooking	Zonder koken te eten
+{0} days without cooking	{0} dagen zonder koken
+No food is marked as needing no cooking yet. Mark it on the item's edit page.	Nog geen voedsel is gemarkeerd als zonder koken te eten. Markeer het op de bewerkpagina van het artikel.

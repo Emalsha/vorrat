@@ -310,15 +310,68 @@ fn power_cut_eats_the_fridge_first() {
         .unwrap();
     s.add_batch(rice, 1.0, common::d(300), Some(pantry), None)
         .unwrap();
+    let crackers = common::item(&s, "Crackers");
+    s.add_batch(crackers, 1.0, common::d(90), Some(pantry), None)
+        .unwrap();
+    s.add_batch(crackers, 1.0, common::d(-1), Some(pantry), None)
+        .unwrap();
+    let no_cook = std::collections::HashSet::from([crackers, milk]);
     let pc = power_cut(
         &s.locations().unwrap(),
         s.batches(None).unwrap(),
+        &no_cook,
         common::today(),
     );
     assert_eq!(pc.fridge.len(), 2);
     assert_eq!(pc.fridge[0].days_left, Some(2), "soonest first");
     assert_eq!(pc.freezer.len(), 1, "a drawer inside the freezer counts");
     assert_eq!(pc.freezer[0].batch.item_name, "Peas");
+    assert_eq!(
+        pc.no_cook.len(),
+        1,
+        "only unexpired no-cook food outside the cold, not rice"
+    );
+    assert_eq!(pc.no_cook[0].batch.item_name, "Crackers");
+}
+
+/// Only food marked as needing no cooking counts towards the days without
+/// cooking; lines without any have none.
+#[test]
+fn plan_counts_days_without_cooking() {
+    let s = store();
+    let rice = item(&s, "Rice");
+    let bread = item(&s, "Crispbread");
+    for (id, name, no_cook) in [(rice, "Rice", false), (bread, "Crispbread", true)] {
+        s.update_item(
+            id,
+            NewItem {
+                name: name.into(),
+                category: Some("grains".into()),
+                unit: Some("kg".into()),
+                no_cook,
+                ..Default::default()
+            },
+        )
+        .unwrap();
+    }
+    s.add_batch(rice, 7.0, None, None, None).unwrap();
+    s.add_batch(bread, 1.4, None, None, None).unwrap();
+    assert!(s.item(bread).unwrap().unwrap().no_cook);
+    let p = s.plan(today()).unwrap();
+    let grains = p
+        .lines
+        .iter()
+        .find(|c| c.target.category == "grains")
+        .unwrap();
+    assert_eq!((grains.have, grains.no_cook), (8.4, 1.4));
+    assert_eq!(grains.days, Some(12.0));
+    assert_eq!(grains.no_cook_days, Some(2.0));
+    let water = p
+        .lines
+        .iter()
+        .find(|c| c.target.category == "water")
+        .unwrap();
+    assert_eq!(water.no_cook_days, None);
 }
 
 /// The store starts with two adults and 14 days.

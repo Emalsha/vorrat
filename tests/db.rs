@@ -6,7 +6,7 @@ use vorrat::stock::queries::{ItemQuery, NewItem};
 #[test]
 fn fresh_db_is_seeded() {
     let s = store();
-    assert_eq!(s.schema_version().unwrap(), 4);
+    assert_eq!(s.schema_version().unwrap(), 5);
     assert_eq!(s.targets().unwrap().len(), 10);
     assert_eq!(s.locations().unwrap().len(), 7);
     assert_eq!(s.setting_int("people", 0), 2);
@@ -35,16 +35,20 @@ fn migrate_is_idempotent() {
     );
 }
 
-/// The upgrade to v4 turns the "people" setting (2) into two adults.
+/// The upgrade to v5 turns the "people" setting (2) into two adults.
 #[test]
 fn opens_a_schema_v2_database() {
     let dir = tempfile::tempdir().unwrap();
     let p = dir.path().join("vorrat.db");
     std::fs::copy("tests/fixtures/schema-v2.db", &p).unwrap();
     let s = Store::open(&p).unwrap();
-    assert_eq!(s.schema_version().unwrap(), 4);
+    assert_eq!(s.schema_version().unwrap(), 5);
     assert!(s.doses().unwrap().is_empty());
-    assert!(s.all_items().unwrap().iter().all(|i| i.preset.is_none()));
+    assert!(s
+        .all_items()
+        .unwrap()
+        .iter()
+        .all(|i| i.preset.is_none() && !i.no_cook));
     let m = s.members().unwrap();
     assert_eq!(m.len(), 2);
     assert!(m.iter().all(|m| m.kind == "person" && m.r#type == "adult"));
