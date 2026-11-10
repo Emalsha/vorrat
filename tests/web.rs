@@ -1554,3 +1554,34 @@ async fn the_documents_checklist_says_where_each_copy_is() {
     let (_, page) = get(&app, "/essentials").await;
     assert!(page.contains("Where: Document box"));
 }
+
+#[tokio::test]
+async fn the_household_plan_is_saved_and_printed() {
+    let (app, st) = app();
+    let (s, page) = get(&app, "/household/plan").await;
+    assert_eq!(s, StatusCode::OK);
+    assert!(page.contains("Meeting point near home"));
+    post(
+        &app,
+        "/household/plan",
+        "meet_near=Bakery+%3Ccorner%3E&contacts=Anna+0123%0D%0ABen+0456&secret=x",
+        "same-origin",
+    )
+    .await;
+    assert_eq!(
+        st.store.setting("hplan.contacts").unwrap().as_deref(),
+        Some("Anna 0123\nBen 0456")
+    );
+    assert!(st.store.setting("hplan.secret").unwrap().is_none());
+    let (_, page) = get(&app, "/household/plan/print").await;
+    assert!(page.contains("Bakery &#60;corner&#62;") || page.contains("Bakery &lt;corner&gt;"));
+    assert!(page.contains("Where to turn off the water"));
+    let long = format!("notes={}", "a".repeat(2001));
+    let r = post(&app, "/household/plan", &long, "same-origin").await;
+    assert!(loc(&r).contains("Not"));
+    for (_, heading, hint) in vorrat::household::rules::PLAN_FIELDS {
+        for k in [heading, hint] {
+            assert!(vorrat::i18n::Lang::De.table().contains_key(k), "{k}");
+        }
+    }
+}

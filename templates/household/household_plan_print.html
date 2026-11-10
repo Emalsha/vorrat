@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}{{ "Household plan"|t }} · Vorrat{% endblock %}
+{% block heading %}{{ "Household plan"|t }}{% endblock %}
+{% block content %}
+  <div class="flex mt noprint between">
+    <a href="/household/plan" class="btn small">{{ "Edit the plan"|t }}</a>
+    <button class="btn small primary" data-print>{{ "Print"|t }}</button>
+  </div>
+  <section class="printsheet">
+    <p>{{ "As of"|t }} {{ today }}.</p>
+    {% for p in parts %}
+    <h2>{{ p.heading|t }}</h2>
+    {% if p.text.is_empty() %}<p class="lines"></p><p class="lines"></p>{% else %}<p class="pre">{{ p.text }}</p>{% endif %}
+    {% endfor %}
+    {% if !people.is_empty() %}
+    <h2>{{ "People"|t }}</h2>
+    <ul>{% for (name, needs) in people %}<li>{{ name }}{% if !needs.is_empty() %}: {{ needs }}{% endif %}</li>{% endfor %}</ul>
+    {% endif %}
+  </section>
+{% endblock %}
+{% block scripts %}<script src="/static/print.js"></script>{% endblock %}
