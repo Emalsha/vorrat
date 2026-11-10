@@ -139,3 +139,35 @@ async fn digest_in_german_when_set() {
         "English outside a German request"
     );
 }
+
+/// The kit check is reminded once, about six months after the last check or
+/// after Vorrat started counting, and again only after the next check.
+#[test]
+fn the_kit_check_is_reminded_twice_a_year() {
+    use chrono::Days;
+    use vorrat::jobs::digest::{build_digest, commit_digest};
+    let s = common::store();
+    let t = common::today();
+    let dg = build_digest(&s, t, &Default::default()).unwrap();
+    assert!(!dg.review, "a new household starts counting today");
+    let later = t + Days::new(182);
+    let dg = build_digest(&s, later, &Default::default()).unwrap();
+    assert!(dg.review);
+    assert!(dg.body().contains("Twice-yearly check"));
+    commit_digest(&s, &dg).unwrap();
+    assert!(
+        !build_digest(&s, later, &Default::default()).unwrap().review,
+        "once"
+    );
+    s.set_setting("reviewed_on", &later.to_string()).unwrap();
+    assert!(
+        !build_digest(&s, later + Days::new(181), &Default::default())
+            .unwrap()
+            .review
+    );
+    assert!(
+        build_digest(&s, later + Days::new(182), &Default::default())
+            .unwrap()
+            .review
+    );
+}

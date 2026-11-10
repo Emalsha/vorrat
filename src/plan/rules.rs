@@ -173,6 +173,17 @@ pub fn coverage(snap: &Snapshot, input: PlanInput) -> Plan {
     }
 }
 
+/// Days between two checks of the whole kit: about six months. The Dutch
+/// guide says to check the kit every six months, the French once or twice a
+/// year.
+pub const REVIEW_DAYS: i64 = 182;
+
+/// Days until the next kit check is due (negative when overdue), counted from
+/// the last check, or from when Vorrat started counting.
+pub fn review_in(since: NaiveDate, today: NaiveDate) -> i64 {
+    REVIEW_DAYS - (today - since).num_days()
+}
+
 fn round3(v: f64) -> f64 {
     (v * 1000.0).round() / 1000.0
 }

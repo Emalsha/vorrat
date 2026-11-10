@@ -129,6 +129,13 @@
   <p class="muted small">{{ "From the official guides of the countries listed, for the people and pets in your household. No amounts are given: you know what yours need."|t }}</p>
   {% endif %}
 
+  <h2>{{ "Twice-yearly check"|t }}</h2>
+  <div class="card pad stack">
+    <p class="status {% if review.overdue %}warn{% else %}ok{% endif %} small m0">{% if review.overdue %}{% let icon = "warn" %}{% include "_icon.html" %}{% else %}{% let icon = "ok" %}{% include "_icon.html" %}{% endif %}{{ review.due }}</p>
+    <p class="muted small m0">{% if let Some(d) = review.last %}{{ "Last checked"|t }}: {{ d }}. {% endif %}{{ "Go through the emergency stock, rotate the water, test torches and radio, replace old batteries, and update the household plan. The Dutch guide says every six months, the French once or twice a year. The daily reminder tells you when it is due."|t }}</p>
+    <form method="post" action="/plan/reviewed"><button class="btn block">{{ "I checked the kit today"|t }}</button></form>
+  </div>
+
   <h2>{{ "Tools"|t }}</h2>
   <div class="card"><ul class="list">
     <li><a href="/plan/print" class="row"><span class="grow title">{{ "Printable checklist"|t }}</span>{% let icon = "chev" %}{% include "_icon.html" %}</a></li>

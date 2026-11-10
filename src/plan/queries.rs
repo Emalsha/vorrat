@@ -77,6 +77,22 @@ impl Store {
         Ok(rules::coverage(snap, self.plan_input()?))
     }
 
+    /// The day the kit was last checked (`reviewed_on`), or else the day Vorrat
+    /// started counting (`review_since`). Without either, counting starts today,
+    /// so a new household is not told to check a kit it has just set up.
+    pub fn review_since(&self, today: NaiveDate) -> Result<NaiveDate> {
+        for key in ["reviewed_on", "review_since"] {
+            if let Some(d) = self
+                .setting(key)?
+                .and_then(|v| NaiveDate::parse_from_str(&v, "%Y-%m-%d").ok())
+            {
+                return Ok(d);
+            }
+        }
+        self.set_setting("review_since", &today.to_string())?;
+        Ok(today)
+    }
+
     pub fn targets(&self) -> Result<Vec<Target>> {
         let c = self.r();
         let mut st = c.prepare_cached(
