@@ -107,6 +107,17 @@ impl Store {
         )?)
     }
 
+    /// (adults, children): adults and older adults; babies, children and teens.
+    pub fn age_counts(&self) -> Result<(i64, i64)> {
+        Ok(self.r().query_row(
+            "SELECT COUNT(*) FILTER (WHERE type IN ('adult', 'older adult')),
+                    COUNT(*) FILTER (WHERE type IN ('baby', 'child', 'teen'))
+             FROM members WHERE kind = 'person'",
+            [],
+            |r| Ok((r.get(0)?, r.get(1)?)),
+        )?)
+    }
+
     pub fn add_member(
         &self,
         kind: &str,

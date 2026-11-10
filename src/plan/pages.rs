@@ -9,7 +9,7 @@ use crate::i18n::{tr, trf};
 use crate::plan::rules;
 use crate::plan::rules::{Coverage, Plan};
 use crate::stock::pages::BatchRow;
-use crate::stock::queries::{CATEGORIES, UNITS};
+use crate::stock::queries::{CATEGORIES, CURRENCIES, UNITS};
 use crate::stock::rules::fmt_qty;
 use crate::web::form::{opt_f64, opt_i64};
 use crate::web::respond::{done, render, Flash, Res};
@@ -113,7 +113,8 @@ pub(crate) fn gap_labels(plan: &Plan) -> Vec<String> {
 ///
 /// - `first_aid`: (have, of) for the first-aid kit and the household essentials.
 /// - `country`: the chosen country's name, translated.
-/// - `washing`: a target for washing water exists, so the offer to add one is hidden.
+/// - `washing`, `cash`: a target for washing water or cash exists, so the offer to add one is hidden.
+/// - `currency`: preselected for the cash offer: the chosen country's, or the euro.
 #[derive(Template)]
 #[template(path = "plan/plan.html")]
 struct PlanT {
@@ -140,6 +141,9 @@ struct PlanT {
     essentials: (usize, usize),
     country: Option<String>,
     washing: bool,
+    cash: bool,
+    currencies: &'static [&'static str],
+    currency: &'static str,
 }
 
 /// A suggestion as the plan page shows it.
@@ -159,6 +163,8 @@ const MODE_LABELS: &[(&str, &str)] = &[
     ("per_person", "per person"),
     ("per_pet_day", "per pet per day"),
     ("per_pet", "per pet"),
+    ("per_adult", "per adult"),
+    ("per_child", "per child"),
     ("fixed", "fixed total"),
 ];
 
@@ -175,6 +181,11 @@ pub(super) async fn plan_page(State(s): St, Query(f): Query<Flash>) -> Res<Html<
         .lines
         .iter()
         .any(|c| c.target.category == "washing water");
+    let cash = plan.lines.iter().any(|c| c.target.category == "cash");
+    let country = s
+        .store
+        .setting("country")?
+        .and_then(|c| crate::country::rules::find(&c));
     render(PlanT {
         msg: f.msg,
         tab: "plan",
@@ -197,11 +208,10 @@ pub(super) async fn plan_page(State(s): St, Query(f): Query<Flash>) -> Res<Html<
         medicine_days: plan.medicine_days.map(fmt_qty),
         first_aid: count(es::FIRST_AID),
         essentials: count(es::ESSENTIALS),
-        country: s
-            .store
-            .setting("country")?
-            .and_then(|c| crate::country::rules::find(&c))
-            .map(|c| tr(c.name)),
+        country: country.map(|c| tr(c.name)),
+        cash,
+        currencies: CURRENCIES,
+        currency: country.and_then(|c| c.cash.first()).map_or("EUR", |c| c.2),
         suggestions: es::suggestions(
             &s.store.members()?,
             &snap,
@@ -379,6 +389,44 @@ pub(super) async fn edit_target(
             s.store
                 .update_target(id, &f.label, &f.category, &f.mode, amount, &f.unit)?;
             Ok("Target saved".into())
+        })(),
+    )
+}
+
+#[derive(Deserialize)]
+pub(super) struct CashForm {
+    adult: Option<String>,
+    child: Option<String>,
+    currency: String,
+}
+
+/// Adds a cash target per adult, and one per child when an amount is given.
+pub(super) async fn add_cash(State(s): St, Form(f): Form<CashForm>) -> Response {
+    done(
+        "/plan",
+        (|| {
+            if !CURRENCIES.contains(&f.currency.as_str()) {
+                anyhow::bail!("unknown currency");
+            }
+            let adult = opt_f64(&f.adult)?
+                .ok_or_else(|| anyhow::anyhow!("amount per adult is required"))?;
+            s.store.add_target(
+                "Cash in small notes",
+                "cash",
+                "per_adult",
+                adult,
+                &f.currency,
+            )?;
+            if let Some(child) = opt_f64(&f.child)?.filter(|c| *c > 0.0) {
+                s.store.add_target(
+                    "Cash in small notes",
+                    "cash",
+                    "per_child",
+                    child,
+                    &f.currency,
+                )?;
+            }
+            Ok("Target added".into())
         })(),
     )
 }

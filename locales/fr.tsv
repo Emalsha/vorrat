@@ -502,7 +502,7 @@ More details	Plus de détails
 Has a barcode?	Il a un code-barres ?
 Scanning fills in the name and pack size for you.	Le scan remplit le nom et la taille du paquet pour vous.
 Country	Pays
-What the authority in your country tells households to plan for. Its numbers can set your plan length and drinking water; every target stays yours to edit.	Ce que l'autorité de votre pays conseille aux ménages de prévoir. Ses chiffres peuvent fixer la durée du plan et l'eau potable ; chaque objectif reste modifiable.
+What the authority in your country tells households to plan for. Its numbers can set your plan length, drinking water and cash; every target stays yours to edit.	Ce que l'autorité de votre pays conseille aux ménages de prévoir. Ses chiffres peuvent fixer la durée du plan, l'eau potable et les espèces ; chaque objectif reste modifiable.
 Choose your country	Choisissez votre pays
 Plan for	Prévoir pour
 Drinking water	Eau potable
@@ -556,3 +556,14 @@ Water for washing and the toilet	Eau pour se laver et pour les toilettes
 Drinking water is not enough when the taps are dry. Several guides add water for washing and flushing: Belgium up to 10 L a day in total, Czechia 10 to 15 L, Latvia 10 to 12 L for hygiene alone. Choose an amount per person per day.	L'eau potable ne suffit pas quand le robinet est à sec. Plusieurs guides ajoutent de l'eau pour se laver et tirer la chasse : la Belgique jusqu'à 10 L par jour au total, la Tchéquie 10 à 15 L, la Lettonie 10 à 12 L pour l'hygiène seule. Choisissez une quantité par personne et par jour.
 Litres per person per day	Litres par personne et par jour
 In hot weather people need more water: Latvia's guide says 4 L a day instead of 3.	Par forte chaleur, on a besoin de plus d'eau : le guide letton indique 4 L par jour au lieu de 3.
+Cash	Espèces
+Per adult	Par adulte
+Per child	Par enfant
+per adult	par adulte
+per child	par enfant
+Currency	Devise
+Cash: {0} {1} per adult	Espèces : {0} {1} par adulte
+Cash: {0} {1} per child	Espèces : {0} {1} par enfant
+{0} {1} per adult	{0} {1} par adulte
+{0} {1} per child	{0} {1} par enfant
+Cards and cash machines may not work in a power cut. The Netherlands suggests 70 euro per adult and 30 per child for 72 hours, Sweden 1,000 kronor per adult. Choose amounts that fit your household.	Les cartes et les distributeurs peuvent ne pas fonctionner pendant une coupure de courant. Les Pays-Bas conseillent 70 euros par adulte et 30 par enfant pour 72 heures, la Suède 1 000 couronnes par adulte. Choisissez des montants adaptés à votre ménage.

@@ -2,7 +2,7 @@
 {% block title %}{{ "Country"|t }} · Vorrat{% endblock %}
 {% block heading %}{{ "Country"|t }}{% endblock %}
 {% block content %}
-<p class="muted small mt">{{ "What the authority in your country tells households to plan for. Its numbers can set your plan length and drinking water; every target stays yours to edit."|t }} <a href="/plan">{{ "Back to the plan"|t }}</a></p>
+<p class="muted small mt">{{ "What the authority in your country tells households to plan for. Its numbers can set your plan length, drinking water and cash; every target stays yours to edit."|t }} <a href="/plan">{{ "Back to the plan"|t }}</a></p>
 
 <form method="post" action="/country" class="card pad stack mt">
   <label>{{ "Country"|t }}
@@ -21,6 +21,7 @@
   {% if c.numbers %}
   {% if let Some(d) = c.days %}<div class="row-line between"><span>{{ "Plan for"|t }}</span><b>{{ d }}</b></div>{% endif %}
   {% if let Some(w) = c.water %}<div class="row-line between"><span>{{ "Drinking water"|t }}</span><b>{{ w }}</b></div>{% endif %}
+  {% if let Some(m) = c.cash %}<div class="row-line between"><span>{{ "Cash"|t }}</span><b>{{ m }}</b></div>{% endif %}
   {% if c.days.is_none() && c.water.is_none() %}<p class="muted small m0">{{ "This guide gives no number of days and no amount of water."|t }}</p>{% endif %}
   {% if c.changes.is_empty() %}
   <p class="status ok small m0">{% let icon = "ok" %}{% include "_icon.html" %}{{ "Your plan already follows this guide."|t }}</p>

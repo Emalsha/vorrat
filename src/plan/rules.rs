@@ -63,9 +63,14 @@ impl Plan {
 
 /// What the plan needs besides the stock: the household, the plan length in
 /// days, the targets and the medicine doses.
+///
+/// - `adults`, `children`: the people split for targets per adult or per child
+///   (babies, children and teens count as children).
 pub struct PlanInput {
     pub people: i64,
     pub pets: i64,
+    pub adults: i64,
+    pub children: i64,
     pub days: i64,
     pub targets: Vec<Target>,
     pub doses: Vec<Dose>,
@@ -78,6 +83,8 @@ pub fn coverage(snap: &Snapshot, input: PlanInput) -> Plan {
     let PlanInput {
         people,
         pets,
+        adults,
+        children,
         days,
         targets,
         doses,
@@ -95,6 +102,8 @@ pub fn coverage(snap: &Snapshot, input: PlanInput) -> Plan {
             "per_person" => (people, false),
             "per_pet_day" => (pets, true),
             "per_pet" => (pets, false),
+            "per_adult" => (adults, false),
+            "per_child" => (children, false),
             _ => (1, false),
         };
         let need = t.amount * (count * if per_day { days } else { 1 }) as f64;

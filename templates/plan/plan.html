@@ -74,6 +74,20 @@
     </form>
   </details>
   {% endif %}
+  {% if !cash %}
+  <details class="card mt">
+    <summary class="row"><span class="grow"><b>{{ "Cash in small notes"|t }}</b></span>{% let icon = "chev" %}{% include "_icon.html" %}</summary>
+    <form method="post" action="/plan/cash" class="pad pt0 stack">
+      <p class="muted small m0">{{ "Cards and cash machines may not work in a power cut. The Netherlands suggests 70 euro per adult and 30 per child for 72 hours, Sweden 1,000 kronor per adult. Choose amounts that fit your household."|t }}</p>
+      <div class="grid2">
+        <label>{{ "Per adult"|t }} <input name="adult" inputmode="decimal" required></label>
+        <label>{{ "Per child"|t }} <input name="child" inputmode="decimal"></label>
+      </div>
+      <label>{{ "Currency"|t }} <select name="currency">{% for c in currencies %}<option value="{{ c }}"{% if *c == currency %} selected{% endif %}>{{ c }}</option>{% endfor %}</select></label>
+      <button class="btn block">{{ "Add target"|t }}</button>
+    </form>
+  </details>
+  {% endif %}
   {% if has_gaps %}<form method="post" action="/plan/to-shopping" class="mt"><button class="btn primary block">{{ "Put the gaps on the shopping list"|t }}</button></form>{% endif %}
   <p class="muted small">{{ "In hot weather people need more water: Latvia's guide says 4 L a day instead of 3."|t }}</p>
   <p class="muted small">{{ "Targets start from the German civil-protection (BBK) checklist; edit them to fit your household. Stock counts by category; expired stock doesn't count."|t }}</p>

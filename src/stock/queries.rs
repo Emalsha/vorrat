@@ -10,7 +10,13 @@ use crate::stock::rules::Snapshot;
 
 pub const KINDS: &[&str] = &["food", "supply", "document", "thing"];
 
-pub const UNITS: &[&str] = &["pcs", "g", "kg", "ml", "L"];
+pub const UNITS: &[&str] = &[
+    "pcs", "g", "kg", "ml", "L", "EUR", "CHF", "CZK", "DKK", "NOK", "PLN", "SEK",
+];
+
+/// The units in [`UNITS`] that are money: the currencies of the countries
+/// with a verified guide. Cash is counted in its own currency.
+pub const CURRENCIES: &[&str] = &["EUR", "CHF", "CZK", "DKK", "NOK", "PLN", "SEK"];
 
 /// Categories double as the link between stock and the emergency plan (targets).
 pub const CATEGORIES: &[&str] = &[

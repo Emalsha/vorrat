@@ -26,7 +26,7 @@ struct CountryT {
 /// The chosen country as the page shows it.
 ///
 /// - `numbers`: false when the guide is not verified, so only the link is shown.
-/// - `days`, `water`: the recommendation, as text.
+/// - `days`, `water`, `cash`: the recommendation, as text.
 /// - `changes`: what using the numbers would change, one line each.
 struct Chosen {
     code: &'static str,
@@ -36,6 +36,7 @@ struct Chosen {
     numbers: bool,
     days: Option<String>,
     water: Option<String>,
+    cash: Option<String>,
     changes: Vec<String>,
 }
 
@@ -57,6 +58,12 @@ fn change_lines(ch: &Changes) -> Vec<String> {
             ),
         });
     }
+    for (mode, amount, unit) in &ch.cash {
+        out.push(match *mode {
+            "per_adult" => trf("Cash: {0} {1} per adult", &[&fmt_qty(*amount), unit]),
+            _ => trf("Cash: {0} {1} per child", &[&fmt_qty(*amount), unit]),
+        });
+    }
     out
 }
 
@@ -71,6 +78,16 @@ fn chosen(c: &'static Country, days: i64, targets: &[crate::plan::queries::Targe
         water: c
             .water
             .map(|w| trf("{0} L per person per day", &[&fmt_qty(w)])),
+        cash: (!c.cash.is_empty()).then(|| {
+            c.cash
+                .iter()
+                .map(|(mode, amount, unit)| match *mode {
+                    "per_adult" => trf("{0} {1} per adult", &[&fmt_qty(*amount), unit]),
+                    _ => trf("{0} {1} per child", &[&fmt_qty(*amount), unit]),
+                })
+                .collect::<Vec<_>>()
+                .join(", ")
+        }),
         changes: change_lines(&rules::changes(c, days, targets)),
     }
 }
@@ -108,7 +125,7 @@ pub(super) async fn choose(State(s): St, Form(f): Form<ChooseForm>) -> Response 
     )
 }
 
-/// Uses the chosen country's plan length and drinking-water amount.
+/// Uses the chosen country's plan length, drinking-water amount and cash amounts.
 pub(super) async fn apply(State(s): St) -> Response {
     done(
         "/plan",
@@ -137,6 +154,10 @@ pub(super) async fn apply(State(s): St) -> Response {
                         )?;
                     }
                 }
+            }
+            for (mode, amount, unit) in &ch.cash {
+                s.store
+                    .add_target("Cash in small notes", "cash", mode, *amount, unit)?;
             }
             Ok(if ch.is_empty() {
                 "Nothing to change".into()
