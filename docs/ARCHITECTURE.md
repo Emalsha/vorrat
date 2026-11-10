@@ -125,6 +125,7 @@ src/
   locations/           pages.rs, queries.rs
   plan/                coverage, targets, print view, power cut
   household/           people and pets
+  country/             country presets from docs/guidance (days, drinking water)
   essentials/          medicine, doses, checklists
   shopping/            the list and dismissed suggestions
   settings/            language, test push, backup, export, import

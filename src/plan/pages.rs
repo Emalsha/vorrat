@@ -112,6 +112,7 @@ pub(crate) fn gap_labels(plan: &Plan) -> Vec<String> {
 /// The plan page.
 ///
 /// - `first_aid`: (have, of) for the first-aid kit and the household essentials.
+/// - `country`: the chosen country's name, translated.
 #[derive(Template)]
 #[template(path = "plan/plan.html")]
 struct PlanT {
@@ -136,6 +137,7 @@ struct PlanT {
     suggestions: Vec<SuggestRow>,
     first_aid: (usize, usize),
     essentials: (usize, usize),
+    country: Option<String>,
 }
 
 /// A suggestion as the plan page shows it.
@@ -188,6 +190,11 @@ pub(super) async fn plan_page(State(s): St, Query(f): Query<Flash>) -> Res<Html<
         medicine_days: plan.medicine_days.map(fmt_qty),
         first_aid: count(es::FIRST_AID),
         essentials: count(es::ESSENTIALS),
+        country: s
+            .store
+            .setting("country")?
+            .and_then(|c| crate::country::rules::find(&c))
+            .map(|c| tr(c.name)),
         suggestions: es::suggestions(
             &s.store.members()?,
             &snap,
