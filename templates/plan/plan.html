@@ -30,17 +30,16 @@
     </div>
   </div>
 
-  <h2>{{ "Coverage"|t }}</h2>
+  <h2>{{ "Coverage"|t }} <span class="small">· {{ "least covered first"|t }}</span></h2>
   <div class="card"><ul class="list">
     {% for c in lines %}
     <li><details>
-      <summary class="pad">
-        <div class="flex between">
-          <b>{{ c.label|t }}</b>
-          <span class="status {{ c.status }} small">{% if c.status == "ok" %}{% let icon = "ok" %}{% include "_icon.html" %}{% else if c.status == "crit" %}{% let icon = "crit" %}{% include "_icon.html" %}{% else %}{% let icon = "warn" %}{% include "_icon.html" %}{% endif %}{{ c.status_text }}</span>
-        </div>
-        <progress class="bar {{ c.bar }}" max="100" value="{{ c.pct }}" aria-hidden="true"></progress>
-        <div class="muted small mt-xs">{{ c.progress }}</div>
+      <summary class="pad cover">
+        <b>{{ c.label|t }}</b>
+        {% if c.cells.is_empty() %}<progress class="bar" max="100" value="{{ c.pct }}" aria-hidden="true"></progress>
+        {% else %}<div class="days thin n{{ c.cells.len() }}" aria-hidden="true">{% for f in c.cells %}<i{% if *f %} class="f"{% endif %}></i>{% endfor %}</div>{% endif %}
+        <div class="muted small">{{ c.progress }}</div>
+        <span class="status {{ c.status }}">{% if c.status == "ok" %}{% let icon = "ok" %}{% include "_icon.html" %}{% else if c.status == "crit" %}{% let icon = "crit" %}{% include "_icon.html" %}{% else %}{% let icon = "warn" %}{% include "_icon.html" %}{% endif %}{{ c.status_text }}</span>
       </summary>
       <div class="pad pt0 stack">
         <p class="muted small m0">{{ c.contributors }}</p>

@@ -61,11 +61,17 @@ pub(crate) fn bar_class(r: f64) -> &'static str {
     }
 }
 
-pub(crate) fn initial(name: &str) -> String {
-    name.chars()
-        .next()
-        .map(|c| c.to_uppercase().collect())
-        .unwrap_or_else(|| "?".into())
+/// One square per planned day, filled for each whole day the stock lasts:
+/// the day squares on Home and Plan. Empty when there is no day count, or
+/// when more than 31 days are planned and a bar reads better.
+pub(crate) fn day_cells(lasts: Option<f64>, planned: i64) -> Vec<bool> {
+    match lasts {
+        Some(d) if (1..=31).contains(&planned) => {
+            let full = d.clamp(0.0, planned as f64).floor() as i64;
+            (0..planned).map(|i| i < full).collect()
+        }
+        _ => Vec::new(),
+    }
 }
 
 pub(crate) fn when(d: Option<i64>) -> String {

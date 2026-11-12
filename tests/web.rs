@@ -67,6 +67,17 @@ async fn every_page_renders() {
         let (s, _) = get(&app, p).await;
         assert_eq!(s, StatusCode::OK, "{p}");
     }
+    let font = app
+        .clone()
+        .oneshot(
+            Request::get("/static/jost.woff2")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(font.status(), StatusCode::OK);
+    assert_eq!(font.headers()["content-type"], "font/woff2");
     assert_eq!(get(&app, "/items/999").await.0, StatusCode::NOT_FOUND);
     assert_eq!(
         get(&app, "/static/../Cargo.toml").await.0,
@@ -1390,7 +1401,7 @@ async fn stock_filters_and_home_attention() {
     assert!(none.contains("Nothing matches."));
 
     let (_, home) = get(&app, "/").await;
-    assert!(home.contains("Needs attention"));
+    assert!(home.contains("Running low"));
     assert!(home.contains("Lentils"), "running low is on Home");
     assert!(home.contains("aria-current=\"page\""), "current tab marked");
 }

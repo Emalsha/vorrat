@@ -119,6 +119,10 @@ async fn static_file(Path(name): Path<String>) -> Response {
             include_bytes!("../../static/vendor/zxing-0.23.0.min.js"),
             "text/javascript; charset=utf-8",
         ),
+        "jost.woff2" => (
+            include_bytes!("../../static/fonts/jost.woff2"),
+            "font/woff2",
+        ),
         "icon-180.png" => (include_bytes!("../../static/icon-180.png"), "image/png"),
         "icon-192.png" => (include_bytes!("../../static/icon-192.png"), "image/png"),
         "icon-512.png" => (include_bytes!("../../static/icon-512.png"), "image/png"),

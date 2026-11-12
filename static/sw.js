@@ -3,7 +3,7 @@
 const CACHE = "vorrat-__VERSION__";
 const PRECACHE = [
   "/", "/items", "/plan", "/plan/print", "/plan/power-cut", "/shopping",
-  "/static/app.css", "/static/app.js", "/static/print.js",
+  "/static/app.css", "/static/jost.woff2", "/static/app.js", "/static/print.js",
   "/static/icon-192.png", "/static/manifest.webmanifest",
 ];
 // Never cached: live data for scripts, downloads, the calendar feed.

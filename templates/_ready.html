@@ -6,8 +6,9 @@
   <div class="label">{{ "Emergency readiness"|t }}</div>
   <p class="big">{{ plan_pct }}% <small>{{ "covered"|t }}</small></p>
   {% endif %}
-  <progress class="bar {{ plan_bar }}" max="100" value="{{ plan_pct }}" aria-hidden="true"></progress>
-  <div class="meta"><span>{{ plan_pct }}% {{ "covered"|t }}</span><span>{{ people }} {% if people == 1 %}{{ "person"|t }}{% else %}{{ "people"|t }}{% endif %}{% if pets > 0 %} · {{ pets }} {% if pets == 1 %}{{ "pet"|t }}{% else %}{{ "pets"|t }}{% endif %}{% endif %}</span></div>
+  {% if ready_cells.is_empty() %}<progress class="bar" max="100" value="{{ plan_pct }}" aria-hidden="true"></progress>
+  {% else %}<div class="days n{{ ready_cells.len() }}" aria-hidden="true">{% for f in ready_cells %}<i{% if *f %} class="f"{% endif %}></i>{% endfor %}</div>{% endif %}
+  <div class="meta">{% if tab == "plan" %}<span>{{ plan_pct }}% {{ "covered"|t }}</span>{% endif %}<span>{{ people }} {% if people == 1 %}{{ "person"|t }}{% else %}{{ "people"|t }}{% endif %}{% if pets > 0 %} · {{ pets }} {% if pets == 1 %}{{ "pet"|t }}{% else %}{{ "pets"|t }}{% endif %}{% endif %}</span></div>
   {% if gaps.is_empty() %}
   <p class="gaps"><span class="status ok">{% let icon = "ok" %}{% include "_icon.html" %}{{ "Everything in the plan is covered."|t }}</span></p>
   {% else %}

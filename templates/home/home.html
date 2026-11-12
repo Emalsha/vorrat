@@ -7,18 +7,46 @@
 
   <div class="actions"><a class="btn primary big" href="/scan">{{ "Scan to add"|t }}</a><a class="btn big" href="/scan?mode=use">{{ "Scan to use up"|t }}</a></div>
   </div>
-  <div class="col">
-  <h2 id="attention">{{ "Needs attention"|t }}{% if attention > 0 %} <span class="small">· {{ attention }}</span>{% endif %}</h2>
+  <div class="col" id="attention">
+  {% if attention == 0 %}
+  <h2>{{ "Needs attention"|t }}</h2>
+  <div class="card"><p class="empty m0"><span class="status ok">{% let icon = "ok" %}{% include "_icon.html" %}{{ "Nothing needs attention."|t }}</span></p></div>
+  {% endif %}
+  {% if !expired.is_empty() %}
+  <h2>{% let icon = "crit" %}{% include "_icon.html" %} {{ "Expired"|t }} <span class="small">· {{ expired.len() }}</span></h2>
   <div class="card"><ul class="list">
-    {% let back_to = "/" %}
-    {% for b in expiring %}<li>{% include "_batch_row.html" %}</li>{% endfor %}
+    {% for b in expired %}
+    <li class="task"><a class="row" href="/items/{{ b.item_id }}">{% let t = b %}{% include "_thumb.html" %}
+      <div class="grow"><div class="title">{{ b.name }}</div><div class="sub">{{ b.sub }}</div><div class="pill expired">{{ b.when }}</div></div></a>
+      {% if b.can_use %}<form method="post" action="/items/{{ b.item_id }}/use">
+        <input type="hidden" name="batch_id" value="{{ b.id }}"><input type="hidden" name="qty" value="{{ b.qty }}"><input type="hidden" name="back" value="/"><input type="hidden" name="waste" value="1">
+        <button class="btn small danger">{{ "Thrown away"|t }}</button></form>{% endif %}</li>
+    {% endfor %}
+  </ul></div>
+  {% endif %}
+  {% if !use_first.is_empty() %}
+  <h2>{% let icon = "warn" %}{% include "_icon.html" %} {{ "Use first"|t }} <span class="small">· {{ use_first.len() }}</span></h2>
+  <div class="card"><ul class="list">
+    {% for b in use_first %}
+    <li class="task"><a class="row" href="/items/{{ b.item_id }}">{% let t = b %}{% include "_thumb.html" %}
+      <div class="grow"><div class="title">{{ b.name }}</div><div class="sub">{{ b.sub }}</div><div class="pill">{{ b.when }}</div></div></a>
+      {% if b.can_use %}<form method="post" action="/items/{{ b.item_id }}/use">
+        <input type="hidden" name="batch_id" value="{{ b.id }}"><input type="hidden" name="qty" value="{{ b.qty }}"><input type="hidden" name="back" value="/">
+        <button class="btn small">{{ "Used up"|t }}</button></form>{% endif %}</li>
+    {% endfor %}
+  </ul></div>
+  {% endif %}
+  {% if !low.is_empty() %}
+  <h2>{% let icon = "warn" %}{% include "_icon.html" %} {{ "Running low"|t }} <span class="small">· {{ low.len() }}</span></h2>
+  <div class="card"><ul class="list">
     {% for i in low %}
     <li><a class="row" href="/items/{{ i.id }}">{% let t = i %}{% include "_thumb.html" %}
-      <div class="grow"><div class="title">{{ i.name }}</div><div class="sub">{{ i.sub }}</div></div>
-      <span class="pill low">{% let icon = "warn" %}{% include "_icon.html" %}{{ "low"|t }}</span></a></li>
+      <div class="grow"><div class="title">{{ i.name }}</div><div class="sub">{{ i.detail }}</div></div>
+      <span class="count">{{ i.count }}<small>{{ i.unit }}</small></span></a></li>
     {% endfor %}
-    {% if attention == 0 %}<li class="empty"><span class="status ok">{% let icon = "ok" %}{% include "_icon.html" %}{{ "Nothing needs attention."|t }}</span></li>{% endif %}
   </ul></div>
+  <p class="small"><a href="/shopping">{{ "Shopping list"|t }} ›</a></p>
+  {% endif %}
   <details class="card mt">
     <summary class="row"><span class="grow"><b>{{ "Recent"|t }}</b></span>{% let icon = "chev" %}{% include "_icon.html" %}</summary>
     <ul class="list">
