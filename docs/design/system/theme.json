@@ -1,25 +1,25 @@
 {
   "token": {
-    "colorPrimary": "#2f6f4f",
-    "colorSuccess": "#2f6f4f",
-    "colorWarning": "#8a5a00",
-    "colorError": "#b3261e",
-    "colorInfo": "#1f5fa8",
-    "colorTextBase": "#1d1c1a",
+    "colorPrimary": "#141414",
+    "colorSuccess": "#1f4fa0",
+    "colorWarning": "#f2b705",
+    "colorError": "#c0261d",
+    "colorInfo": "#1f4fa0",
+    "colorTextBase": "#141414",
     "colorBgBase": "#ffffff",
     "fontFamily": "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, Roboto, sans-serif",
     "fontFamilyCode": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
     "fontSize": 16,
-    "borderRadius": 10,
+    "borderRadius": 0,
     "sizeUnit": 4,
     "sizeStep": 4,
-    "controlHeight": 44,
-    "lineWidth": 1,
+    "controlHeight": 48,
+    "lineWidth": 2,
     "motionUnit": 0.1,
     "motionBase": 0,
     "wireframe": false,
     "motion": false,
-    "colorLink": "#2f6f4f"
+    "colorLink": "#141414"
   },
   "algorithm": "default"
 }

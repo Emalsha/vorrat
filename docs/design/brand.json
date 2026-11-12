@@ -1,25 +1,25 @@
 {
   "name": "Vorrat",
   "tagline": "Know if your household is ready for a crisis, and stay ready.",
-  "description": "Vorrat (German for \"supplies\") is a private, self-hosted app for household emergency preparedness. It tracks real stock batch by batch with expiry dates, plans supplies for N people over D days from official civil-protection advice, and runs offline on a small machine such as a Raspberry Pi. The interface is a calm instrument panel: server-rendered, system fonts, one stylesheet, WCAG 2.2 AA.",
+  "description": "Vorrat (German for \"supplies\") is a private, self-hosted app for household emergency preparedness. It tracks real stock batch by batch with expiry dates, plans supplies for N people over D days from official civil-protection advice, and runs offline on a small machine such as a Raspberry Pi. The interface follows the Bauhaus idea that form follows the task: ink on paper, a grid of rules instead of boxes, square corners, and three signal colours that each mean one thing. Server-rendered, one stylesheet, one bundled font, WCAG 2.2 AA.",
   "sourceUrl": "designmd://product",
   "seed": {
-    "colorPrimary": "#2f6f4f",
-    "colorSuccess": "#2f6f4f",
-    "colorWarning": "#8a5a00",
-    "colorError": "#b3261e",
-    "colorInfo": "#1f5fa8",
-    "colorLink": "#2f6f4f",
-    "colorTextBase": "#1d1c1a",
+    "colorPrimary": "#141414",
+    "colorSuccess": "#1f4fa0",
+    "colorWarning": "#f2b705",
+    "colorError": "#c0261d",
+    "colorInfo": "#1f4fa0",
+    "colorLink": "#141414",
+    "colorTextBase": "#141414",
     "colorBgBase": "#ffffff",
     "fontFamily": "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, Roboto, sans-serif",
     "fontFamilyCode": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
     "fontSize": 16,
-    "borderRadius": 10,
+    "borderRadius": 0,
     "sizeUnit": 4,
     "sizeStep": 4,
-    "controlHeight": 44,
-    "lineWidth": 1,
+    "controlHeight": 48,
+    "lineWidth": 2,
     "motion": false
   },
   "logo": {
@@ -28,75 +28,85 @@
       "logos/vorrat-icon-192.png",
       "logos/vorrat-apple-touch-180.png"
     ],
-    "notes": "Measured from vorrat/static/icon-*.png (the PWA and apple-touch icons). A paper-white storage jar with a blank label on a rounded forest-green tile (#2f6f4f). The jar is #f4f3ef, which matches the manifest background_color. There is no separate wordmark: the desktop sidebar sets the icon at 32px with the name \"Vorrat\" in system bold (750) at 1.25rem beside it. Keep the tile intact, never recolor it, and give it clear space of at least a quarter of its width. No vector source exists in the repo, so use the 512px PNG for large sizes."
+    "notes": "Measured from vorrat/static/icon-*.png (the PWA and apple-touch icons). The three status shapes in a row on Paper (#eeede9) above an Ink band (#141414): a Signal Blue circle, a Signal Yellow triangle with an Ink edge, a Signal Red square. The manifest background_color is Paper and theme_color is Ink. The desktop sidebar sets the icon at 32px with the name \"Vorrat\" in Jost 600 at 1.375rem beside it. Keep the shapes in this order and these colours, and give the icon clear space of at least a quarter of its width. No vector source exists in the repo, so use the 512px PNG for large sizes."
   },
   "colors": [
     {
       "role": "background",
-      "hex": "#f5f4f0",
-      "oklch": "oklch(96.7% 0.005 95.1)",
+      "hex": "#eeede9",
+      "oklch": "oklch(94.6% 0.005 95.1)",
       "name": "Paper",
-      "usage": "Page background (--bg). A warm, very low-chroma off-white that keeps the calm state quiet. Also the sticky header and the row hover fill. Measured from static/app.css :root. Dark: #121311."
+      "usage": "Page background (--bg). A neutral, very slightly warm grey. Dark: #121212."
     },
     {
       "role": "surface",
       "hex": "#ffffff",
       "oklch": "oklch(100% 0 0)",
       "name": "Card",
-      "usage": "Cards, lists, inputs and the navigation bar (--surface). White surfaces with a 1px border and no shadow. Dark: #1c1d1b."
+      "usage": "Header, navigation, inputs and hovered rows (--surface). Sections are not boxed: they sit on Paper under a 2px Ink rule. Dark: #1d1d1c."
     },
     {
       "role": "foreground",
-      "hex": "#1d1c1a",
-      "oklch": "oklch(22.7% 0.004 84.6)",
+      "hex": "#141414",
+      "oklch": "oklch(19.1% 0 0)",
       "name": "Ink",
-      "usage": "Body text and headings (--ink). 15.5:1 on Paper, 17.0:1 on Card. Dark: #ecebe7."
+      "usage": "Text, headings, rules, control edges, the primary button and the day squares (--ink, also --accent). 15.7:1 on Paper, 18.4:1 on Card. Text on Ink is #ffffff. Dark: #f0efea with #121212 on it."
     },
     {
       "role": "muted",
-      "hex": "#5c5851",
-      "oklch": "oklch(46.2% 0.012 81.8)",
+      "hex": "#4d4c48",
+      "oklch": "oklch(41.6% 0.007 95.2)",
       "name": "Ink 2",
-      "usage": "Secondary text, section headings, metadata, inactive tabs (--ink-2). 6.4:1 on Paper, 7.1:1 on Card. Dark: #a8a49c."
+      "usage": "Secondary text and metadata (--ink-2). 7.3:1 on Paper, 8.6:1 on Card. Also the hover fill of the primary button. Dark: #b3b1ab."
     },
     {
       "role": "border",
-      "hex": "#e4e1da",
-      "oklch": "oklch(91.0% 0.010 87.5)",
+      "hex": "#d9d8d3",
+      "oklch": "oklch(88.2% 0.007 97.4)",
       "name": "Line",
-      "usage": "Decorative dividers and card edges only (--line). Never the only edge of a control; fields use Field. Control edges use Field #8c877e (dark #77736b, 3.6:1); progress tracks use #d6d2ca (dark #3a3b38). Dark: #2c2d2a."
+      "usage": "Hairlines between rows and the empty part of a bar (--line, --track). Never the only edge of a control; fields use Field #6b6a66 (dark #8a8984, 4.8:1 or better). Dark: #343432, track #3a3a38."
     },
     {
       "role": "accent",
-      "hex": "#2f6f4f",
-      "oklch": "oklch(49.0% 0.084 159.2)",
-      "name": "Forest",
-      "usage": "Primary buttons, links, current tab, the covered state, progress fill (--accent). 6.0:1 on Card. Matches the icon tile and theme-color. Use only where action is needed; the calm state stays uncolored. Text on Forest is #ffffff; the soft fill for secondary buttons and notices is Forest Soft #e8f1ec (Forest on it 5.2:1). Dark: accent #6cc095 with ink #0d1a13 and soft #1d2b23."
+      "hex": "#1f4fa0",
+      "oklch": "oklch(44.3% 0.142 260.3)",
+      "name": "Signal Blue",
+      "usage": "Covered: the circle and its word (--ok), and the 3px focus ring (--focus). 7.8:1 on Card. Dark: #86a8ee."
     },
     {
       "role": "accent-secondary",
-      "hex": "#1f5fa8",
-      "oklch": "oklch(48.5% 0.133 254.6)",
-      "name": "Focus Blue",
-      "usage": "The 3px :focus-visible ring and information notes (--focus). 6.4:1 on Card. Not for buttons or decoration. Dark: #8ab4ff."
+      "hex": "#f2b705",
+      "oklch": "oklch(81.1% 0.166 85.0)",
+      "name": "Signal Yellow",
+      "usage": "Soon and low: only as the fill of the triangle, which has a 1.6px Ink edge (--yellow). Never text: 1.8:1 on Card. The same in both themes."
+    },
+    {
+      "role": "accent-tertiary",
+      "hex": "#c0261d",
+      "oklch": "oklch(52.5% 0.191 29.0)",
+      "name": "Signal Red",
+      "usage": "Expired, missing, destructive: the square, its word, and the edge and text of the danger button (--crit). 5.9:1 on Card, 5.1:1 on Paper. Dark: #ff7b6e."
     }
   ],
   "typography": {
     "display": {
-      "family": "system-ui",
+      "family": "Jost",
       "fallbacks": [
+        "Futura",
+        "Century Gothic",
         "-apple-system",
         "BlinkMacSystemFont",
         "Segoe UI",
-        "Roboto",
+        "system-ui",
         "sans-serif"
       ],
       "weights": [
+        400,
+        500,
         600,
-        650,
-        750
+        700
       ],
-      "notes": "Measured. Vorrat ships no web fonts by rule (offline, no CDNs, Raspberry Pi). Headings use the platform UI face: SF on Apple, Segoe UI on Windows, Roboto on Android. Page title 1.25rem (1.5rem on desktop) at 600–700; the readiness number is 2.25rem at 750 with line-height 1.1. Section headings (h2) are 0.75rem, uppercase, letter-spacing .06em, in Ink 2."
+      "notes": "One variable woff2, subset to Latin and Latin Extended, about 23 KB, SIL Open Font License, bundled in the binary and served from /static/jost.woff2. Never loaded from the internet. Used for page titles, section labels, the big readiness number, counts and the brand name. Page title 1.375rem (1.75rem on desktop) at 600; the readiness number 4rem at 600 with its unit at 1.375rem 400 in Ink 2. Section labels 0.75rem, 600, uppercase, letter-spacing .14em, in Ink."
     },
     "body": {
       "family": "system-ui",
@@ -113,7 +123,7 @@
         600,
         650
       ],
-      "notes": "Measured: body is 1rem/1.45. The real stack order in app.css is -apple-system, BlinkMacSystemFont, \"Segoe UI\", system-ui, Roboto, sans-serif. Small text 0.875rem; nothing below 0.75rem, and 0.75rem only for tab labels. Inputs are 16px so iOS does not zoom. Labels and buttons 600–650."
+      "notes": "Body text stays in the platform face because it reads best at small sizes on cheap screens. 1rem/1.45. Small text 0.875rem; nothing below 0.75rem. Inputs are 16px so iOS does not zoom. Labels and buttons 600. No lowercase-only Bauhaus type: German capitalises nouns, and mixed case reads faster."
     },
     "mono": {
       "family": "ui-monospace",
@@ -126,7 +136,7 @@
       "weights": [
         400
       ],
-      "notes": "Inferred: app.css only sets code at .9em with the browser default monospace. Use for barcodes and codes only."
+      "notes": "Barcodes and codes only."
     }
   },
   "voice": {
@@ -154,7 +164,8 @@
         "In 5 days",
         "Missing 12 L",
         "Ready for N of D days",
-        "Needs attention",
+        "Use first",
+        "Running low",
         "Nothing needs attention.",
         "Add stock",
         "Used up",
@@ -177,41 +188,45 @@
     }
   },
   "imagery": {
-    "style": "Functional, not decorative: user photos of their own products and documents, small inline SVG line icons, and native progress bars.",
+    "style": "Functional, not decorative: user photos of their own products and documents, small inline SVG line icons, the three status shapes, and day squares.",
     "subjects": [
       "the household's own product photos (thumbnails from a barcode lookup or a phone upload)",
       "scanned documents such as a passport or insurance",
-      "2px-stroke line icons: home, stock grid, plus, shield-check, cart, medical case, people, location pin, gear"
+      "2px-stroke line icons: home, stock grid, plus, shield-check, cart, medical case, people, location pin, gear",
+      "status shapes: Signal Blue circle, Signal Yellow triangle with an Ink edge, Signal Red square"
     ],
-    "treatment": "Product thumbnails are 42px squares (64–88px on forms and item pages) with a 10px radius, object-fit cover and a Forest Soft placeholder that shows the initial letter. Icons are inline SVG, 24×24 viewBox, stroke currentColor, stroke-width 2 (2.5 for status icons), round caps and joins, no fills. The camera scanner is the only dark surface: black with a white 3px frame.",
+    "treatment": "Product thumbnails are 42px squares (64–88px on forms and item pages), square corners, object-fit cover. Without a photo there is no thumbnail. Icons are inline SVG, 24×24 viewBox, stroke currentColor, stroke-width 2. Status shapes are filled SVG at 0.8em, always followed by a word. The camera scanner is the only black surface: black with a white 3px frame.",
     "avoid": [
       "stock photography",
       "hero illustrations",
       "hand-drawn people",
       "emoji as icons",
       "icon fonts or icon CDNs",
-      "decorative gradients",
+      "gradients",
       "drop shadows",
+      "rounded corners",
       "alarm imagery such as sirens or warning tape"
     ]
   },
   "layout": {
-    "radius": "14px cards, 10px buttons and fields, 999px pills and chips, 6px checkboxes",
-    "borderWeight": "1px (Line on cards, Field on controls); 2px tick boxes; 3px focus ring",
+    "radius": "0 everywhere. The circle status shape is the only round form.",
+    "borderWeight": "2px Ink rules above sections, under the header and above the tab bar; 2px Ink on buttons and chips; 2px Field on inputs and tick boxes; 1px Line between rows; 3px Signal Blue focus ring.",
     "spacing": "4px base: 4, 8, 12, 16, 24, 32 px (--s1…--s6), nothing in between",
     "postureRules": [
       "Every screen answers, in order: Are we all right? What needs doing? How do I do it? The most important number is first and biggest.",
-      "Phone-first, one column at most 720px wide with 16px gutters and a fixed five-place bottom navigation (Home, Stock, Add, Plan, Shopping), with Add as a raised round 48px button in the middle. From 64em a 248px sidebar replaces it (Add stock as the one primary button; current item = Forest Soft fill, Forest text, 4px left bar); from 75em pages use .cols at 3:2.",
-      "Flat surfaces: white cards with a 1px Line border and 14px radius on Paper, no shadows. Depth comes from the border, not elevation.",
-      "Every tap target is at least 44px tall (40px for small buttons and chips, rows 56px). One primary button per group; secondary actions are Forest Soft #e8f1ec with Forest text.",
-      "Status palette (measured; part of the brand palette even though outside the seven core roles): Amber #8a5a00 on Amber Soft #fff3d6 for soon, low and partly covered (dark #ffcc66 on #352a14); Brick #b3261e on Brick Soft #fbe9e7 for expired, missing and destructive (dark #ff8a80 on #3a1d1b); Slate #2f4f6f with white text for demo and offline notes.",
-      "Colour means 'look here': the calm state is uncolored. Status always pairs a colour with an icon and a word: check = Covered, clock = Soon/Low, exclamation in a circle = Expired/Missing.",
-      "Components: .btn (Forest Soft, 10px radius, 44px, weight 650; .primary Forest/white; .danger Brick Soft/Brick); field = visible 0.875rem label above a 44px input with a 1px Field border and 16px text; .chip = 40px pill, selected Forest fill; .pill = 0.875rem bold 999px status tag; progress = 10px rounded bar on Track, numbers always beside it; .notice = Forest Soft with 1px Forest border, role=status, optional Undo.",
-      "Type scale: readiness number 2.25rem/750/line-height 1.1 with its unit in 1.25rem Ink 2; page title 1.25rem (1.5rem desktop); section labels 0.75rem uppercase +.06em in Ink 2; body 1rem/1.45; small 0.875rem; nothing below 0.75rem.",
-      "States: hover underlines links, darkens buttons 3%, fills rows with Paper; never fade text to grey. Focus is a 3px Focus Blue outline at 2px offset, never removed. Current item uses aria-current plus a non-colour cue.",
+      "Readiness is counted in days and drawn as days: one square per planned day (up to 31), filled in Ink for each whole day the weakest essential lasts. Over 31 days, a square-ended bar.",
+      "Phone-first, one column at most 720px wide with 16px gutters and a fixed five-place bottom navigation (Home, Stock, Add, Plan, Shopping). Add is a solid Ink cell in the same grid, not a raised button. The current place has a 4px Ink bar above it and bold text. From 64em a 248px sidebar replaces it (Add stock as the one solid button; current item = Paper fill, bold, 4px Ink bar on the left); from 75em pages use .cols at 3:2.",
+      "Rules, not boxes: a section is a label, a 2px Ink rule and rows separated by 1px Line hairlines, on Paper. No cards, no shadows.",
+      "Every tap target is at least 48px tall (40px for small buttons and chips, rows 56px). One solid button per group; other buttons are transparent with a 2px Ink edge.",
+      "Home groups work by what you do with it: Expired (one Thrown away button per row), Use first (one Used up button per row), Running low. The other choice lives on the item page.",
+      "Plan lists the essentials least covered first, each with its day squares, its amounts and its status.",
+      "Colour means 'look here': the calm state is ink on paper. Status always pairs a shape, a word and a colour: circle = Covered, triangle = Soon/Low, square = Expired/Missing. Bars and day squares are always Ink; the colour sits in the status word beside them.",
+      "Components: .btn (transparent, 2px Ink edge, square, 48px, weight 600; .primary Ink fill with Paper text; .danger Signal Red edge and text); field = visible 0.875rem label above a 48px input with a 2px Field border and 16px text; .chip = 40px square, 2px Ink edge, selected Ink fill; .pill = 0.875rem status shape plus word, no fill; .count = the quantity at the end of a stock row in Jost with tabular figures; .notice = Card with a 2px Ink edge, role=status, optional Undo; demo and offline notes are a thin Ink band.",
+      "Type scale: readiness number 4rem/600/line-height .95 with its unit in 1.375rem Ink 2; page title 1.375rem (1.75rem desktop); section labels 0.75rem uppercase +.14em in Ink; body 1rem/1.45; small 0.875rem; nothing below 0.75rem.",
+      "States: hover thickens link underlines, fills secondary buttons and rows with Card or a light grey, turns the solid button Ink 2. Links are Ink and always underlined. Focus is a 3px Signal Blue outline at 2px offset, never removed. Current item uses aria-current plus a non-colour cue.",
       "No motion: nothing animates, fades or moves on its own. Notices stay until the next page so Undo can't vanish. Honour prefers-reduced-motion and forced-colors by keeping borders.",
       "Secondary information (files, barcodes, prices, history) lives in native <details> disclosures so the first screen shows only daily essentials.",
-      "Don't: web fonts or Inter, shadows, gradients, animation, fading toasts, red full-screen banners, several solid buttons for one action, inline styles, emoji icons, exclamation marks."
+      "Don't: fonts from the internet, shadows, gradients, rounded corners, animation, fading toasts, red full-screen banners, several solid buttons for one action, inline styles, emoji icons, exclamation marks, yellow text."
     ]
   }
 }

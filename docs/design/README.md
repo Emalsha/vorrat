@@ -10,12 +10,13 @@ live in the app.
 
 | Path | What it is |
 |---|---|
-| `DESIGN.md` | The design system itself and the source of truth: palette, type, voice, imagery, layout and posture rules. |
-| `brand.json` | The Open Design project file `DESIGN.md` is generated from. Edit the brand in Open Design, not here. |
-| `system/tokens.*.json`, `system/variables*.css`, `system/theme.json`, `system/seed.json` | Tokens the Open Design engine derives from the seed colours (`--brand-*`). Reference only, see below. |
-| `system/BRAND-SYSTEM.md` | Open Design's notes on those derived files. |
+| `DESIGN.md` | The design system itself and the source of truth: principles, palette, type, voice, imagery, layout and posture rules. |
+| `brand.json` | The Open Design project file `DESIGN.md` is generated from. It says the same as `DESIGN.md`; import it into Open Design to keep editing the brand there. |
+| `system/seed.json`, `system/theme.json` | The seed (colours, fonts, radius, control height, line width) as Open Design stores it. |
+| `system/BRAND-SYSTEM.md` | Open Design's notes on the files it generates. |
 
-Left out of the export on purpose: the component showcase
+Left out of the export on purpose: the derived tokens
+(`system/tokens.*.json`, `system/variables*.css`, see below); the component showcase
 (`system/kit.html`, `system/kit.dark.html`), because it is drawn with the
 derived tokens below and shows shadows, dashed buttons and colours Vorrat
 doesn't use; the generic marketing pieces
@@ -26,15 +27,15 @@ with `DESIGN.md`; `logos/`, copies of `static/icon-*.png`; and
 `system/scripts/apply-design-tokens.mjs`, which would overwrite a stylesheet
 with the derived tokens.
 
-## Don't use the derived `--brand-*` tokens
+## Don't use derived `--brand-*` tokens
 
-The derived tokens come from a generic algorithm and don't match `DESIGN.md`
-or the app. Several fail WCAG 2.2 AA: the dark primary `#406d55` is 3.1:1 on
-the dark page, black text on Forest is 3.5:1, and Forest on the derived
-`primary-bg` `#a5b0a9` is 2.7:1. They also still describe the earlier green
-design: `brand.json` and `system/` predate the Bauhaus palette and need a new
-export from Open Design. `DESIGN.md` is what the app follows. Never copy `variables.css` into
-`static/`.
+Open Design derives about 200 tokens per theme (`--brand-*`) from the seed
+with a generic algorithm. They don't match `DESIGN.md` or the app, and the
+last set failed WCAG 2.2 AA in several places (a 3.1:1 dark primary, a
+2.7:1 primary on its own background). They are not kept here. If a new
+export brings them back, leave them out, and never copy a `variables.css`
+into `static/`. `DESIGN.md` and the tokens in `static/app.css` are what the
+app follows.
 
 ## How the design maps onto the app
 
@@ -72,6 +73,12 @@ pair meets WCAG 2.2 AA in both themes.
 
 ## Updating the design
 
+A change can start in either place. Whichever it is, `DESIGN.md`,
+`brand.json`, `static/app.css` and this mapping table change together in one
+pull request, and `cargo test --test ui` checks that they agree.
+
+### From Open Design
+
 1. Change the brand in Open Design and export the design system as a zip.
 2. Unzip it into a new, empty folder outside the repository.
 3. Compare it with this folder, for example
@@ -88,3 +95,17 @@ pair meets WCAG 2.2 AA in both themes.
 7. Update `docs/ui-guideline.md` if a rule changed, look at the pages in
    English and German, light and dark, at phone and desktop width, and open
    a pull request with screenshots.
+
+### From the repository
+
+The Bauhaus design started here, as a study and a prototype, not in Open
+Design. For a change like that:
+
+1. Change the tokens in `static/app.css`, light and dark, and the templates.
+2. Write the new values and rules into `DESIGN.md` (front matter, palette,
+   typography, layout, posture rules) and the same into `brand.json`
+   (`seed`, `colors`, `typography`, `imagery`, `layout`). Keep this mapping
+   table and `docs/ui-guideline.md` in step.
+3. Run the checks in step 6 above, and open a pull request with screenshots.
+4. After it is merged, import `brand.json` into Open Design so the next
+   export starts from the same brand.

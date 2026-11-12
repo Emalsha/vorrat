@@ -5,6 +5,7 @@ use std::collections::HashMap;
 
 const CSS: &str = include_str!("../static/app.css");
 const DESIGN: &str = include_str!("../docs/design/DESIGN.md");
+const BRAND: &str = include_str!("../docs/design/brand.json");
 
 /// How the colour names in the Open Design export (`docs/design/DESIGN.md`)
 /// map onto the tokens in `static/app.css`.
@@ -156,6 +157,62 @@ fn design_system_colours_match_the_tokens() {
         extra.is_empty(),
         "DESIGN.md colours without a token: {extra:?}"
     );
+    assert!(fails.is_empty(), "{}", fails.join("\n"));
+}
+
+/// `brand.json` is the Open Design project file: its palette must say the
+/// same as `DESIGN.md`, and its seed must use the same ink, signal colours,
+/// square corners and control height, so the next export doesn't bring back
+/// an older design.
+#[test]
+fn open_design_project_matches_design_md() {
+    let brand: serde_json::Value = serde_json::from_str(BRAND).expect("brand.json is JSON");
+    let design = design_colours();
+    let hex = |h: &str| {
+        let h = h.trim_start_matches('#');
+        let byte = |i: usize| u8::from_str_radix(&h[i..i + 2], 16).unwrap();
+        [byte(0), byte(2), byte(4)]
+    };
+    let mut fails = Vec::new();
+    let colours = brand["colors"].as_array().expect("brand.json colors");
+    for c in colours {
+        let name = c["name"].as_str().unwrap().to_lowercase().replace(' ', "-");
+        let value = hex(c["hex"].as_str().unwrap());
+        match design.get(&name) {
+            Some(d) if *d == value => {}
+            d => fails.push(format!(
+                "brand.json {name} is {value:?}, DESIGN.md has {d:?}"
+            )),
+        }
+    }
+    if colours.len() != design.len() {
+        fails.push(format!(
+            "brand.json has {} colours, DESIGN.md {}",
+            colours.len(),
+            design.len()
+        ));
+    }
+    let seed = &brand["seed"];
+    for (key, name) in [
+        ("colorPrimary", "ink"),
+        ("colorTextBase", "ink"),
+        ("colorSuccess", "signal-blue"),
+        ("colorWarning", "signal-yellow"),
+        ("colorError", "signal-red"),
+    ] {
+        let v = seed[key].as_str().map(hex);
+        if v.as_ref() != design.get(name) {
+            fails.push(format!(
+                "brand.json seed.{key} is {v:?}, DESIGN.md {name} differs"
+            ));
+        }
+    }
+    if seed["borderRadius"] != 0 {
+        fails.push("brand.json seed.borderRadius must be 0".into());
+    }
+    if seed["controlHeight"] != 48 {
+        fails.push("brand.json seed.controlHeight must be 48".into());
+    }
     assert!(fails.is_empty(), "{}", fails.join("\n"));
 }
 

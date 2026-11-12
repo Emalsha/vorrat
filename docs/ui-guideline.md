@@ -11,7 +11,15 @@ source of truth, and `docs/design/README.md` maps it onto the tokens in
 applies that design to Vorrat's screens. When you build or change a page,
 read `DESIGN.md` for how it should look and sound, and this file for how it
 must behave. Where they differ, this file wins, and the difference should be
-fixed in Open Design so the next export agrees.
+fixed in `DESIGN.md` and `brand.json` so the two agree again.
+
+The look is Bauhaus: ink on paper, rules instead of boxes, square corners,
+and three signal colours that each mean one state, paired with a shape
+(blue circle = covered, yellow triangle = soon or low, red square = expired
+or missing). The "Principles" in `DESIGN.md` explain why; follow them for
+anything this file doesn't cover. A new component reuses the tokens, the
+2 px rule, the status shapes from `_icon.html` and the existing classes in
+section 7 before adding anything new.
 
 The guideline started from a first draft researched with another assistant
 (Grok). Every claim in that draft was checked against the sources listed at the
@@ -395,13 +403,16 @@ Automatic, in `cargo test` (`tests/ui.rs`):
 
 - Contrast of every token pair in light and dark against WCAG AA.
 - The colours in the front matter of `docs/design/DESIGN.md` equal the light
-  tokens.
+  tokens, and the palette in `docs/design/brand.json` equals `DESIGN.md`.
 - No `style="` attributes in templates.
 - No `|safe` in templates.
 
 By hand, for any change people see (say in the pull request what you did):
 
 - Look at the page at 360 px wide, in English and German, light and dark.
+- Status shows a shape and a word, never colour alone; yellow is never text.
+- Corners are square, sections use the 2 px rule, and there is at most one
+  solid ink button per group.
 - Tab through it with a keyboard: every control reachable, focus visible and
   not hidden under the header or navigation.
 - Zoom the text to 200 %: nothing cut off, no sideways scrolling.
@@ -411,7 +422,7 @@ By hand, for any change people see (say in the pull request what you did):
 ## Differences from the first draft
 
 Kept: the instrument-panel idea, the order of goals, "never colour alone",
-system fonts, 16 px body text, visible labels, empty states that say what to
+system fonts for body text, 16 px body text, visible labels, empty states that say what to
 do, progressive enhancement, Home and Stock first.
 
 Corrected:
@@ -445,7 +456,9 @@ Changed:
   "More" would cost more than a fifth tab. Settings stays in the header, as
   today. There is no Documents section yet; documents are items of kind
   "document".
-- **Green accent, not blue**, for the reason in section 5.
+- **Ink for actions, blue for "covered".** An earlier version kept Vorrat's
+  green as the accent for both; the Bauhaus redesign split them, for the
+  reason in section 5.
 - **No floating Add button** on Stock: the middle tab already is one.
 - **Messages after an action stay** instead of fading, so Undo can't vanish
   while someone reaches for it.

@@ -5,11 +5,16 @@ Everything below is *derived* — no token here was hand-authored.
 
 - **slug:** `vorrat`
 - **source:** designmd://product
-- **primary seed color:** `#2f6f4f`
+- **primary seed color:** `#141414`
 - **derived tokens per theme:** 218
 - **themes:** default · dark · compact (same seed, different algorithm)
 
 ## Files
+
+Vorrat keeps only `seed.json` and `theme.json` from this folder. The derived
+`tokens.*.json` and `variables*.css` are left out: they came from the
+earlier green seed, several of them failed WCAG AA, and `docs/design/README.md`
+says why the app never uses them. The table below is the engine's full list.
 
 | Path | What it is |
 | --- | --- |
