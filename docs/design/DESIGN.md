@@ -25,6 +25,24 @@ colors:
 
 Vorrat (German for "supplies") is a private, self-hosted app for household emergency preparedness. It tracks real stock batch by batch with expiry dates, plans supplies for N people over D days from official civil-protection advice, and runs offline on a small machine such as a Raspberry Pi. The interface follows the Bauhaus idea that form follows the task: ink on paper, a grid of rules instead of boxes, square corners, and three signal colours that each mean one thing. Server-rendered, one stylesheet, one bundled font, WCAG 2.2 AA.
 
+## Principles
+
+The design follows the Bauhaus idea that form follows the task. Every form on a screen has one job, and anything that has none is left out. These principles decide cases the rules below don't cover.
+
+- **Form follows the task.** Each screen answers one question. What doesn't help answer it moves into a disclosure or onto another page.
+- **Shape carries meaning.** Kandinsky's 1923 survey at the Bauhaus paired the circle with blue, the triangle with yellow and the square with red. Vorrat uses that pairing for status, so status reads by shape alone and colour is never the only cue (WCAG 1.4.1).
+- **Rules, not boxes.** Sections are separated by 2px Ink rules on a grid. No rounded cards, shadows or soft fills behind every row.
+- **Count in units.** What is counted in days is drawn as days. Numbers carry their unit and sit where the eye checks them.
+- **Black is the action.** The one solid button is Ink. Colour is kept for state, so anything coloured on screen means "look here", and a calm screen is ink on paper.
+- **Honest about limits.** Bauhaus lowercase-only type and geometric body text are not used: both slow reading, and German capitalises nouns. Jost is for headings and numbers only; body text stays in the system face.
+
+### Why these choices
+
+- Green is not used. It used to mean both "press this" and "covered", so the most common thing on screen and the calmest state shared a colour.
+- The focus ring is Signal Blue rather than Ink, so it stands out from the 2px Ink edges of buttons and fields.
+- Yellow is too light for text on white (1.8:1). It only fills the triangle, and the triangle's Ink edge gives the shape its contrast.
+- Jost is bundled into the binary (about 23 KB) and served by Vorrat itself, so the app stays offline and needs no outside host. If it is missing, Futura or the system face takes over and nothing breaks.
+
 ## Color Palette
 
 | Role | Name | Hex | Usage |
